@@ -47,7 +47,7 @@ export function ActivityFeed({ events, compact }: { events: ActivityEvent[] | nu
         const Icon = icons[e.type] ?? Activity
         return (
           <li key={e.id} className="flex animate-fade-in gap-3 px-4 py-2.5">
-            <span className={clsx('mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md border bg-panel-2', sevClass[e.severity])}>
+            <span className={clsx('mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full border bg-panel-2', sevClass[e.severity])}>
               <Icon className="size-3.5" aria-hidden />
             </span>
             <div className="min-w-0 flex-1">

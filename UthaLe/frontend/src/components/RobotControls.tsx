@@ -62,7 +62,7 @@ export function RobotControls({ robot, onChange }: { robot: RobotStatus | null; 
           <Button icon={Play} disabled={busy || !paused} onClick={() => send('resume')}>Resume</Button>
         </div>
 
-        <div className={clsx('rounded-xl border p-3', stopped ? 'border-crit/60 bg-crit/10' : 'border-crit/30 bg-crit/5')}>
+        <div className={clsx('rounded-2xl border p-3', stopped ? 'border-crit/50 bg-crit/12' : 'border-crit/20 bg-crit/6')}>
           <div className="flex flex-wrap items-center gap-2">
             {stopped ? (
               <Button variant="secondary" icon={RotateCcw} disabled={busy} onClick={() => send('reset')} className="flex-1">
@@ -81,7 +81,7 @@ export function RobotControls({ robot, onChange }: { robot: RobotStatus | null; 
         </div>
 
         {msg && (
-          <p className={clsx('rounded-lg border px-3 py-2 text-xs', msg.ok ? 'border-ok/30 bg-ok/10 text-ok-ink' : 'border-warn/40 bg-warn/10 text-warn-ink')}>
+          <p className={clsx('rounded-xl border px-3 py-2 text-xs', msg.ok ? 'border-ok/30 bg-ok/10 text-ok-ink' : 'border-warn/40 bg-warn/10 text-warn-ink')}>
             {msg.text}
           </p>
         )}

@@ -49,8 +49,8 @@ export function QcCard({ rec, onReviewed, showOrder = true }: { rec: QcRecord; o
   }
 
   return (
-    <article className={clsx('@container animate-fade-in rounded-xl border bg-panel',
-      needsReview ? (rec.status === 'FAIL' ? 'border-crit/45' : 'border-warn/45') : 'border-line')}>
+    <article className={clsx('@container glass animate-fade-in rounded-2xl border',
+      needsReview ? (rec.status === 'FAIL' ? 'border-crit/45' : 'border-warn/50') : 'border-glass-edge')}>
       <header className="flex flex-wrap items-center gap-2 border-b border-line px-4 py-3">
         <QcBadge status={rec.status} />
         <h3 className="text-[13px] font-semibold">{rec.item_name}<span className="font-normal text-ink-3"> ×{rec.expected_quantity}</span></h3>
@@ -68,12 +68,12 @@ export function QcCard({ rec, onReviewed, showOrder = true }: { rec: QcRecord; o
       <div className="grid gap-4 p-4 @xl:grid-cols-[200px_1fr]">
         <div>
           {rec.camera_evidence_url ? (
-            <button type="button" onClick={() => setZoom(true)} className="group relative block w-full overflow-hidden rounded-lg border border-line bg-black">
+            <button type="button" onClick={() => setZoom(true)} className="group relative block w-full overflow-hidden rounded-xl border border-line bg-black">
               <img src={rec.camera_evidence_url} alt={`Camera frame at verification of ${rec.id}`} className="aspect-video w-full object-cover transition-opacity group-hover:opacity-80" loading="lazy" />
               <span className="absolute left-1.5 top-1.5 inline-flex items-center gap-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] text-white"><Camera className="size-3" />frame</span>
             </button>
           ) : (
-            <div className="flex aspect-video w-full flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-line-strong text-ink-3">
+            <div className="flex aspect-video w-full flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-line-strong text-ink-3">
               <ImageOff className="size-4" /><span className="text-[11px]">No camera evidence</span>
             </div>
           )}
@@ -116,7 +116,7 @@ export function QcCard({ rec, onReviewed, showOrder = true }: { rec: QcRecord; o
           )}
 
           {needsReview && (
-            <div className="space-y-2 rounded-lg border border-line bg-panel-2 p-3">
+            <div className="space-y-2 rounded-xl bg-panel-2 p-3">
               <p className="text-xs font-medium text-ink-2">Human review required</p>
               <div className="grid gap-2 @md:grid-cols-[160px_1fr]">
                 <input className={inputClass} placeholder="Reviewer name" value={reviewer} onChange={(e) => setReviewer(e.target.value)} maxLength={60} aria-label="Reviewer name" />
@@ -133,8 +133,8 @@ export function QcCard({ rec, onReviewed, showOrder = true }: { rec: QcRecord; o
       </div>
 
       {zoom && rec.camera_evidence_url && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-6" onClick={() => setZoom(false)}>
-          <img src={rec.camera_evidence_url} alt="Camera evidence" className="max-h-full max-w-full rounded-lg" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6 backdrop-blur-xl" onClick={() => setZoom(false)}>
+          <img src={rec.camera_evidence_url} alt="Camera evidence" className="max-h-full max-w-full rounded-2xl shadow-2xl" />
         </div>
       )}
     </article>
@@ -154,7 +154,7 @@ function Sensor({ icon: Icon, label, value, ok, missing, sim }: {
   icon: typeof Nfc; label: string; value: string; ok: boolean; missing: boolean; sim: boolean
 }) {
   return (
-    <div className={clsx('flex items-center gap-2.5 rounded-lg border px-3 py-2',
+    <div className={clsx('flex items-center gap-2.5 rounded-xl border px-3 py-2',
       missing ? 'border-line border-dashed' : ok ? 'border-ok/30 bg-ok/5' : 'border-warn/40 bg-warn/5')}>
       <Icon className={clsx('size-4 shrink-0', missing ? 'text-ink-3' : ok ? 'text-ok-ink' : 'text-warn-ink')} />
       <div className="min-w-0 flex-1">

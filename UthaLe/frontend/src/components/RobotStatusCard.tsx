@@ -25,13 +25,13 @@ export function RobotStatusCard({ robot, error, className }: { robot: RobotStatu
       ) : (
         <div className="space-y-4">
           {robot.simulated && (
-            <div className="flex gap-2 rounded-lg border border-sim/30 bg-sim/8 px-3 py-2 text-xs text-sim-ink">
+            <div className="flex gap-2 rounded-xl border border-sim/25 bg-sim/10 px-3 py-2 text-xs text-sim-ink">
               <FlaskConical className="mt-0.5 size-3.5 shrink-0" />
               <span>Simulated adapter. Mission state and zone come from the simulator, <b>not</b> robot telemetry. No physical robot is being commanded.</span>
             </div>
           )}
           {robot.stop_reason && (
-            <div className="rounded-lg border border-crit/40 bg-crit/10 px-3 py-2 text-xs text-crit-ink">
+            <div className="rounded-xl border border-crit/30 bg-crit/10 px-3 py-2 text-xs text-crit-ink">
               {robot.stop_reason}. Reset it on the Live Robot page.
             </div>
           )}

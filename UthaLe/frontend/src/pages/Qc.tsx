@@ -26,7 +26,7 @@ export function QcPage() {
       />
       {error && <div className="mb-4"><ErrorNote error={error} /></div>}
 
-      <div className="mb-4 grid gap-3 rounded-xl border border-line bg-panel p-4 text-xs text-ink-2 md:grid-cols-3">
+      <div className="mb-4 grid gap-3 glass rounded-2xl border border-glass-edge p-4 text-xs text-ink-2 md:grid-cols-3">
         <div><p className="font-medium text-ink">PASS</p><p className="mt-0.5 text-ink-3">Robot placed the item, the NFC tag matches the SKU, and the tote weight is within ±10%.</p></div>
         <div><p className="font-medium text-ink">REVIEW</p><p className="mt-0.5 text-ink-3">Evidence is missing or unclear (no tag read, weight off, no sensors). A human decides.</p></div>
         <div><p className="font-medium text-ink">FAIL</p><p className="mt-0.5 text-ink-3">Evidence contradicts the order (wrong item, empty tote, pick failed). Human review required.</p></div>
@@ -45,7 +45,7 @@ export function QcPage() {
       </div>
 
       {!rows ? <p className="text-xs text-ink-3">Loading…</p> : rows.length === 0 ? (
-        <div className="rounded-xl border border-line bg-panel">
+        <div className="glass rounded-2xl border border-glass-edge">
           <EmptyState icon={ShieldCheck} title={filter === 'flagged' ? 'Nothing waiting for review' : 'No records'}>
             {filter === 'flagged' ? 'Flagged placements show up here. To demo one, arm an anomaly on the Live Robot page.' : 'Records are created as the robot places items.'}
           </EmptyState>

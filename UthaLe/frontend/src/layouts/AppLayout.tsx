@@ -40,7 +40,7 @@ function SystemStatus() {
   const { data: flagged } = usePoll(() => api.qc('flagged'), 4000)
   const up = !!health && !error
   return (
-    <div className="space-y-2 rounded-xl border border-line bg-panel-2 p-3 text-xs">
+    <div className="space-y-2 rounded-xl bg-panel-2 p-3 text-xs">
       <Row label="Backend" ok={up} text={up ? 'Online' : 'Offline'} />
       <Row label="Camera" ok={health?.camera === 'streaming'} text={health ? health.camera : '—'} />
       <div className="flex items-center justify-between">
@@ -50,7 +50,7 @@ function SystemStatus() {
           : <span className="text-ink-2">{health?.robot_adapter ?? '—'}</span>}
       </div>
       {!!flagged?.length && (
-        <NavLink to="/qc" className="mt-1 flex items-center justify-between rounded-md border border-warn/30 bg-warn/10 px-2 py-1 text-warn-ink">
+        <NavLink to="/qc" className="mt-1 flex items-center justify-between rounded-lg bg-warn/14 px-2 py-1 text-warn-ink">
           <span>QC needs review</span><span className="tabular font-semibold">{flagged.length}</span>
         </NavLink>
       )}
@@ -67,12 +67,12 @@ const themeOptions: { value: ThemeChoice; label: string; icon: LucideIcon }[] = 
 function ThemeToggle() {
   const choice = useThemeChoice()
   return (
-    <div className="grid grid-cols-3 gap-1 rounded-lg border border-line bg-panel-2 p-1" role="radiogroup" aria-label="Theme">
+    <div className="grid grid-cols-3 gap-0.5 rounded-full bg-panel-3 p-0.5" role="radiogroup" aria-label="Theme">
       {themeOptions.map(({ value, label, icon: Icon }) => (
         <button key={value} type="button" role="radio" aria-checked={choice === value} title={label}
           onClick={() => setThemeChoice(value)}
-          className={clsx('inline-flex h-7 items-center justify-center gap-1 rounded-md text-[11px] font-medium transition-colors',
-            choice === value ? 'bg-panel text-ink shadow-sm' : 'text-ink-3 hover:text-ink-2')}>
+          className={clsx('inline-flex h-7 items-center justify-center gap-1 rounded-full text-[11px] font-medium transition-all',
+            choice === value ? 'bg-elevated text-ink shadow-[0_1px_3px_rgba(0,0,0,0.12)]' : 'text-ink-2 hover:text-ink')}>
           <Icon className="size-3.5" aria-hidden />{label}
         </button>
       ))}
@@ -99,12 +99,11 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         {nav.map(({ to, label, icon: Icon }) => (
           <NavLink key={to} to={to} end={to === '/'} onClick={onNavigate}
             className={({ isActive }) => clsx(
-              'group relative flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors',
-              isActive ? 'bg-panel-3 text-ink' : 'text-ink-2 hover:bg-panel-2 hover:text-ink',
+              'group relative flex items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-medium transition-colors',
+              isActive ? 'bg-brand/12 text-ink' : 'text-ink-2 hover:bg-panel-2 hover:text-ink',
             )}>
             {({ isActive }) => (
               <>
-                {isActive && <span className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-brand" aria-hidden />}
                 <Icon className={clsx('size-4', isActive ? 'text-brand' : 'text-ink-3 group-hover:text-ink-2')} aria-hidden />
                 {label}
               </>
@@ -122,19 +121,19 @@ export function AppLayout() {
 
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[248px_1fr]">
-      <aside className="sticky top-0 hidden h-screen border-r border-line bg-panel/60 lg:block">
-        <Sidebar />
+      <aside className="sticky top-0 hidden h-screen p-3 pr-0 lg:block">
+        <div className="glass h-full rounded-2xl border border-glass-edge"><Sidebar /></div>
       </aside>
 
-      <div className="sticky top-0 z-30 flex items-center justify-between border-b border-line bg-ground/90 px-4 py-3 backdrop-blur lg:hidden">
+      <div className="glass sticky top-0 z-30 flex items-center justify-between border-b border-glass-edge px-4 py-3 lg:hidden">
         <Logo />
-        <button type="button" className="rounded-lg border border-line p-2 text-ink-2" onClick={() => setOpen(true)} aria-label="Open menu">
+        <button type="button" className="rounded-full bg-panel-2 p-2 text-ink-2" onClick={() => setOpen(true)} aria-label="Open menu">
           <Menu className="size-5" />
         </button>
       </div>
       {open && (
-        <div className="fixed inset-0 z-40 bg-black/70 lg:hidden" onClick={() => setOpen(false)}>
-          <aside className="h-full w-72 animate-fade-in border-r border-line bg-panel" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm lg:hidden" onClick={() => setOpen(false)}>
+          <aside className="glass-strong h-full w-72 animate-fade-in rounded-r-3xl border-r border-glass-edge" onClick={(e) => e.stopPropagation()}>
             <button type="button" className="absolute right-3 top-3 rounded-lg p-2 text-ink-3" onClick={() => setOpen(false)} aria-label="Close menu">
               <X className="size-5" />
             </button>

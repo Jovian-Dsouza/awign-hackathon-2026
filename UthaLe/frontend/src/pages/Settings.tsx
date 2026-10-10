@@ -63,14 +63,14 @@ export function SettingsPage() {
               Runtime change only. To persist it, set <code className="font-mono text-ink-2">CAMERA_INDEX</code> in <code className="font-mono text-ink-2">backend/.env</code>.
               Indices shift when devices are plugged in or out, and virtual cameras (OBS, Snap Camera) take indices too.
             </p>
-            <div className="rounded-lg border border-line bg-panel-2 px-3"><KV data={cam.data ? { ...cam.data } as Record<string, string | number | null> : undefined} /></div>
-            <div className="rounded-lg border border-line bg-panel-2 px-3"><KV data={settings.data?.camera} /></div>
+            <div className="rounded-xl bg-panel-2 px-3"><KV data={cam.data ? { ...cam.data } as Record<string, string | number | null> : undefined} /></div>
+            <div className="rounded-xl bg-panel-2 px-3"><KV data={settings.data?.camera} /></div>
           </div>
         </Panel>
 
         <div className="space-y-4">
           <Panel icon={Bot} title="Robot connection">
-            <div className="mb-3 flex gap-2 rounded-lg border border-sim/30 bg-sim/8 px-3 py-2 text-xs text-sim-ink">
+            <div className="mb-3 flex gap-2 rounded-xl border border-sim/25 bg-sim/10 px-3 py-2 text-xs text-sim-ink">
               <FlaskConical className="mt-0.5 size-3.5 shrink-0" />
               <span>Only the simulated adapter is implemented. A real adapter (Stretch SDK / ROS 2) plugs in behind the <code className="font-mono">RobotAdapter</code> interface in <code className="font-mono">backend/app/services/robot.py</code>.</span>
             </div>

@@ -16,7 +16,7 @@ export function Panel({ title, icon: Icon, actions, children, className, bodyCla
   bodyClass?: string
 }) {
   return (
-    <section className={clsx('flex min-w-0 flex-col rounded-xl border border-line bg-panel shadow-[0_1px_2px_rgba(15,23,42,0.04)]', className)}>
+    <section className={clsx('flex min-w-0 flex-col glass rounded-2xl border border-glass-edge', className)}>
       {title && (
         <header className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-line px-4 py-3">
           {Icon && <Icon className="size-4 text-ink-3" aria-hidden />}
@@ -41,7 +41,7 @@ const toneClass: Record<Tone, string> = {
   crit: 'border-crit/40 bg-crit/12 text-crit-ink',
   info: 'border-info/35 bg-info/10 text-info-ink',
   sim: 'border-sim/40 bg-sim/12 text-sim-ink',
-  neutral: 'border-line-strong bg-panel-3 text-ink-2',
+  neutral: 'border-line bg-panel-2 text-ink-2',
 }
 
 export function Badge({ tone = 'neutral', icon: Icon, children, className, spin }: {
@@ -52,7 +52,7 @@ export function Badge({ tone = 'neutral', icon: Icon, children, className, spin 
   spin?: boolean
 }) {
   return (
-    <span className={clsx('inline-flex items-center gap-1 whitespace-nowrap rounded-md border px-1.5 py-0.5 text-[11px] font-medium', toneClass[tone], className)}>
+    <span className={clsx('inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2 py-0.5 text-[11px] font-medium', toneClass[tone], className)}>
       {Icon && <Icon className={clsx('size-3', spin && 'animate-spin')} aria-hidden />}
       {children}
     </span>
@@ -152,14 +152,14 @@ export function Button({ variant = 'secondary', size = 'md', icon: Icon, childre
       type="button"
       {...rest}
       className={clsx(
-        'inline-flex items-center justify-center gap-1.5 rounded-lg border font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-45',
-        size === 'sm' ? 'h-7 px-2.5 text-xs' : 'h-9 px-3.5 text-[13px]',
+        'inline-flex items-center justify-center gap-1.5 rounded-full border font-medium transition-all active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-45 disabled:active:scale-100',
+        size === 'sm' ? 'h-7 px-3 text-xs' : 'h-9 px-4 text-[13px]',
         {
-          primary: 'border-brand bg-brand text-white hover:bg-brand/90',
-          secondary: 'border-line-strong bg-panel-2 text-ink hover:bg-panel-3',
+          primary: 'border-transparent bg-brand text-white shadow-[0_4px_14px_-4px_rgba(21,108,221,0.6)] hover:bg-brand/90',
+          secondary: 'border-transparent bg-panel-2 text-ink hover:bg-panel-3',
           ghost: 'border-transparent text-ink-2 hover:bg-panel-2 hover:text-ink',
-          danger: 'border-crit/60 bg-crit/15 text-crit-ink hover:bg-crit/25',
-          warn: 'border-warn/50 bg-warn/10 text-warn-ink hover:bg-warn/20',
+          danger: 'border-transparent bg-crit/14 text-crit-ink hover:bg-crit/22',
+          warn: 'border-transparent bg-warn/16 text-warn-ink hover:bg-warn/24',
         }[variant],
         className,
       )}
@@ -173,7 +173,7 @@ export function Button({ variant = 'secondary', size = 'md', icon: Icon, childre
 export function EmptyState({ icon: Icon, title, children }: { icon: LucideIcon; title: string; children?: ReactNode }) {
   return (
     <div className="flex flex-col items-center justify-center gap-2 px-6 py-10 text-center">
-      <div className="rounded-full border border-line bg-panel-2 p-3"><Icon className="size-5 text-ink-3" /></div>
+      <div className="rounded-full bg-panel-2 p-3"><Icon className="size-5 text-ink-3" /></div>
       <p className="text-sm font-medium text-ink-2">{title}</p>
       {children && <div className="max-w-sm text-xs text-ink-3">{children}</div>}
     </div>
@@ -183,7 +183,7 @@ export function EmptyState({ icon: Icon, title, children }: { icon: LucideIcon; 
 export function ErrorNote({ error }: { error: string | null }) {
   if (!error) return null
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-crit/40 bg-crit/10 px-3 py-2 text-xs text-crit-ink">
+    <div className="flex items-center gap-2 rounded-xl border border-crit/30 bg-crit/10 px-3 py-2 text-xs text-crit-ink">
       <AlertTriangle className="size-4 shrink-0" /> {error}
     </div>
   )
@@ -204,13 +204,13 @@ export function Tabs<T extends string>({ value, onChange, options }: {
   options: { value: T; label: string; count?: number }[]
 }) {
   return (
-    <div className="inline-flex flex-wrap gap-1 rounded-lg border border-line bg-panel p-1" role="tablist">
+    <div className="inline-flex flex-wrap gap-0.5 rounded-full bg-panel-3 p-0.5" role="tablist">
       {options.map((o) => (
         <button key={o.value} type="button" role="tab" aria-selected={value === o.value} onClick={() => onChange(o.value)}
-          className={clsx('inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium transition-colors',
-            value === o.value ? 'bg-panel-3 text-ink' : 'text-ink-3 hover:text-ink-2')}>
+          className={clsx('inline-flex h-7 items-center gap-1.5 rounded-full px-3 text-xs font-medium transition-all',
+            value === o.value ? 'bg-elevated text-ink shadow-[0_1px_3px_rgba(0,0,0,0.12)]' : 'text-ink-2 hover:text-ink')}>
           {o.label}
-          {o.count != null && <span className="tabular rounded bg-ground/60 px-1 text-[10px] text-ink-2">{o.count}</span>}
+          {o.count != null && <span className="tabular rounded-full bg-panel-2 px-1.5 text-[10px] text-ink-2">{o.count}</span>}
         </button>
       ))}
     </div>
@@ -218,4 +218,4 @@ export function Tabs<T extends string>({ value, onChange, options }: {
 }
 
 export const inputClass =
-  'h-9 w-full rounded-lg border border-line-strong bg-panel-2 px-3 text-[13px] text-ink placeholder:text-ink-3 focus:border-info focus:outline-none'
+  'h-9 w-full rounded-xl border border-transparent bg-panel-2 px-3 text-[13px] text-ink placeholder:text-ink-3 transition-shadow focus:border-brand/50 focus:outline-none focus:ring-4 focus:ring-brand/15'

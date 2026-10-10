@@ -30,7 +30,7 @@ function ChartTooltip(props: { active?: boolean; label?: string | number; payloa
   const { active, label, payload, fmt } = props
   if (!active || !payload?.length) return null
   return (
-    <div className="rounded-lg border border-line-strong bg-panel-2 px-3 py-2 text-xs shadow-xl">
+    <div className="glass-strong rounded-xl border border-glass-edge px-3 py-2 text-xs">
       {label !== undefined && <p className="mb-1 font-medium text-ink">{label}</p>}
       {payload.map((p) => (
         <p key={p.name} className="flex items-center gap-2 text-ink-2">
@@ -44,7 +44,7 @@ function ChartTooltip(props: { active?: boolean; label?: string | number; payloa
 
 function Stat({ label, value, sub, icon: Icon }: { label: string; value: string; sub?: string; icon: LucideIcon }) {
   return (
-    <div className="rounded-xl border border-line bg-panel p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+    <div className="glass rounded-2xl border border-glass-edge p-4">
       <div className="flex items-center justify-between">
         <span className="text-[11px] font-medium uppercase tracking-wider text-ink-3">{label}</span>
         <Icon className="size-4 text-ink-3" aria-hidden />
@@ -78,14 +78,14 @@ export function AnalyticsPage() {
         description="Computed from persisted order, task and QC records. Nothing here is estimated or projected."
         actions={
           <button type="button" onClick={() => setTable(!table)}
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-line-strong bg-panel-2 px-3 text-[13px] text-ink hover:bg-panel-3">
+            className="inline-flex h-9 items-center gap-1.5 rounded-full bg-panel-2 px-4 text-[13px] text-ink transition-colors hover:bg-panel-3">
             {table ? <BarChart3 className="size-4" /> : <Table2 className="size-4" />}{table ? 'Charts' : 'Table view'}
           </button>
         }
       />
       {error && <div className="mb-4"><ErrorNote error={error} /></div>}
       {data?.data_source === 'simulated' && (
-        <p className="mb-4 flex items-center gap-1.5 rounded-lg border border-sim/30 bg-sim/8 px-3 py-2 text-xs text-sim-ink">
+        <p className="mb-4 flex items-center gap-1.5 rounded-xl border border-sim/25 bg-sim/10 px-3 py-2 text-xs text-sim-ink">
           <FlaskConical className="size-3.5" /> Records come from the simulated robot workflow, not physical operations. Timings reflect simulator step durations.
         </p>
       )}
@@ -98,7 +98,7 @@ export function AnalyticsPage() {
       </div>
 
       {data && data.totals.orders === 0 ? (
-        <div className="mt-4 rounded-xl border border-line bg-panel">
+        <div className="mt-4 glass rounded-2xl border border-glass-edge">
           <EmptyState icon={BarChart3} title="No data yet">Create and fulfil a few orders; charts fill in from real records.</EmptyState>
         </div>
       ) : table && data ? (
@@ -185,7 +185,7 @@ export function AnalyticsPage() {
 
 function QcRow({ icon: Icon, color, label, n }: { icon: LucideIcon; color: string; label: string; n?: number }) {
   return (
-    <li className="flex items-center justify-between rounded-lg border border-line bg-panel-2 px-3 py-2">
+    <li className="flex items-center justify-between rounded-xl bg-panel-2 px-3 py-2">
       <span className="inline-flex items-center gap-2 font-mono text-xs text-ink-2"><Icon className="size-4" style={{ color }} aria-hidden />{label}</span>
       <span className="text-lg font-semibold tabular">{n ?? '—'}</span>
     </li>

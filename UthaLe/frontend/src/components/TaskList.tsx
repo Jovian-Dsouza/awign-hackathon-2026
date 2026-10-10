@@ -20,7 +20,7 @@ export function TaskList({ tasks, activeId }: { tasks: Task[]; activeId?: string
             <button type="button" onClick={() => setOpen(expanded ? null : t.id)} aria-expanded={expanded}
               className={clsx('flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-panel-2',
                 t.id === activeId && 'bg-info/8')}>
-              <span className={clsx('flex size-7 shrink-0 items-center justify-center rounded-md border',
+              <span className={clsx('flex size-7 shrink-0 items-center justify-center rounded-full border',
                 t.status === 'completed' ? 'border-ok/40 text-ok-ink'
                   : t.status === 'running' ? 'border-info/50 text-info-ink'
                     : t.status === 'failed' ? 'border-crit/50 text-crit-ink'

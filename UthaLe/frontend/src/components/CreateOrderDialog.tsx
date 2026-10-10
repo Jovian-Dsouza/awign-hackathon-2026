@@ -70,9 +70,9 @@ export function CreateOrderDialog({ open, onClose, onCreated }: {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center sm:p-6" onMouseDown={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 backdrop-blur-md sm:items-center sm:p-6" onMouseDown={onClose}>
       <div role="dialog" aria-modal="true" aria-labelledby="new-order-title"
-        className="flex max-h-[92vh] w-full max-w-3xl animate-fade-in flex-col rounded-t-2xl border border-line-strong bg-panel shadow-2xl sm:rounded-2xl"
+        className="flex max-h-[92vh] w-full max-w-3xl glass-strong animate-fade-in flex-col rounded-t-3xl border border-glass-edge sm:rounded-3xl"
         onMouseDown={(e) => e.stopPropagation()}>
         <header className="flex items-center gap-3 border-b border-line px-5 py-4">
           <PackagePlus className="size-5 text-brand" />
@@ -94,8 +94,8 @@ export function CreateOrderDialog({ open, onClose, onCreated }: {
                     {items.map((c) => {
                       const n = qty[c.sku] ?? 0
                       return (
-                        <div key={c.sku} className={clsx('flex items-center gap-2 rounded-lg border px-3 py-2 transition-colors',
-                          n ? 'border-brand/50 bg-brand-dim/40' : 'border-line bg-panel-2')}>
+                        <div key={c.sku} className={clsx('flex items-center gap-2 rounded-xl border px-3 py-2 transition-colors',
+                          n ? 'border-brand/40 bg-brand/10' : 'border-transparent bg-panel-2')}>
                           <button type="button" className="min-w-0 flex-1 text-left" onClick={() => bump(c.sku, n ? 0 : 1)}>
                             <p className="truncate text-[13px] text-ink">{c.name}</p>
                             <p className="font-mono text-[11px] text-ink-3">{c.location}</p>
@@ -127,10 +127,10 @@ export function CreateOrderDialog({ open, onClose, onCreated }: {
             </label>
             <div>
               <span className="text-[11px] font-medium uppercase tracking-wider text-ink-3">Priority</span>
-              <div className="mt-1.5 grid grid-cols-3 gap-1 rounded-lg border border-line bg-panel-2 p-1">
+              <div className="mt-1.5 grid grid-cols-3 gap-0.5 rounded-full bg-panel-3 p-0.5">
                 {(['low', 'normal', 'high'] as Priority[]).map((p) => (
                   <button key={p} type="button" onClick={() => setPriority(p)}
-                    className={clsx('h-7 rounded-md text-xs capitalize', priority === p ? 'bg-panel-3 text-ink' : 'text-ink-3 hover:text-ink-2')}>{p}</button>
+                    className={clsx('h-7 rounded-full text-xs capitalize transition-all', priority === p ? 'bg-elevated text-ink shadow-[0_1px_3px_rgba(0,0,0,0.12)]' : 'text-ink-2 hover:text-ink')}>{p}</button>
                 ))}
               </div>
             </div>
@@ -142,7 +142,7 @@ export function CreateOrderDialog({ open, onClose, onCreated }: {
               <span className="text-[11px] font-medium uppercase tracking-wider text-ink-3">Note</span>
               <input className={clsx(inputClass, 'mt-1.5')} maxLength={200} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Optional" />
             </label>
-            <div className="rounded-lg border border-line bg-panel-2 p-3 text-xs">
+            <div className="rounded-xl bg-panel-2 p-3 text-xs">
               <p className="font-medium text-ink-2">Summary</p>
               {lines.length === 0 ? <p className="mt-1 text-ink-3">No items selected</p> : (
                 <ul className="mt-1.5 space-y-0.5 text-ink-2">

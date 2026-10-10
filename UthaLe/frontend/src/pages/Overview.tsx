@@ -40,7 +40,7 @@ export function OverviewPage() {
         description={
           <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
             Dark store · live camera, robot missions and order flow
-            <span className="inline-flex items-center gap-1 rounded-md border border-sim/40 bg-sim/10 px-1.5 py-0.5 text-[11px] text-sim-ink">
+            <span className="inline-flex items-center gap-1 rounded-full border border-sim/30 bg-sim/10 px-2 py-0.5 text-[11px] text-sim-ink">
               <FlaskConical className="size-3" /> Robot &amp; sensors in demo mode
             </span>
           </span>
