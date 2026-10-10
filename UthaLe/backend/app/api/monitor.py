@@ -5,7 +5,7 @@ three things so the browser and a remote camera agent only ever need ONE address
 same ngrok tunnel the dashboard already uses):
 
   * proxy   GET  /api/monitor/stream        live annotated MJPEG
-            *    /api/monitor/<allow-listed> status, incidents, snapshots, verdicts, reference...
+            *    /api/monitor/<allow-listed> status, incidents, snapshots, verdicts, watch...
   * relay   WS   /api/monitor/ingest        a camera-agent pushes frames here; they are
                                             forwarded to Overwatch's /api/ingest
   * inbox   POST /api/monitor/webhook       Overwatch reports each new incident; it lands in
@@ -36,7 +36,7 @@ log = logging.getLogger(__name__)
 
 # Only these Overwatch paths can be reached through the proxy.
 ALLOWED = re.compile(
-    r"^(status|reference|zones|robot/hold|feedback/summary|incidents(/\d+(/snapshot|/verdict)?)?)$"
+    r"^(status|setup|watch|zones|robot/hold|feedback/summary|incidents(/\d+(/snapshot|/verdict)?)?)$"
 )
 UPSTREAM_ERRORS = (urllib.error.URLError, OSError, TimeoutError)
 

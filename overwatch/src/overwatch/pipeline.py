@@ -34,9 +34,10 @@ from overwatch.decision import combine
 from overwatch.decision.laya_decider import LayaDecider
 from overwatch.decision.rules import RulesDecider
 from overwatch.detectors.health import HealthMonitor
+from overwatch.detectors.presence import MotionPresence
 from overwatch.detectors.robot_marker import RobotMarker
 from overwatch.detectors.scene_change import SceneChangeDetector
-from overwatch.events import CAMERA_FAULT, DROPPED_ITEM, Observation
+from overwatch.events import CAMERA_FAULT, DROPPED_ITEM, SPILL, Observation
 from overwatch.notifiers import WebhookNotifier
 from overwatch.responders import Responder
 from overwatch.store import IncidentStore
@@ -57,8 +58,9 @@ class Pipeline:
         self.health = HealthMonitor()
         self.scene = SceneChangeDetector(
             zones, settings.diff_threshold, settings.item_min_frac, settings.item_max_frac,
-            persist_s=settings.persist_s)
+            settings.spill_max_frac, persist_s=settings.persist_s, spill_persist_s=settings.spill_persist_s)
         self.marker = RobotMarker(settings.robot_marker_id)
+        self.presence = MotionPresence(min_frac=settings.robot_min_frac)
         self.notifier = WebhookNotifier(settings.webhook_url, settings.webhook_token)
         self.window = WatchWindow(settings.grace_s, settings.manual_s)
         self.poller = RobotActivityPoller(self.window, settings.uthale_url, settings.pi_url, settings.act_url)
@@ -75,7 +77,12 @@ class Pipeline:
         self._lock = threading.Lock()
         self._jpeg: bytes | None = None
         self._frame_id = -1
-        self._epoch_seen = 0
+        self._robot_in_view = False
+        # Monitoring is OFF until a person says "start from here": the robot and camera are not at
+        # fixed positions, so what the camera sees at startup is not assumed to be right.
+        self._monitoring = False
+        self._setup_at: float | None = None
+        self._scene_lock = threading.Lock()
         self.analysed = 0
 
     # -- lifecycle -----------------------------------------------------------
@@ -95,6 +102,23 @@ class Pipeline:
             if t:
                 t.join(3.0)
         self.source.stop()
+
+    def start_monitoring(self) -> bool:
+        """Take the picture as it is right now as the baseline, and monitor from this position."""
+        f = self.source.latest()
+        if f is None:
+            return False
+        region = RobotMarker(self.s.robot_marker_id).observe(f.image)    # own instance: no shared state
+        with self._scene_lock:
+            self.scene.set_reference(f.image, region)
+            self._monitoring, self._setup_at = True, time.time()
+        log.info("Monitoring from this position (robot tag %s)", "in view" if region is not None else "not in view")
+        return True
+
+    def stop_monitoring(self) -> None:
+        with self._scene_lock:
+            self._monitoring, self._setup_at = False, None
+            self.scene.clear_reference()
 
     def save_zones(self) -> None:
         self.zones.save(self.zones_path)
@@ -116,12 +140,20 @@ class Pipeline:
                     "model": self.s.laya_path or self.s.laya_model,
                     "load_s": self.laya.load_s if self.laya else None}
         ig = self.scene.ignored
+        warnings = [f"Camera: {f.replace('_', ' ')}" for f in sorted(self.health.active)]
+        if self._monitoring and self.scene.paused_reason:
+            warnings.append(self.scene.paused_reason)
         return {
             "camera": self.source.status(),
+            "robot": {"in_view": self._robot_in_view, "tracking": "tag" if self.marker.enabled else "motion",
+                      "tag_id": self.s.robot_marker_id if self.marker.enabled else None},
+            "monitoring": {"on": self._monitoring, "since": self._setup_at,
+                           "view_moved": bool(self._monitoring and self.scene.paused_reason)},
+            "camera_warnings": warnings,
             "watch": self.window.state(),
             "alignment": self.scene.alignment,
-            "ignored_changes": {"too_big": ig.too_big, "too_small": ig.too_small, "not_compact": ig.not_compact,
-                                "outside_zone": ig.outside_zone},
+            "ignored_changes": {"robot": ig.robot, "too_big": ig.too_big, "too_small": ig.too_small,
+                                "not_compact": ig.not_compact, "outside_zone": ig.outside_zone, "left": ig.left},
             "health": {"active_faults": sorted(self.health.active), **self.health.metrics},
             "zones": [z.to_dict() for z in self.zones.zones],
             "robot_marker": {"enabled": self.marker.enabled, "visible": self.marker.visible,
@@ -149,21 +181,31 @@ class Pipeline:
             last_id = f.id
             img, now = f.image, f.ts
             try:
-                obs = self.health.process(img, now)
-                w = self.window.state()
-                excl = self.marker.mask(img)
-                if w["watching"]:
-                    if w["epoch"] != self._epoch_seen:       # a pickup just started: picture the arena now
-                        self._epoch_seen = w["epoch"]
-                        self.scene.set_reference(img)
-                        log.info("Watching for drops: %s", w["why"])
-                    new, gone = self.scene.process(img, now, excl)
-                    obs += new
-                    for tid in gone:
-                        for iid in self.store.mark_cleared(tid):
-                            log.info("INC-%04d: item no longer visible", iid)
+                self.health.process(img, now)           # camera trouble is a status note, never an incident
+                region = self.marker.observe(img)
+                # Is the robot in view and working? Tag if there is one, else robot-sized motion.
+                if self.marker.enabled:
+                    in_view = self.marker.visible
+                    self.window.set_signal("robot tag", in_view, "tag in view")
                 else:
-                    self.scene.blobs = []
+                    in_view = self.presence.process(img)
+                    self.window.set_signal("robot motion", in_view, "robot-sized motion in view")
+                self._robot_in_view = in_view
+                w = self.window.state()
+                obs: list[Observation] = []
+                with self._scene_lock:
+                    if self._monitoring:
+                        if not w["watching"]:
+                            self.scene.check_view(img)         # notice a moved camera even while idle
+                            self.scene.blobs = []
+                        else:
+                            new, gone = self.scene.process(img, now, region, spills=self.marker.enabled)
+                            obs += new
+                            for tid in gone:
+                                for iid in self.store.mark_cleared(tid):
+                                    log.info("INC-%04d: no longer visible", iid)
+                    else:
+                        self.scene.blobs = []
                 for o in obs:
                     try:
                         self._q.put_nowait((o, img.copy()))
@@ -184,17 +226,23 @@ class Pipeline:
             cv2.polylines(vis, [pts], True, col, 1, cv2.LINE_AA)
             cv2.putText(vis, f"{z.name}{' (ignored)' if z.mode == 'ignore' else ''}", tuple(pts[0] + [4, 14]),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.45, col, 1, cv2.LINE_AA)
-        if w["watching"]:
+        if self._monitoring and w["watching"]:
             for b in self.scene.blobs:
                 x, y, bw, bh = b.bbox
                 color = RED if b.reported else AMBER
                 cv2.rectangle(vis, (x - 3, y - 3), (x + bw + 3, y + bh + 3), color, 2)
-                label = "DROPPED" if b.reported else f"checking {b.age_s:.0f}/{self.s.persist_s:.0f}s"
+                label = ("SPILL" if b.kind == SPILL else "DROPPED") if b.reported else "checking"
                 cv2.putText(vis, label, (x, max(14, y - 8)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2, cv2.LINE_AA)
-        banner = [(f"WATCHING FOR DROPS: {w['why']}", GREEN) if w["watching"]
-                  else ("not watching: robot is not picking", GREY)]
+        if not self._monitoring:
+            banner = [("NOT MONITORING: place the camera and robot, then press Start monitoring from here", AMBER)]
+        elif w["watching"]:
+            banner = [(f"WATCHING THE ROBOT: {w['why']}", GREEN)]
+        else:
+            banner = [("monitoring from your position: waiting for the robot to move", GREY)]
+        if self._monitoring and self.scene.paused_reason:
+            banner.append((self.scene.paused_reason, AMBER))
         for fault in sorted(self.health.active):
-            banner.append((f"CAMERA FAULT: {fault.replace('_', ' ')}", AMBER))
+            banner.append((f"CAMERA: {fault.replace('_', ' ')}", AMBER))
         for i, (text, col) in enumerate(banner):
             cv2.rectangle(vis, (0, i * 24), (wd, i * 24 + 22), (28, 28, 28), -1)
             cv2.putText(vis, text, (8, i * 24 + 16), cv2.FONT_HERSHEY_SIMPLEX, 0.5, col, 1, cv2.LINE_AA)
@@ -236,7 +284,7 @@ class Pipeline:
                  " (filtered as false alarm)" if final.action == "ignore" else "")
         if final.action == "ignore":
             return inc                       # a false alarm is recorded, never alerted
-        if self.s.auto_hold and obs.kind == DROPPED_ITEM:
+        if self.s.auto_hold and obs.kind in (DROPPED_ITEM, SPILL):
             res = self.responder.hold()
             log.info("%s auto-hold: %s", inc["code"], res.get("detail"))
         self.notifier.notify(inc)

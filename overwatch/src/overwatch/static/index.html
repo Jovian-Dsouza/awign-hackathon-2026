@@ -50,7 +50,7 @@
 <header>
   <h1>Overwatch</h1>
   <span id="cam" class="chip">camera …</span>
-  <span id="ref" class="chip">reference …</span>
+  <span id="watch" class="chip">watch …</span>
   <span id="health" class="chip">health …</span>
   <span id="laya" class="chip">laya …</span>
   <span id="resp" class="chip">responder …</span>
@@ -66,9 +66,9 @@
       <canvas id="draw"></canvas>
     </div>
     <div class="row">
-      <button class="primary" id="capRef">Capture clean reference</button>
-      <button id="clrRef">Clear reference</button>
-      <span class="muted small">Do this with the arena tidy and the robot out of view.</span>
+      <button class="primary" id="startBtn">Start monitoring from here</button>
+      <button id="stopBtn">Stop</button>
+      <span class="muted small" id="watchWhy">…</span>
     </div>
     <div class="row">
       <input type="text" id="zname" placeholder="zone name" value="floor">
@@ -81,8 +81,8 @@
   </section>
 
   <section>
-    <h2>Incidents <span class="muted" id="count"></span></h2>
-    <div id="list"><div class="empty">No incidents yet.</div></div>
+    <h2>Dropped items <span class="muted" id="count"></span></h2>
+    <div id="list"><div class="empty">Nothing dropped.</div></div>
     <div class="small muted" id="fb"></div>
   </section>
 </main>
@@ -112,14 +112,21 @@ function renderStatus(s) {
   chip($("cam"), c.state === "streaming" ? `${c.width}×${c.height} @ ${c.fps ?? "?"} fps` : `camera ${c.state}`,
        c.state === "streaming" ? "ok" : "bad");
   $("cam").title = c.source + (c.error ? "\n" + c.error : "");
-  const al = s.alignment || {};
-  const moved = f0 => f0.includes("scene_shift");
-  chip($("ref"), s.reference_set ? (moved(s.health.active_faults) || (al.shift_px > 2.5) ? "view moved: detection paused" : "reference set")
-                                 : "no reference (detection idle)",
-       s.reference_set ? (al.shift_px > 2.5 || (al.match !== undefined && al.match < 0.1) ? "bad" : "ok") : "warn");
-  $("ref").title = al.shift_px !== undefined ? `shift ${al.shift_px}px · match ${al.match}` : "";
+  const w = s.watch || {watching: false, why: ""};
+  const mon = s.monitoring || {on: false, view_moved: false};
+  chip($("watch"), !mon.on ? "NOT monitoring" : mon.view_moved ? "view moved" : w.watching ? "WATCHING the robot" : "monitoring: waiting",
+       !mon.on || mon.view_moved ? "warn" : w.watching ? "ok" : "");
+  $("watchWhy").textContent = !mon.on
+    ? "Place the camera and the robot, then press Start monitoring from here."
+    : mon.view_moved ? "The camera view moved. Press the button again at the new position."
+    : w.watching ? "Watching the robot." : "Monitoring from your position. Waiting for the robot to move.";
+  $("startBtn").textContent = mon.on ? "Set new position" : "Start monitoring from here";
+  $("stopBtn").style.display = mon.on ? "" : "none";
+  const ic = s.ignored_changes || {};
+  $("watchWhy").title = `ignored changes: robot ${ic.robot||0}, left ${ic.left||0}, too big ${ic.too_big||0}, too small ${ic.too_small||0}, thin ${ic.not_compact||0}, outside zones ${ic.outside_zone||0}`;
   const f = s.health.active_faults;
-  chip($("health"), f.length ? "fault: " + f.join(", ") : "camera healthy", f.length ? "bad" : "ok");
+  const cw = s.camera_warnings || [];
+  chip($("health"), cw.length ? cw[0] : "camera ok", cw.length ? "bad" : "ok");
   $("health").title = `luma ${s.health.luma} · contrast ${s.health.contrast} · detail ${s.health.detail}`;
   if (!s.laya) chip($("laya"), "laya off", "");
   else chip($("laya"), `laya ${s.laya.mode}` + (s.laya.available ? "" : " · not loaded"), s.laya.available ? "ok" : "warn");
@@ -143,7 +150,7 @@ function incCard(i) {
     .map(([k, v]) => `${k} ${v}`).join(" · ");
   const buttons = open ? `
     <div class="row">
-      ${o.kind === "foreign_object" ? `<button class="primary" data-v="approve_recovery" data-id="${i.id}">Approve recovery</button>` : ""}
+      ${o.kind === "dropped_item" ? `<button class="primary" data-v="approve_recovery" data-id="${i.id}">Approve recovery</button>` : ""}
       <button data-v="escalate" data-id="${i.id}">Not recoverable: escalate</button>
       <button data-v="dismiss" data-id="${i.id}">False alarm</button>
       <select data-sev="${i.id}" title="Severity (optional, used as a training label)">
@@ -177,7 +184,7 @@ async function refreshFeedback() {
     ? `Admin verdicts: ${f.verdicts}. Rules agree ${Math.round(f.rules_accuracy * 100)}%` +
       (f.laya_scored ? `, Laya agrees ${Math.round(f.laya_accuracy * 100)}% (${f.laya_scored} scored).` : ".") +
       " Training data: /api/feedback.jsonl"
-    : "No admin verdicts yet. Every verdict becomes a training label.";
+    : "No admin verdicts yet.";
 }
 
 async function tick() {
@@ -199,8 +206,8 @@ $("list").addEventListener("click", async ev => {
   tick();
 });
 
-$("capRef").onclick = async () => { try { await post("/api/reference"); showErr(null); tick(); } catch (e) { showErr(e); } };
-$("clrRef").onclick = async () => { try { await api("/api/reference", {method: "DELETE"}); tick(); } catch (e) { showErr(e); } };
+$("startBtn").onclick = async () => { try { await post("/api/setup"); showErr(null); tick(); } catch (e) { showErr(e); } };
+$("stopBtn").onclick = async () => { try { await api("/api/setup", {method: "DELETE"}); tick(); } catch (e) { showErr(e); } };
 $("hold").onclick = async () => {
   try { const r = await post("/api/robot/hold"); showErr(r.ok ? (r.dry_run ? r.detail : null) : r.detail); }
   catch (e) { showErr(e); }

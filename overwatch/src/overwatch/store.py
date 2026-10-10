@@ -15,6 +15,7 @@ import time
 from pathlib import Path
 from typing import Any
 
+from overwatch.decision.describe import describe
 from overwatch.decision.questions import QUESTIONS, VERDICT_ACTION, expected_from_verdict
 
 SCHEMA = """
@@ -125,7 +126,7 @@ class IncidentStore:
             ).fetchall()
         for r in found:
             obs = json.loads(r["observation"])
-            state = {"event": obs["kind"], "zone": obs["zone"], "summary": obs["summary"], **obs["features"]}
+            state = {"report": describe(obs["kind"], obs["features"], obs["summary"])}
             expected = expected_from_verdict(r["verdict"], r["verdict_sev"])
             if expected:
                 rows.append({"state": state, "questions": QUESTIONS, "expected": expected})

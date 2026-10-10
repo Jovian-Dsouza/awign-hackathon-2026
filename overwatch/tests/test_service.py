@@ -33,7 +33,8 @@ def make(tmp_path, source, **over):
 
 
 def start_watch(client, seconds=30):
-    """Say 'the robot is picking', and wait until the baseline picture has been taken."""
+    """The two things a person does: 'Start monitoring from here', and the robot starts working."""
+    assert client.post("/api/setup").json()["monitoring"]["on"] is True
     assert client.post("/api/watch", json={"seconds": seconds}).json()["watching"] is True
     wait_for(lambda: client.get("/api/status").json()["alignment"])
 
@@ -140,6 +141,56 @@ def test_laya_filter_mode_hides_a_false_alarm_but_keeps_the_record(tmp_path):
         assert client.get("/api/status").json()["open_incidents"] == 0
 
 
+def test_nothing_is_watched_until_someone_sets_the_position(tmp_path):
+    """The robot and camera are not at fixed positions: what it sees at startup is not assumed right."""
+    bg = textured_background()
+    src = FakeSource(bg)
+    with TestClient(make(tmp_path, src)) as client:
+        wait_for(lambda: client.get("/api/frame.jpg").status_code == 200)
+        assert client.get("/api/status").json()["monitoring"]["on"] is False
+        client.post("/api/watch", json={"seconds": 30})            # the robot is "working"...
+        src.set(with_box(bg, 300, 200, 40, 40))                  # ...and something appears
+        time.sleep(1.5)
+        assert client.get("/api/incidents").json() == []         # ...but nobody said "start from here"
+
+
+def test_setting_up_with_no_picture_is_refused(tmp_path):
+    class Dead(FakeSource):
+        def latest(self):
+            return None
+    with TestClient(make(tmp_path, Dead(textured_background()))) as client:
+        assert client.post("/api/setup").status_code == 503
+
+
+def test_moving_the_camera_asks_for_the_position_again(tmp_path):
+    import numpy as np
+    bg = textured_background()
+    src = FakeSource(bg)
+    with TestClient(make(tmp_path, src)) as client:
+        wait_for(lambda: client.get("/api/frame.jpg").status_code == 200)
+        client.post("/api/setup")
+        assert client.get("/api/status").json()["monitoring"]["view_moved"] is False
+        src.set(np.roll(bg, 40, axis=1))                         # somebody nudges the camera (robot idle!)
+        st = wait_for(lambda: (x := client.get("/api/status").json())["monitoring"]["view_moved"] and x)
+        assert any("Set the position again" in w for w in st["camera_warnings"])
+        assert client.get("/api/incidents").json() == []        # a moved camera is never an incident
+        client.post("/api/setup")                                # press the button at the new position
+        assert wait_for(lambda: client.get("/api/status").json()["monitoring"]["view_moved"] is False)
+
+
+def test_something_taken_away_is_not_a_drop(tmp_path):
+    """Picking an item off the table/rack leaves a gap: a change, but not a drop."""
+    bg = textured_background()
+    src = FakeSource(with_box(bg, 300, 200, 40, 40))             # the item is there when monitoring starts
+    with TestClient(make(tmp_path, src)) as client:
+        wait_for(lambda: client.get("/api/frame.jpg").status_code == 200)
+        start_watch(client)
+        src.set(bg)                                              # the robot takes it away
+        time.sleep(1.8)
+        assert client.get("/api/incidents").json() == []
+        assert client.get("/api/status").json()["ignored_changes"]["left"] >= 1
+
+
 def test_zone_validation_and_persistence(tmp_path):
     bg = textured_background()
     with TestClient(make(tmp_path, FakeSource(bg))) as client:
@@ -182,6 +233,10 @@ def test_remote_agent_frames_reach_the_pipeline(tmp_path):
             cam = client.get("/api/status").json()["camera"]
             assert (cam["width"], cam["height"]) == (640, 480) and cam["agent_connected"] is True
             ws.send_bytes(b"not a jpeg")                       # garbage is dropped, connection survives
+            for _ in range(5):
+                ws.send_bytes(_jpeg(bg))
+            time.sleep(0.2)
+            assert client.post("/api/setup").json()["monitoring"]["on"] is True
             client.post("/api/watch", json={"seconds": 30})
             for _ in range(10):
                 ws.send_bytes(_jpeg(bg))

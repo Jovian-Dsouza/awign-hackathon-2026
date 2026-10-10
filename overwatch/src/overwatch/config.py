@@ -51,7 +51,10 @@ class Settings:
     # --- dropped-item detector ---------------------------------------------
     diff_threshold: int = 28       # colour difference that counts as changed
     item_min_frac: float = 0.0002  # smaller blobs are noise (0.02 % of the picture)
-    item_max_frac: float = 0.015   # bigger blobs are the robot / a person (1.5 % of the picture)
+    item_max_frac: float = 0.015   # bigger than one item (1.5 % of the picture)
+    spill_max_frac: float = 0.08   # up to this big a still, irregular patch is a spill (needs the robot tag)
+    spill_persist_s: float = 5.0
+    robot_min_frac: float = 0.008  # no tag: a moving region this big (0.8 % of the picture) counts as the robot
     persist_s: float = 3.0         # an item must sit still this long before it is reported
     robot_marker_id: int = -1      # ArUco id (DICT_4X4_50) stuck on the robot; -1 = off
 
@@ -90,6 +93,9 @@ class Settings:
             diff_threshold=int(_env("DIFF_THRESHOLD", str(d.diff_threshold))),
             item_min_frac=float(_env("ITEM_MIN_FRAC", str(d.item_min_frac))),
             item_max_frac=float(_env("ITEM_MAX_FRAC", str(d.item_max_frac))),
+            spill_max_frac=float(_env("SPILL_MAX_FRAC", str(d.spill_max_frac))),
+            spill_persist_s=float(_env("SPILL_PERSIST_S", str(d.spill_persist_s))),
+            robot_min_frac=float(_env("ROBOT_MIN_FRAC", str(d.robot_min_frac))),
             persist_s=float(_env("PERSIST_S", str(d.persist_s))),
             robot_marker_id=int(_env("ROBOT_MARKER_ID", str(d.robot_marker_id))),
             laya_mode=_env("LAYA", d.laya_mode),

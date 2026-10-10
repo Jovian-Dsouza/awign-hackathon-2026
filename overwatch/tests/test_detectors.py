@@ -2,7 +2,7 @@ import numpy as np
 
 from overwatch.detectors.health import HealthMonitor
 from overwatch.detectors.scene_change import SceneChangeDetector
-from overwatch.events import CAMERA_FAULT, DROPPED_ITEM
+from overwatch.events import CAMERA_FAULT, DROPPED_ITEM, SPILL
 from overwatch.zones import Zone, ZoneSet
 
 from conftest import textured_background, with_box
@@ -69,8 +69,7 @@ def test_camera_bumped_reports_scene_shift_not_objects(bg):
     rng = np.random.default_rng(99)                # an entirely different, high-contrast view
     other = np.kron(rng.integers(0, 256, (60, 80, 3), dtype=np.uint8), np.ones((8, 8, 1), np.uint8))
     obs, _ = run(det, [(i * 0.5, other) for i in range(0, 8)])
-    assert [o.kind for o in obs] == [CAMERA_FAULT]
-    assert obs[0].features["fault"] == "scene_shift"
+    assert obs == [] and det.paused_reason          # a quiet pause, never an incident
 
 
 def test_object_in_ignored_zone_is_ignored(bg):
@@ -143,8 +142,7 @@ def test_slightly_moved_camera_pauses_detection_instead_of_flooding_objects(bg):
     det.set_reference(bg)
     nudged = np.roll(bg, 10, axis=1)
     obs, _ = run(det, [(i * 0.5, nudged) for i in range(0, 20)])
-    assert [o.features.get("fault") for o in obs] == ["scene_shift"]
-    assert all(o.kind == CAMERA_FAULT for o in obs)
+    assert obs == [] and det.paused_reason
 
 
 def test_camera_returning_to_place_resumes_detection(bg):
@@ -154,8 +152,8 @@ def test_camera_returning_to_place_resumes_detection(bg):
     frames = [(i * 0.5, nudged) for i in range(0, 4)]
     frames += [(2 + i * 0.5, with_box(bg, 300, 200, 40, 40)) for i in range(0, 8)]
     obs, _ = run(det, frames)
-    kinds = [o.kind for o in obs]
-    assert kinds == [CAMERA_FAULT, DROPPED_ITEM]
+    assert [o.kind for o in obs] == [DROPPED_ITEM]
+    assert det.paused_reason is None
 
 
 def test_object_in_view_does_not_look_like_camera_motion(bg):

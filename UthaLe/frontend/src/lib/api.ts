@@ -59,7 +59,8 @@ export const api = {
   monitorSnapshotUrl: (id: number) => `${API_BASE}/api/monitor/incidents/${id}/snapshot`,
   monitorVerdict: (id: number, verdict: 'approve_recovery' | 'escalate' | 'dismiss') =>
     post<MonitorIncident>(`/api/monitor/incidents/${id}/verdict`, { verdict }),
-  monitorCaptureReference: () => post<unknown>('/api/monitor/reference'),
+  monitorStart: () => post<unknown>('/api/monitor/setup'),
+  monitorStop: () => request<unknown>('/api/monitor/setup', { method: 'DELETE' }),
 
   robotStatus: () => request<RobotStatus>('/api/robot/status'),
   robotCommand: (command: string, extra: { order_id?: string; anomaly?: Anomaly } = {}) =>

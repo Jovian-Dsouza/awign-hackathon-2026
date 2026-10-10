@@ -7,7 +7,7 @@ So the rules only decide what to offer: a recovery, or a person.
 
 from __future__ import annotations
 
-from overwatch.events import CAMERA_FAULT, DROPPED_ITEM, Decision, Observation
+from overwatch.events import CAMERA_FAULT, DROPPED_ITEM, SPILL, Decision, Observation
 
 MAX_PICKABLE_PCT = 1.0       # of the picture: bigger than this is not one small item the arm can carry
 
@@ -21,6 +21,10 @@ class RulesDecider:
             return Decision("escalate", 1, False,
                             [f"The monitor camera cannot be trusted ({fault}); drops may go unseen."],
                             self.name)
+        if obs.kind == SPILL:
+            return Decision("escalate", 2, False,
+                            ["A spill or mess appeared during the pickup. The robot cannot clean this up: "
+                             "a person needs to deal with it."], self.name)
         if obs.kind != DROPPED_ITEM:
             return Decision("escalate", 1, False, [f"Unknown observation kind '{obs.kind}'"], self.name)
 
@@ -31,4 +35,4 @@ class RulesDecider:
                              "too big to be one small item. A person should look."], self.name)
         return Decision("propose_recovery", 1, True,
                         [f"A small item ({area:.2f}% of the view) appeared during the pickup and stayed put: "
-                         "looks like a dropped item. Needs admin approval before the robot moves."], self.name)
+                         "the robot can pick this up: ask it to (admin approval needed)."], self.name)

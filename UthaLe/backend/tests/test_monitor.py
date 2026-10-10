@@ -113,7 +113,7 @@ def test_stream_is_passed_through(client, overwatch_stub):
 def test_webhook_needs_token_and_lands_in_activity_feed(client):
     c, svc = client
     object.__setattr__(settings, "monitor_ingest_token", TOKEN)
-    inc = {"incident": {"code": "INC-0007", "observation": {"kind": "foreign_object", "zone": "floor",
+    inc = {"incident": {"code": "INC-0007", "observation": {"kind": "dropped_item", "zone": "floor",
            "summary": "New object"}, "final": {"action": "propose_recovery", "severity": 1}}}
     assert c.post("/api/monitor/webhook", json=inc).status_code == 403
     assert c.post("/api/monitor/webhook", json=inc, headers={"Authorization": "Bearer wrong"}).status_code == 403

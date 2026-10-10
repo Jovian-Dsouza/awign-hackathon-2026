@@ -137,6 +137,20 @@ def create_app(settings: Settings | None = None, source: FrameSource | None = No
     def status():
         return pipe.status()
 
+    @app.post("/api/setup")
+    def setup_here():
+        """"Start monitoring from here": the picture right now becomes the baseline. Press it again
+        after moving the camera or the robot to set a new position."""
+        if not pipe.start_monitoring():
+            raise HTTPException(503, "No camera picture yet, so there is nothing to set up from.")
+        log.info("Monitoring set up from the dashboard")
+        return pipe.status()
+
+    @app.delete("/api/setup")
+    def stop_monitoring():
+        pipe.stop_monitoring()
+        return pipe.status()
+
     @app.post("/api/watch")
     def start_watch(body: WatchBody | None = None):
         """Say "the robot is picking now" (for tests and demos; real robots signal it themselves).

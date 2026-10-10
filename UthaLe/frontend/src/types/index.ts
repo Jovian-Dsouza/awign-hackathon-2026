@@ -198,7 +198,7 @@ export interface MonitorIncident {
   ts: number
   kind: string
   zone: string
-  status: 'open' | 'actioned' | 'escalated' | 'dismissed'
+  status: 'open' | 'actioned' | 'escalated' | 'dismissed' | 'filtered'
   observation: { kind: string; zone: string; summary: string; features: Record<string, number | string | boolean> }
   final: MonitorDecision
   rules: MonitorDecision
@@ -216,7 +216,11 @@ export interface MonitorStatus {
     state: string; source: string; width: number | null; height: number | null
     fps: number | null; error: string | null; agent_connected?: boolean
   }
-  reference_set?: boolean
+  monitoring?: { on: boolean; since: number | null; view_moved: boolean }
+  robot?: { in_view: boolean; tracking: 'tag' | 'motion'; tag_id: number | null }
+  camera_warnings?: string[]
+  watch?: { watching: boolean; why: string; seconds_left: number | null }
+  ignored_changes?: { too_big: number; too_small: number; not_compact: number; outside_zone: number }
   alignment?: { shift_px?: number; match?: number }
   health?: { active_faults: string[] }
   laya?: { mode: string; available: boolean; error: string | null } | null

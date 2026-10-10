@@ -11,6 +11,7 @@ from typing import Any
 
 # Observation kinds
 DROPPED_ITEM = "dropped_item"       # a small item appeared and stopped moving while the robot was picking
+SPILL = "spill"                     # a larger irregular patch appeared: a mess the robot cannot fix
 CAMERA_FAULT = "camera_fault"       # the monitor itself cannot be trusted right now
 
 
@@ -26,10 +27,9 @@ class Observation:
     track_id: int | None = None
 
     def to_state(self) -> dict[str, Any]:
-        """Compact, text-friendly view handed to a decision model."""
-        state: dict[str, Any] = {"event": self.kind, "zone": self.zone, "summary": self.summary}
-        state.update(self.features)
-        return state
+        """What a text decision model reads: one plain sentence (see decision/describe.py)."""
+        from overwatch.decision.describe import describe
+        return {"report": describe(self.kind, self.features, self.summary)}
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)

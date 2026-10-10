@@ -92,7 +92,7 @@ def test_laya_is_asked_exactly_the_two_questions():
     assert d.action == "propose_recovery"
     state, questions, model = FakeRouter.calls[0]
     assert questions is QUESTIONS and set(questions) == {"real_drop", "recoverable"} and model == "typed-decisions"
-    assert state["event"] == DROPPED_ITEM and state["area_pct"] == 0.08
+    assert set(state) == {"report"} and "tiny object appeared on the table" in state["report"]
 
 
 def test_laya_load_failure_degrades_quietly(monkeypatch):
@@ -132,3 +132,14 @@ def test_store_filtered_are_kept_but_not_listed_and_agreement_counts():
     ag = store.agreement()
     assert ag["verdicts"] == 1 and ag["rules_accuracy"] == 1.0 and ag["laya_accuracy"] == 0.0
     assert store.mark_cleared(3) == [a["id"]]
+
+
+def test_numbers_become_the_same_sentence_for_inference_and_training():
+    from overwatch.decision.describe import describe
+    real = drop(area=0.07, solidity=0.95, aspect=1.2, edge_density=0.2, contrast=95.0, stationary_s=4.0)
+    s = describe(real.kind, real.features)
+    assert "tiny object" in s and "compact and solid" in s and "sharp, well defined edges" in s
+    smudge = describe(DROPPED_ITEM, {"area_pct": 0.3, "solidity": 0.6, "aspect": 3.0, "edge_density": 0.0,
+                                     "contrast": 30.0, "stationary_s": 3.0})
+    assert "irregular and elongated" in smudge and "soft, blurry edges" in smudge and "faintly different" in smudge
+    assert real.to_state() == {"report": s}
