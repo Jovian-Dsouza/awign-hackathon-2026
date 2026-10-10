@@ -29,7 +29,7 @@ Everything is controlled from the page:
 |---|---|
 | **1 · Shelf to tray** — rack grid, ▶ Run | picks the item from the chosen rack (level 0–2, slot 0–2) and carries it to the tray |
 | **2 · Restock a misplaced item** — click the table map, choose a destination rack, ▶ Run | the item has been left there; the rover works out an approach direction, picks it up and puts it in a rack |
-| Options | *Grasp assist* (default on) and *Record data* (writes the run to `../data/`) |
+| Options | *Record data* (writes the run to `../data/`) |
 | Pause / Reset / speed / camera buttons | as named; drag the picture to orbit, scroll to zoom |
 | **Open MuJoCo window** | brings the native window back if you closed it |
 
@@ -56,15 +56,32 @@ positions); `--task shelf_to_tray --sweep` visits every rack. Everything goes to
 [`../data/README.md`](../data/README.md) for the layout and, importantly, what carries over to the real robot
 and what does not. `../data/tools/export_lerobot.py` converts the episodes to a LeRobot dataset for ACT.
 
-## Grasp assist (important)
+## How items are held (no tricks)
 
-Holding a 5 cm can by friction with this gripper is marginal. With **Grasp assist** on (the default) the jaws
-close around the item, the sim checks they are really around it, then a weld constraint carries it and the jaws
-ignore the item's collision while it is carried, so a released item is never dragged out. A successful run
-therefore shows the *motion plan* is feasible; it does **not** show that a friction grip would hold.
-With assist off the full contact physics is used and it works much less often: in the recorded set below,
-**3/9 racks** and **6/10 random table positions** (against 9/9 and 14/15 with assist on). Compare those runs
-(not the assisted ones) with hardware when judging grip.
+Items are held by **contact and friction only**. There is no weld, no "ghost" jaws and no switch to make a grasp
+easier: the jaws collide with the item, the item has a real mass (`mass_kg` in `config/inventory.yaml`, 60 g can,
+60 g bottle, 100 g milk) and the gripper squeezes at a capped torque (0.8 N·m, like LeRobot's gripper current
+limit) instead of the servo's full stall torque.
+
+What that took:
+
+- **Collision shapes.** MuJoCo collides a mesh as one convex hull, which filled the gap between the jaws and made
+  the folded arm lie inside itself. `scripts/decompose_collision.py` splits the SO-101 meshes into convex pieces
+  (CoACD) in `assets/so101/collision/`; `robot._convex_collision` uses them.
+- **Stowed pose.** At the firmware REST_POSE the CAD parts of 7 link pairs overlap by 1-2 cm (the elbow sits at its
+  limit); only those pairs have contact switched off (`robot.STOWED_OVERLAPS`). Everything else is real contact.
+- **Grasp heights.** Fingers are +-7 mm thick and the gripper body is 24 mm below them, so the jaw axis stays
+  >= 32 mm above the surface it picks from, and lower than the board above minus the camera when lifting out.
+
+Honest limits you will see in the sim:
+
+| Item | Result |
+|---|---|
+| soup can, water bottle, milk carton | picked from their racks and carried to the tray by friction |
+| black tape (14 mm), box cutter (9 mm) | **fail**: lying flat, they are thinner than the fingers plus the body clearance, and the run says so |
+
+Contacts are still soft (about 1 mm penetration on the item) and items are rigid, so this is a better upper bound
+than a weld, not a measurement of real pad grip.
 
 ## What is and is not modelled
 
@@ -74,7 +91,7 @@ With assist off the full contact physics is used and it works much less often: i
 | SO-101 kinematics, joint limits, servo-like position actuators | Servo backlash, real torque curves |
 | Wrist camera rendered from its mount | Real camera intrinsics, exposure, USB latency |
 | Scripted pick / carry / place with sideways correction and route planning | SLAM, a learned grasp policy |
-| Friction-only grasp mode (assist off) | Packaging deformation (the item is a rigid can) |
+| Friction-only grasping with item mass and a torque-limited gripper | Packaging deformation (items are rigid), soft pads |
 
 Dimensions are approximate (from photos). The robot geometry lives in the frontend (`robotModel.ts`); edit it
 there and re-export, not in `robot.py`:
@@ -89,7 +106,7 @@ there and re-export, not in `robot.py`:
 |---|---|
 | `scenarios.py` | the simulations (setup + scripted run), grasp / place skills |
 | `world.py` | table facts, parameters + validation, rover footprint/route checks |
-| `pick.py` | task machinery: stepping, drive, IK, reach planning, grasp assist |
+| `pick.py` | task machinery: stepping, drive, IK, reach planning |
 | `panel.py` | web page + native window worker |
 | `datalog.py` / `collect.py` | recording, calibration export, bulk episode generation |
 | `robot.py`, `control.py` | robot model from the exported parts, command API |

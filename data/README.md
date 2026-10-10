@@ -24,7 +24,6 @@ data/
 | `uv run dsr-panel` and tick **Record data** | records every run you start from the web page |
 | `uv run dsr-collect --task restock_misplaced --episodes 20` | 20 headless runs with random item positions |
 | `uv run dsr-collect --task shelf_to_tray --episodes 9 --sweep` | every rack once |
-| `... --no-assist` | pure friction grasps (no weld) — the honest, less reliable mode |
 | `... --no-images` | trajectories only (about 100x smaller, much faster) |
 
 `calibration/sim_parameters.json` is rewritten whenever you run the collector.
@@ -41,7 +40,6 @@ data/
 | `base_cmd` | N×3 | commanded rover twist: vx, vy (m/s, body frame), wz (rad/s) |
 | `item_pos` | N×3 | item centre (m) — ground truth, not available on the real robot |
 | `jaw_centre` | N×3 | point between the jaws (m) |
-| `weld` | N | 1 while the grasp-assist weld is carrying the item |
 
 Joint order and zero point match LeRobot's SO-101 with `use_degrees=True`: zero is the middle of each joint's range
 (SO-101 "new calibration"). The gripper is in degrees of jaw angle here; LeRobot's SO-101 reports it on a 0–100 scale,
@@ -73,10 +71,9 @@ Pi-panel playback files), not for fine-tuning.
 
 **Does not carry over (treat as unknown until measured on hardware):**
 
-- **Grip quality.** With *grasp assist* on, the sim carries the item with a weld, so a successful run says the
-  motion is feasible, **not** that friction would hold the item. Runs with `grasp_assist: false` are the more
-  honest signal and succeed noticeably less often (see the run index). Real jaw pads, item weight and
-  surface decide this.
+- **Grip quality.** Items are held by contact and friction only (no weld, no ghost jaws; gripper torque capped at
+  0.8 N·m), so a successful run does mean the jaws held the item in the sim. Contacts are still soft and items
+  rigid; real jaw pads, item weight and surface decide the real grip.
 - **Mecanum slip and floor friction**, wheel-speed limits, battery sag — modelled as an ideal holonomic base.
 - **Camera images** — rendered, not real; lighting, exposure and latency differ. Use them for pipeline
   testing and as a prior, not as a substitute for real demonstrations.
@@ -104,10 +101,10 @@ Pi firmware (`../firmware/combined-web/web_combined.py`, which drives the arm th
 ```bash
 uv run --with 'lerobot[dataset]' python data/tools/export_lerobot.py                 # arm only, one camera
 uv run --with 'lerobot[dataset]' python data/tools/export_lerobot.py --with-base --out data/lerobot/with_base
-# options: --scenario, --assist on|off|any, --include-failed, --no-videos
+# options: --scenario, --include-failed, --no-videos
 ```
 
-Ground-truth item position and the assist-weld flag are left out on purpose (they do not exist on the real robot).
+Ground-truth item position is left out on purpose (it does not exist on the real robot).
 Only successful episodes **with camera frames** are exported by default.
 
 `tools/export_pi_trajectories.py` writes the same episodes as `{t, pos}` JSON in the format of the Pi panel's
@@ -126,7 +123,7 @@ Reality check before you expect a useful policy:
 
 - Demonstrations are **scripted and near-identical** per rack, with one item, so a policy trained on them will be
   brittle. Best use: pre-training / pipeline validation, then fine-tune on real teleoperated episodes.
-- With grasp assist on, a successful sim pick does not prove friction holds the item.
+- A successful sim pick means the jaws held the item by contact in the sim; rigid items and soft contacts still differ from real pads.
 - Images are rendered; expect a domain gap to the real camera (lighting, exposure, lens; intrinsics unknown).
 - Units match the firmware (degrees, gripper 0..100), and the sim picks at wrist roll about -90 like the real arm
   (about -92), but the sim's gripper 0..100 mapping assumes the SO-101's calibrated range matches its joint limits.

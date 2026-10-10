@@ -1,10 +1,12 @@
 # Items on the cardboard shelf (3 x 3 racks, slot 0 = left when facing the shelf, level 0 = bottom).
 #   source: hope   -> assets/third_party/hope/<asset>/<asset>.xml   (LIBERO, MIT)
 #           custom -> assets/custom/<asset>/<asset>.xml             (our own real-size objects)
+# mass_kg is the weight of the scaled prop itself: its volume at the density of the real contents (soup / milk / water ~1 g/cm3,
+# plastic roll ~0.5, hollow cutter ~0.4). Nothing in the sim is weightless: the arm has to hold these by friction.
 # Five objects only. alphabet_soup is the can the scripted pick/place is tuned for.
 items:
-  - {name: water_bottle,   source: custom, asset: water_bottle,   shelf: A, level: 1, slot: 0, scale: 0.9}
-  - {name: black_tape,     source: custom, asset: black_tape,     shelf: A, level: 1, slot: 1, scale: 0.8}
-  - {name: box_cutter,     source: custom, asset: box_cutter,     shelf: A, level: 2, slot: 0, scale: 0.8}
-  - {name: milk,           source: hope,   asset: milk,           shelf: A, level: 0, slot: 0, euler_deg: [90, 0, 0], scale: 0.7}
-  - {name: alphabet_soup,  source: hope,   asset: alphabet_soup,  shelf: A, level: 0, slot: 2, euler_deg: [90, 0, 0], scale: 0.55}
+  - {name: water_bottle,   source: custom, asset: water_bottle,   shelf: A, level: 1, slot: 0, scale: 0.9, mass_kg: 0.060}
+  - {name: black_tape,     source: custom, asset: black_tape,     shelf: A, level: 1, slot: 1, scale: 0.8, mass_kg: 0.012}
+  - {name: box_cutter,     source: custom, asset: box_cutter,     shelf: A, level: 2, slot: 0, scale: 0.8, mass_kg: 0.030}
+  - {name: milk,           source: hope,   asset: milk,           shelf: A, level: 0, slot: 0, euler_deg: [90, 0, 0], scale: 0.7, mass_kg: 0.100}
+  - {name: alphabet_soup,  source: hope,   asset: alphabet_soup,  shelf: A, level: 0, slot: 2, euler_deg: [90, 0, 0], scale: 0.55, mass_kg: 0.060}

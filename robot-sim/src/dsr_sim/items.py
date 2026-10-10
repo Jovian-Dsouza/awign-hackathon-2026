@@ -83,6 +83,20 @@ def scale_spec(child: mujoco.MjSpec, factor: float) -> None:
             geom.mass = geom.mass * factor**3
 
 
+def set_total_mass(child: mujoco.MjSpec, target_kg: float) -> None:
+    """Rescale the item's geom densities (or explicit geom masses) so its total mass is `target_kg`."""
+    model = child.compile()
+    current = float(model.body_mass.sum())
+    if current <= 0:
+        raise AssetError("item model has no mass to rescale")
+    k = target_kg / current
+    for geom in child.geoms:
+        if not math.isnan(geom.mass) and geom.mass > 0:
+            geom.mass = geom.mass * k
+        else:
+            geom.density = geom.density * k
+
+
 def absolutize_files(child: mujoco.MjSpec, xml_dir: Path) -> None:
     """Make mesh/texture paths absolute so they resolve once attached to another spec.
 
@@ -104,6 +118,8 @@ def add_item(spec: mujoco.MjSpec, item: Item, layout: Layout, asset_root: Path =
     if top is None:
         raise AssetError(f"{path} has no body in its worldbody")
     scale_spec(child, item.effective_scale)
+    if item.mass_kg is not None:
+        set_total_mass(child, item.mass_kg)
 
     if top.first_joint() is not None:
         raise AssetError(f"{path}: top body already has a joint; expected a rigid object")

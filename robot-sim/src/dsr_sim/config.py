@@ -79,6 +79,7 @@ class Item:
     euler_deg: tuple[float, float, float] = (0.0, 0.0, 0.0)
     yaw_deg: float = 0.0
     scale: float | None = None  # None -> SOURCE_DEFAULT_SCALE[source]
+    mass_kg: float | None = None  # total mass of the (scaled) item; None -> whatever the asset's densities give
 
     @property
     def effective_scale(self) -> float:
@@ -208,6 +209,8 @@ def _parse_item(raw: dict[str, Any], layout: Layout, idx: int) -> Item:
         raise ConfigError(f"{where}: scale must be a number")
     if not 0 <= item.slot < layout.shelf.slots_per_level:
         raise ConfigError(f"{where}: slot {item.slot} out of range")
+    if item.mass_kg is not None and (isinstance(item.mass_kg, bool) or not isinstance(item.mass_kg, (int, float)) or not 0.001 <= item.mass_kg <= 1.0):
+        raise ConfigError(f"{where}: mass_kg must be a number between 0.001 and 1.0")
     lo, hi = ITEM_SCALE_RANGE
     if item.scale is not None and not lo <= item.scale <= hi:
         raise ConfigError(f"{where}: scale {item.scale} outside [{lo}, {hi}]")

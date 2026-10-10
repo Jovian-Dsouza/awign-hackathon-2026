@@ -318,6 +318,16 @@ def _exclude_stowed_overlaps(spec: mujoco.MjSpec) -> None:
         ex.bodyname2 = ARM_PREFIX + b
 
 
+GRIPPER_MAX_TORQUE = 0.8  # N*m. The STS3215 stalls at ~3 N*m; LeRobot's SO101Follower caps the gripper's
+# Max_Torque_Limit / Protection_Current at a fraction of that so it does not crush objects or cook the servo.
+
+
+def _limit_gripper_torque(spec: mujoco.MjSpec) -> None:
+    act = spec.actuator(ARM_PREFIX + "gripper")
+    act.forcelimited = mujoco.mjtLimited.mjLIMITED_TRUE
+    act.forcerange = [-GRIPPER_MAX_TORQUE, GRIPPER_MAX_TORQUE]
+
+
 def _grippy_jaws(spec: mujoco.MjSpec) -> None:
     """Rubber-like friction on the gripper's collision geoms so held items do not slip out."""
     for body_name in (ARM_PREFIX + "gripper", ARM_PREFIX + "moving_jaw_so101_v1"):
@@ -361,6 +371,7 @@ def add_robot(spec: mujoco.MjSpec, dock: DockConfig, so101_xml: Path = SO101_XML
     _recolor_arm(spec)
     _convex_collision(spec)
     _exclude_stowed_overlaps(spec)
+    _limit_gripper_torque(spec)
     _grippy_jaws(spec)
     return base
 

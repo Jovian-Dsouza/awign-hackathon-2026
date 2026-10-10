@@ -4,7 +4,7 @@ Needs numpy, Pillow and lerobot (and ffmpeg for the videos); it does NOT need Mu
 
   uv run --with 'lerobot[dataset]' python data/tools/export_lerobot.py
   uv run --with 'lerobot[dataset]' python data/tools/export_lerobot.py --with-base --out data/lerobot/with_base
-  uv run --with 'lerobot[dataset]' python data/tools/export_lerobot.py --assist off --include-failed
+  uv run --with 'lerobot[dataset]' python data/tools/export_lerobot.py --include-failed
 
 It follows the real robot's conventions (firmware/combined-web/web_combined.py, LeRobot SO101Follower):
   observation.images.wrist    480x640 RGB video: the only camera, the USB bar camera on the gripper (firmware: 640x480)
@@ -15,7 +15,7 @@ It follows the real robot's conventions (firmware/combined-web/web_combined.py, 
 Wrist roll is about -90 when picking in the sim, like the real arm (reads about -92).
 
 Only episodes that were recorded WITH camera frames are exported (the others have no images).
-Ground-truth item position and the grasp-assist weld flag are deliberately left out: they do not exist on
+Ground-truth item position is deliberately left out: it does not exist on
 the real robot. By default only successful episodes are included.
 """
 
@@ -67,7 +67,6 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--out", type=Path, default=data_dir / "lerobot" / "dark_store_so101")
     ap.add_argument("--repo-id", default="local/dark_store_so101")
     ap.add_argument("--scenario", choices=["shelf_to_tray", "restock_misplaced"], help="only this simulation")
-    ap.add_argument("--assist", choices=["on", "off", "any"], default="any", help="grasp-assist mode to include")
     ap.add_argument("--include-failed", action="store_true", help="also export unsuccessful episodes")
     ap.add_argument("--with-base", action="store_true", help="append the rover command (Arduino -255..255 units) to action")
     ap.add_argument("--no-videos", action="store_true", help="store frames as images instead of mp4")
@@ -88,8 +87,6 @@ def main(argv: list[str] | None = None) -> int:
             why = "no camera frames"
         elif args.scenario and meta["scenario"] != args.scenario:
             why = "other simulation"
-        elif args.assist != "any" and meta.get("grasp_assist") != (args.assist == "on"):
-            why = "other assist mode"
         elif not meta["success"] and not args.include_failed:
             why = "unsuccessful"
         (skipped if why else chosen).append((meta_path.parent, why))

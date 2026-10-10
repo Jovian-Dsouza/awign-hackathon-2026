@@ -207,7 +207,9 @@ def _grasp(task: Task, name: str, heading: float, stage_xy=None, reach: float | 
     task.notes["item_lifted_z"] = round(float(task.item_pos(name)[2]), 4)
     # Nothing carries the item except the friction of the two fingers, so check it really left the board with them.
     if np.linalg.norm(task.item_pos(name) - task.jaw_centre()) > HELD_MAX_DISTANCE:
-        raise GraspFailed(f"the jaws could not hold the {name}: it stayed behind when the gripper pulled back")
+        height = 2 * task.item_half_height(name)
+        why = f" (it is only {height * 1000:.0f} mm tall: flatter than the fingers can pinch with the gripper body clear of the surface)" if height < 0.03 else ""
+        raise GraspFailed(f"the jaws could not hold the {name}: it stayed behind when the gripper pulled back{why}")
     return hold
 
 

@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-10T14:01:13+00:00",
+ "generated": "2026-10-10T15:52:10+00:00",
  "mujoco": "3.15.0",
  "notes": "Simulation values. Treat as the starting point for the real robot, to be verified on hardware.",
  "robot": {
@@ -121,8 +121,8 @@
       "kp": 998.22,
       "kv": 2.731,
       "torque_limit_Nm": [
-       -3.35,
-       3.35
+       -0.8,
+       0.8
       ]
      }
     }
@@ -132,9 +132,9 @@
    "wrist_cam": {
     "fovy_deg": 75.0,
     "pos_in_parent_m": [
-     0.0025,
-     0.0693,
-     -0.02
+     0.0,
+     0.0755,
+     -0.0485
     ],
     "parent_body": "so101/gripper"
    }
@@ -181,7 +181,7 @@
   "approach": "jaws level and pointing along the approach heading, wrist roll -90 deg (the real arm reads about -92 when picking) so the jaws open sideways",
   "wrist_roll_deg": -90.0,
   "pinch_centre_offset_from_gripperframe_m": 0.036,
-  "grasp_height_above_item_centre_m": 0.015,
+  "grasp_height_above_item_centre_m": 0.005,
   "grasp_depth_past_item_centre_m": 0.03,
   "mouth_gap_m": 0.095,
   "drive_in_distance_m": 0.125,
@@ -214,13 +214,13 @@
    "kind": "cardboard cubby unit, open front",
    "width_m": 0.52,
    "depth_m": 0.18,
-   "height_m": 0.4,
+   "height_m": 0.55,
    "levels": 3,
    "slots_per_level": 3,
    "board_top_heights_m": [
     0.01,
-    0.14,
-    0.27
+    0.19,
+    0.37
    ],
    "rack_slot_xyz_m": [
     [
@@ -244,34 +244,34 @@
      [
       -0.668,
       0.26,
-      0.14
+      0.19
      ],
      [
       -0.5,
       0.26,
-      0.14
+      0.19
      ],
      [
       -0.332,
       0.26,
-      0.14
+      0.19
      ]
     ],
     [
      [
       -0.668,
       0.26,
-      0.27
+      0.37
      ],
      [
       -0.5,
       0.26,
-      0.27
+      0.37
      ],
      [
       -0.332,
       0.26,
-      0.27
+      0.37
      ]
     ]
    ],
@@ -299,13 +299,13 @@
   "name": "alphabet_soup",
   "radius_m": 0.0245,
   "half_height_m": 0.0245,
-  "mass_kg": 0.008938198080970636,
+  "mass_kg": 0.0599999785500165,
   "friction": "default 1.0 sliding"
  },
  "sim_only_assumptions": [
-  "grasp assist (weld) carries the item when enabled; friction grip quality is NOT validated",
+  "items are held by contact and friction only (no weld, no ghost jaws); grip quality still depends on rigid-body contact, not real material compliance",
   "mecanum wheels slip and roller dynamics are not modelled",
   "camera images are rendered, not real sensor images",
-  "jaw collision geometry is the stock SO-101 convex hulls"
+  "arm collision geometry is a convex decomposition of the SO-101 CAD meshes; 7 link pairs that overlap in the folded rest pose have contact disabled"
  ]
 }
