@@ -49,6 +49,19 @@ The script logs its frame rate and bandwidth every 10 s. Ctrl+C stops it.
 | `--rotate` | `0` | `90`, `180` or `270` for a mounted camera |
 | `--label` | `UthaLe PI-CAM` | Text burned into the frame with a timestamp (`--no-overlay` to disable) |
 
+### Relay mode (shares the camera with the robot scripts)
+
+The robot scripts in `firmware/` (`web_combined.py` :8003, `web_drive.py` :8002, ACT `infer.py` :8004, `record.py` :8005) each open the LG wrist camera themselves. A camera can only be opened by one program, so a streamer holding it would stop those scripts from getting it. `--camera relay` never opens the camera. It forwards the `/stream` of whichever script is running, unchanged, and waits quietly while none is. Relay mode only needs `websockets`, not OpenCV.
+
+This is how the Pi is set up: `~/uthale-cam/` holds the script, its own `.venv` and `streamer.env` (server URL + token, mode 600). It runs as the user service `uthale-cam`, which starts at boot (linger is on):
+
+```bash
+systemctl --user status uthale-cam          # running?
+journalctl --user -u uthale-cam -f          # live log
+nano ~/uthale-cam/streamer.env && systemctl --user restart uthale-cam   # new ngrok URL
+systemctl --user disable --now uthale-cam   # turn it off
+```
+
 `--server` and `--token` can also come from the `UTHALE_SERVER` and `UTHALE_INGEST_TOKEN` environment variables.
 
 ### Run on boot (optional)

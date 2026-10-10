@@ -85,7 +85,7 @@ export default function Home() {
           <span className="brand-mark" aria-hidden>
             <svg width="16" height="16" viewBox="0 0 32 32"><path d="M9 8v9a7 7 0 0 0 14 0V8" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" /><circle cx="16" cy="17" r="2.5" fill="#fff" /></svg>
           </span>
-          Dark-Store Robot
+          UthaLe
         </span>
         <nav>
           <a href="#base">Base</a>
