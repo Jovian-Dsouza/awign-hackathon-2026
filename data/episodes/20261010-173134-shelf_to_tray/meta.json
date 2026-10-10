@@ -1,0 +1,92 @@
+{
+ "id": "20261010-173134-shelf_to_tray",
+ "created": "2026-10-10T12:01:47+00:00",
+ "scenario": "shelf_to_tray",
+ "title": "Shelf to tray",
+ "params": {
+  "rack": [
+   2,
+   1
+  ],
+  "item_xy": [
+   0.3,
+   -0.02
+  ],
+  "dest_rack": null,
+  "assist": true
+ },
+ "success": true,
+ "sim_seconds": 25.59,
+ "wall_seconds": 12.26,
+ "stages": {
+  "drive_to_item": 1.91,
+  "pre_grasp": 3.16,
+  "drive_in": 1.02,
+  "grasp": 1.33,
+  "lift_back_out": 1.6,
+  "carry": 5.2,
+  "release": 6.2,
+  "return_home": 5.1
+ },
+ "samples": 253,
+ "sample_hz": 10.0,
+ "frames": 253,
+ "notes": {
+  "pick_heading_deg": 90.0,
+  "pick_reach": 0.37,
+  "pick_stage": [
+   -0.5,
+   -0.276
+  ],
+  "lateral_correction_m": -0.0038,
+  "assist_attached": true,
+  "hold_offset_m": [
+   0.0292,
+   0.0024,
+   0.0149
+  ],
+  "item_lifted_z": 0.3109,
+  "release_recenter_m": -0.0037,
+  "final_item": [
+   0.808,
+   0.009,
+   0.027
+  ],
+  "target": [
+   0.8,
+   0.0,
+   0.056
+  ]
+ },
+ "grasp_assist": true,
+ "constants": {
+  "gripper_open_deg": 52.0,
+  "gripper_release_deg": 70.0,
+  "gripper_closed_deg": -5.0,
+  "pinch_z_m": 0.036,
+  "grasp_roll_deg": 90.0,
+  "grasp_z_off_m": 0.015,
+  "grasp_y_off_m": 0.03,
+  "mouth_gap_m": 0.095,
+  "advance_m": 0.125,
+  "carry_reach_m": 0.24,
+  "carry_height_m": 0.2
+ },
+ "versions": {
+  "mujoco": "3.15.0",
+  "robot_model": "4f8ee2602aa3",
+  "layout": "edb1caa4c7ee",
+  "inventory": "4a0b514ca26d"
+ },
+ "log": [
+  "shelf -> tray: taking the alphabet_soup from rack level 2, slot 1 at [-0.5    0.258  0.291]",
+  "  1/4 drive to the rack and grip the item",
+  "    [ik] residual 10.2 mm, tool tilt 3 deg for target [-0.5    0.163  0.326]",
+  "    [ik] residual 10.2 mm, tool tilt 3 deg for target [-0.5    0.163  0.306]",
+  "    [ik] residual 14.7 mm, tool tilt 3 deg for target [-0.503  0.038  0.2  ]",
+  "  2/4 carry it to the tray",
+  "  3/4 set it down in the tray and let go",
+  "  4/4 check: item ended at [0.808 0.009 0.027] -> IN TRAY",
+  "  returning to the start position"
+ ]
+}

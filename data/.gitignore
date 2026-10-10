@@ -1,0 +1,2 @@
+# Camera frames are large and regenerable; trajectories, metadata and calibration are small and kept.
+episodes/*/frames/

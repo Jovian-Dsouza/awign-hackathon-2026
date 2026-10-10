@@ -39,6 +39,7 @@ class Robot:
         self._qy = model.jnt_qposadr[model.joint("robot/base_y").id]
         self._qyaw = model.jnt_qposadr[model.joint("robot/base_yaw").id]
         self._x0 = np.array([data.qpos[self._qx], data.qpos[self._qy]])
+        self.last_twist = (0.0, 0.0, 0.0)
 
     @property
     def pose(self) -> tuple[float, float, float]:
@@ -49,6 +50,7 @@ class Robot:
 
     def set_twist(self, vx: float, vy: float, wz: float) -> None:
         """Command a body-frame velocity. Slide actuators act in the world frame, so rotate by yaw."""
+        self.last_twist = (vx, vy, wz)
         yaw = self.data.qpos[self._qyaw]
         c, s = np.cos(yaw), np.sin(yaw)
         self.data.ctrl[self._act["robot/vx"]] = c * vx - s * vy

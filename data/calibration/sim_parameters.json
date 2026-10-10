@@ -1,0 +1,325 @@
+{
+ "generated": "2026-10-10T12:05:47+00:00",
+ "mujoco": "3.15.0",
+ "notes": "Simulation values. Treat as the starting point for the real robot, to be verified on hardware.",
+ "robot": {
+  "rover": {
+   "type": "4-wheel mecanum, holonomic planar drive (wheel slip not modelled)",
+   "wheel_radius_m": 0.0325,
+   "half_wheelbase_m": 0.085,
+   "half_track_m": 0.105,
+   "deck_top_z_m": 0.0915,
+   "arm_mount_xyz_m": [
+    0.03,
+    0,
+    0.0915
+   ],
+   "chassis_camera_xyz_m": [
+    0.13,
+    0,
+    0.1115
+   ],
+   "max_linear_mps": 0.5,
+   "max_angular_radps": 3.0,
+   "footprint_half_extents_m": [
+    0.165,
+    0.125
+   ]
+  },
+  "arm": {
+   "model": "SO-101 (SO-ARM100 MJCF, new calibration: zero = middle of range)",
+   "joints": [
+    {
+     "name": "shoulder_pan",
+     "lerobot_key": "shoulder_pan.pos",
+     "range_deg": [
+      -110.0,
+      110.0
+     ],
+     "actuator": {
+      "type": "position",
+      "kp": 998.22,
+      "kv": 2.731,
+      "torque_limit_Nm": [
+       -3.35,
+       3.35
+      ]
+     }
+    },
+    {
+     "name": "shoulder_lift",
+     "lerobot_key": "shoulder_lift.pos",
+     "range_deg": [
+      -100.0,
+      100.0
+     ],
+     "actuator": {
+      "type": "position",
+      "kp": 998.22,
+      "kv": 2.731,
+      "torque_limit_Nm": [
+       -3.35,
+       3.35
+      ]
+     }
+    },
+    {
+     "name": "elbow_flex",
+     "lerobot_key": "elbow_flex.pos",
+     "range_deg": [
+      -96.8,
+      96.8
+     ],
+     "actuator": {
+      "type": "position",
+      "kp": 998.22,
+      "kv": 2.731,
+      "torque_limit_Nm": [
+       -3.35,
+       3.35
+      ]
+     }
+    },
+    {
+     "name": "wrist_flex",
+     "lerobot_key": "wrist_flex.pos",
+     "range_deg": [
+      -95.0,
+      95.0
+     ],
+     "actuator": {
+      "type": "position",
+      "kp": 998.22,
+      "kv": 2.731,
+      "torque_limit_Nm": [
+       -3.35,
+       3.35
+      ]
+     }
+    },
+    {
+     "name": "wrist_roll",
+     "lerobot_key": "wrist_roll.pos",
+     "range_deg": [
+      -157.2,
+      162.8
+     ],
+     "actuator": {
+      "type": "position",
+      "kp": 998.22,
+      "kv": 2.731,
+      "torque_limit_Nm": [
+       -3.35,
+       3.35
+      ]
+     }
+    },
+    {
+     "name": "gripper",
+     "lerobot_key": "gripper.pos",
+     "range_deg": [
+      -10.0,
+      100.0
+     ],
+     "actuator": {
+      "type": "position",
+      "kp": 998.22,
+      "kv": 2.731,
+      "torque_limit_Nm": [
+       -3.35,
+       3.35
+      ]
+     }
+    }
+   ]
+  },
+  "cameras": {
+   "wrist_cam": {
+    "fovy_deg": 75.0,
+    "pos_in_parent_m": [
+     0.0025,
+     0.0693,
+     -0.02
+    ],
+    "parent_body": "so101/gripper"
+   },
+   "chassis_cam": {
+    "fovy_deg": 70.0,
+    "pos_in_parent_m": [
+     0.142,
+     -0.022,
+     0.1135
+    ],
+    "parent_body": "robot/base"
+   }
+  }
+ },
+ "control": {
+  "cruise_speed_mps": 0.35,
+  "acceleration_mps2": 0.8,
+  "angular_acceleration_radps2": 3.0,
+  "poses_deg": {
+   "rest": {
+    "shoulder_pan": 0,
+    "shoulder_lift": -100,
+    "elbow_flex": 95,
+    "wrist_flex": 65,
+    "wrist_roll": 0,
+    "gripper": 0
+   },
+   "ready": {
+    "shoulder_pan": 0,
+    "shoulder_lift": -40,
+    "elbow_flex": 55,
+    "wrist_flex": 60,
+    "wrist_roll": 0,
+    "gripper": 40
+   },
+   "reach_low": {
+    "shoulder_pan": 0,
+    "shoulder_lift": 10,
+    "elbow_flex": 10,
+    "wrist_flex": 0,
+    "wrist_roll": 0,
+    "gripper": 60
+   }
+  },
+  "gripper_deg": {
+   "open": 52.0,
+   "release": 70.0,
+   "rack_release": 60.0,
+   "closed": -5.0
+  }
+ },
+ "manipulation": {
+  "approach": "jaws level and pointing along the approach heading, wrist roll 90 deg so the jaws open sideways",
+  "wrist_roll_deg": 90.0,
+  "pinch_centre_offset_from_gripperframe_m": 0.036,
+  "grasp_height_above_item_centre_m": 0.015,
+  "grasp_depth_past_item_centre_m": 0.03,
+  "mouth_gap_m": 0.095,
+  "drive_in_distance_m": 0.125,
+  "shoulder_forward_of_rover_centre_m": 0.069,
+  "stand_off_candidates_m": [
+   0.37,
+   0.34,
+   0.31,
+   0.28,
+   0.25,
+   0.22
+  ],
+  "stand_off_note": "shoulder-to-jaws distance at the rack mouth; the longest one the arm can reach level",
+  "carry": {
+   "reach_m": 0.24,
+   "height_m": 0.2
+  },
+  "ik": {
+   "heading_weight": 0.25,
+   "accept_position_error_m": 0.025
+  }
+ },
+ "scene": {
+  "table_size_m": [
+   2.2,
+   0.9
+  ],
+  "table_top_z_m": 0.0,
+  "shelf": {
+   "kind": "cardboard cubby unit, open front",
+   "width_m": 0.52,
+   "depth_m": 0.18,
+   "height_m": 0.4,
+   "levels": 3,
+   "slots_per_level": 3,
+   "board_top_heights_m": [
+    0.01,
+    0.14,
+    0.27
+   ],
+   "rack_slot_xyz_m": [
+    [
+     [
+      -0.668,
+      0.26,
+      0.01
+     ],
+     [
+      -0.5,
+      0.26,
+      0.01
+     ],
+     [
+      -0.332,
+      0.26,
+      0.01
+     ]
+    ],
+    [
+     [
+      -0.668,
+      0.26,
+      0.14
+     ],
+     [
+      -0.5,
+      0.26,
+      0.14
+     ],
+     [
+      -0.332,
+      0.26,
+      0.14
+     ]
+    ],
+    [
+     [
+      -0.668,
+      0.26,
+      0.27
+     ],
+     [
+      -0.5,
+      0.26,
+      0.27
+     ],
+     [
+      -0.332,
+      0.26,
+      0.27
+     ]
+    ]
+   ],
+   "note": "rack_slot_xyz_m[level][slot] = (x, y, top of that rack's floor); level 0 is the bottom"
+  },
+  "tray": {
+   "pos_xy_m": [
+    0.8,
+    0.0
+   ],
+   "size_xyz_m": [
+    0.3,
+    0.22,
+    0.07
+   ]
+  },
+  "dock": {
+   "pos_xy_m": [
+    -0.95,
+    -0.28
+   ]
+  }
+ },
+ "item": {
+  "name": "alphabet_soup",
+  "radius_m": 0.0245,
+  "half_height_m": 0.0245,
+  "mass_kg": 0.008938198080970636,
+  "friction": "default 1.0 sliding"
+ },
+ "sim_only_assumptions": [
+  "grasp assist (weld) carries the item when enabled; friction grip quality is NOT validated",
+  "mecanum wheels slip and roller dynamics are not modelled",
+  "camera images are rendered, not real sensor images",
+  "jaw collision geometry is the stock SO-101 convex hulls"
+ ]
+}

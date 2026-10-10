@@ -1,0 +1,65 @@
+import mujoco
+import pytest
+
+from dsr_sim.constants import DEFAULT_SCENE
+from dsr_sim.pick import Task
+from dsr_sim.run import reset_scene
+from dsr_sim.scenarios import SCENARIOS, resolve
+from dsr_sim.world import ParamError, Params, item_position_problem, validate
+
+
+def run(name: str, **kw) -> bool:
+    model = mujoco.MjModel.from_xml_path(str(DEFAULT_SCENE))
+    data = mujoco.MjData(model)
+    params = Params.from_dict(kw)
+    validate(name, params)
+    scenario = SCENARIOS[name]
+    reset_scene(model, data, scenario, params)
+    task = Task(model, data)
+    task.run(0.5)
+    start = data.time
+    ok = scenario.run(task, params)
+    assert data.time - start < 60.0  # no stage should be stuck waiting out a timeout
+    return ok
+
+
+def test_resolve_by_name_and_number():
+    names = list(SCENARIOS)
+    assert resolve("1").name == names[0]
+    assert resolve(names[1]).name == names[1]
+    with pytest.raises(KeyError):
+        resolve("nope")
+
+
+@pytest.mark.parametrize("rack", [[0, 2], [1, 0], [2, 2]])
+def test_shelf_to_tray_from_chosen_rack(rack):
+    assert run("shelf_to_tray", rack=rack)
+
+
+@pytest.mark.parametrize("xy", [[0.30, -0.02], [-0.6, 0.0], [0.5, -0.3]])
+def test_restock_from_anywhere(xy):
+    assert run("restock_misplaced", item_xy=xy)
+
+
+def test_restock_into_other_empty_rack():
+    assert run("restock_misplaced", item_xy=[0.2, -0.1], dest_rack=[1, 2])
+
+
+def test_validation_messages():
+    with pytest.raises(ParamError, match="tray"):
+        validate("restock_misplaced", Params(item_xy=(0.8, 0.0)))
+    with pytest.raises(ParamError, match="already holds"):
+        validate("restock_misplaced", Params(item_xy=(0.0, 0.0), dest_rack=(1, 1)))
+    with pytest.raises(ParamError, match="no rack"):
+        validate("shelf_to_tray", Params(rack=(3, 0)))
+    assert item_position_problem(0.3, -0.02) is None
+
+
+def test_unreachable_spot_is_reported_not_attempted():
+    model = mujoco.MjModel.from_xml_path(str(DEFAULT_SCENE))
+    data = mujoco.MjData(model)
+    p = Params(item_xy=(1.0, 0.0))  # behind the tray: no stand-off exists
+    sc = SCENARIOS["restock_misplaced"]
+    reset_scene(model, data, sc, p)
+    task = Task(model, data)
+    assert sc.run(task, p) is False

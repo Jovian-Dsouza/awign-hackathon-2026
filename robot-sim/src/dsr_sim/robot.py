@@ -57,6 +57,7 @@ WHEEL_KV = 2.0
 MAX_LINEAR = 0.5  # m/s command limit
 MAX_ANGULAR = 3.0  # rad/s
 MAX_WHEEL = 40.0  # rad/s
+JAW_FRICTION = 1.0  # sliding friction on the jaws (items are ~1.0). Too grippy drags released items along.
 
 ARM_JOINTS = ("shoulder_pan", "shoulder_lift", "elbow_flex", "wrist_flex", "wrist_roll", "gripper")
 # Degrees, "new calibration" zero (middle of each joint's range); same convention as LeRobot degrees.
@@ -250,8 +251,23 @@ def _grippy_jaws(spec: mujoco.MjSpec) -> None:
         body = spec.body(body_name)
         for geom in body.geoms:
             if geom.contype:
-                geom.friction = [2.0, 0.02, 0.002]
+                geom.friction = [JAW_FRICTION, 0.02, 0.002]
                 geom.condim = 4
+
+
+def _add_grasp_welds(spec: mujoco.MjSpec) -> None:
+    """Inactive weld between the gripper and each item. Switched on by the "grasp assist" once the jaws are
+    verifiably closed around the item, off again when the gripper opens (see Task.attach / Task.detach)."""
+    for body in list(spec.bodies):
+        name = body.name
+        if name.startswith("item_") and "/" not in name:
+            eq = spec.add_equality()
+            eq.name = f"grip_weld_{name[len('item_'):]}"
+            eq.type = mujoco.mjtEq.mjEQ_WELD
+            eq.objtype = mujoco.mjtObj.mjOBJ_BODY
+            eq.name1 = ARM_PREFIX + "gripper"
+            eq.name2 = name
+            eq.active = False
 
 
 def add_robot(spec: mujoco.MjSpec, dock: DockConfig, so101_xml: Path = SO101_XML) -> mujoco.MjsBody:
@@ -287,6 +303,7 @@ def add_robot(spec: mujoco.MjSpec, dock: DockConfig, so101_xml: Path = SO101_XML
     _add_wrist_camera(spec, mats)
     _recolor_arm(spec)
     _grippy_jaws(spec)
+    _add_grasp_welds(spec)
     return base
 
 

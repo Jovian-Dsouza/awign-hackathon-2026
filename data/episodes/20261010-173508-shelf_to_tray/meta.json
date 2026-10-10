@@ -1,0 +1,92 @@
+{
+ "id": "20261010-173508-shelf_to_tray",
+ "created": "2026-10-10T12:05:13+00:00",
+ "scenario": "shelf_to_tray",
+ "title": "Shelf to tray",
+ "params": {
+  "rack": [
+   0,
+   2
+  ],
+  "item_xy": [
+   0.3,
+   -0.02
+  ],
+  "dest_rack": null,
+  "assist": false
+ },
+ "success": false,
+ "sim_seconds": 26.09,
+ "wall_seconds": 5.56,
+ "stages": {
+  "drive_to_item": 2.42,
+  "pre_grasp": 3.16,
+  "drive_in": 1.02,
+  "grasp": 1.32,
+  "lift_back_out": 1.6,
+  "carry": 4.6,
+  "release": 6.81,
+  "return_home": 5.1
+ },
+ "samples": 258,
+ "sample_hz": 10.0,
+ "frames": 0,
+ "notes": {
+  "pick_heading_deg": 90.0,
+  "pick_reach": 0.34,
+  "pick_stage": [
+   -0.332,
+   -0.246
+  ],
+  "lateral_correction_m": -0.0036,
+  "hold_offset_m": [
+   0.0418,
+   0.0274,
+   0.0147
+  ],
+  "item_lifted_z": 0.0512,
+  "release_recenter_m": -0.0302,
+  "final_item": [
+   0.51,
+   -0.017,
+   0.139
+  ],
+  "target": [
+   0.8,
+   0.0,
+   0.056
+  ]
+ },
+ "grasp_assist": false,
+ "constants": {
+  "gripper_open_deg": 52.0,
+  "gripper_release_deg": 70.0,
+  "gripper_closed_deg": -5.0,
+  "pinch_z_m": 0.036,
+  "grasp_roll_deg": 90.0,
+  "grasp_z_off_m": 0.015,
+  "grasp_y_off_m": 0.03,
+  "mouth_gap_m": 0.095,
+  "advance_m": 0.125,
+  "carry_reach_m": 0.24,
+  "carry_height_m": 0.2
+ },
+ "versions": {
+  "mujoco": "3.15.0",
+  "robot_model": "4f8ee2602aa3",
+  "layout": "edb1caa4c7ee",
+  "inventory": "4a0b514ca26d"
+ },
+ "log": [
+  "shelf -> tray: taking the alphabet_soup from rack level 0, slot 2 at [-0.332  0.258  0.031]",
+  "  1/4 drive to the rack and grip the item",
+  "    [ik] residual 11.3 mm, tool tilt 3 deg for target [-0.332  0.163  0.066]",
+  "    [ik] residual 11.3 mm, tool tilt 3 deg for target [-0.332  0.163  0.046]",
+  "    [ik] residual 10.5 mm, tool tilt 3 deg for target [-0.332  0.288  0.066]",
+  "    [ik] residual 14.7 mm, tool tilt 3 deg for target [-0.334  0.068  0.2  ]",
+  "  2/4 carry it to the tray",
+  "  3/4 set it down in the tray and let go",
+  "  4/4 check: item ended at [ 0.51  -0.017  0.139] -> NOT in tray",
+  "  returning to the start position"
+ ]
+}

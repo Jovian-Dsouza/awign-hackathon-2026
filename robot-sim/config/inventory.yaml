@@ -7,4 +7,4 @@ items:
   - {name: cookies,        source: hope, asset: cookies,        shelf: A, level: 1, slot: 1, scale: 0.7}
   - {name: popcorn,        source: hope, asset: popcorn,        shelf: A, level: 2, slot: 2, scale: 0.7}
   - {name: milk,           source: hope, asset: milk,           shelf: A, level: 0, slot: 0, euler_deg: [90, 0, 0], scale: 0.7}
-  - {name: alphabet_soup,  source: hope, asset: alphabet_soup,  shelf: A, level: 0, slot: 2, euler_deg: [90, 0, 0], scale: 0.7}
+  - {name: alphabet_soup,  source: hope, asset: alphabet_soup,  shelf: A, level: 0, slot: 2, euler_deg: [90, 0, 0], scale: 0.55}
