@@ -14,6 +14,7 @@ import mujoco
 import numpy as np
 
 from dsr_sim import world as W
+from dsr_sim.robot import POSES_DEG
 from dsr_sim.pick import (
     ARM_JOINTS,
     GRASP_ROLL,
@@ -34,7 +35,7 @@ MOUTH_GAP = 0.095  # tool stops this far short of the item before driving in
 ADVANCE = MOUTH_GAP + GRASP_Y_OFF
 RACK_RELEASE_DEG = 60.0  # jaw opening when letting go inside a rack (limited by the divider walls)
 CARRY_POSE = (0, -80, 85, 55, GRASP_ROLL, GRIPPER_CLOSED_DEG)
-REST_POSE = (0, -100, 95, 65, 0, 0)
+REST_POSE = POSES_DEG["rest"]  # the Pi firmware's REST_POSE
 RECENTER_GAIN = 1.0  # +1 moves the jaws toward the item's centre line, -1 away, 0 off (calibration knob)
 GRIP_CLOSE_S = 0.7  # seconds to close the jaws (slower = the item centres itself instead of being shoved)
 CARRY_TUCK_S = 1.5  # slow, so the held item is not flung out of the jaws while the arm moves

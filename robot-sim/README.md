@@ -72,7 +72,7 @@ With assist off the full contact physics is used and it works much less often: i
 |---|---|
 | Holonomic base with mecanum wheel IK and spinning wheels | Mecanum roller slip / wheel-floor contact |
 | SO-101 kinematics, joint limits, servo-like position actuators | Servo backlash, real torque curves |
-| Two cameras rendered from their mounts | Real camera intrinsics, exposure, USB latency |
+| Wrist camera rendered from its mount | Real camera intrinsics, exposure, USB latency |
 | Scripted pick / carry / place with sideways correction and route planning | SLAM, a learned grasp policy |
 | Friction-only grasp mode (assist off) | Packaging deformation (the item is a rigid can) |
 
@@ -98,8 +98,8 @@ there and re-export, not in `robot.py`:
 
 ## Wrist camera
 
-The wrist camera is the bar webcam from the real build: a printed post glued to the gripper top, a bracket platform with two cheeks, the bar camera with lens ring, and a thin USB lead (`WRIST_CAM_*` in `robot.py`; same numbers in `frontend/src/components/Arm.tsx`). The sim mounts it on the gripper's -y side because the sim grasps at wrist_roll +90 (the real arm reads about -92); the /model page uses +y so it matches the photos at roll -90.
+The wrist camera is the bar webcam from the real build: a printed post glued to the gripper top, a bracket platform with two cheeks, the bar camera with lens ring, and a thin USB lead (`WRIST_CAM_*` in `robot.py`; same numbers in `frontend/src/components/Arm.tsx`). The sim mounts it on the gripper's +y side (top of the gripper at the grasp roll of -90, like the real arm which reads about -92 when picking).
 
-Panel camera buttons: Overview / Robot / Shelf / Tray (free cameras; drag to orbit) plus **Wrist camera** and **Chassis camera** (the robot's own views). They work before a run starts and during it, and the MuJoCo window follows the same choice. Keys 1-6.
+The page shows two live panels: the **environment** (drag to orbit, scroll to zoom, preset views Overview / Robot / Shelf / Tray) and the **wrist camera** (the robot's only camera, 640x480, what the policy sees). **Full screen** (button or key F) hides the controls: the environment fills the whole screen with the wrist camera as a picture-in-picture in the top-right corner. Esc or the faded bar at the bottom leaves it (Pause / Reset stay on that bar).
 
 Safety check: `tests/test_scenarios.py::test_wrist_camera_never_rotates_underneath` fails if the camera ever swings under the gripper or dips below the table surface during a run.

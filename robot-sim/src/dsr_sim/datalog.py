@@ -4,7 +4,7 @@ Every recorded run produces:
   data/runs.jsonl                         one JSON line per run: parameters, outcome, timings, key numbers
   data/episodes/<id>/meta.json            the same plus the log and a snapshot of the tuned constants
   data/episodes/<id>/trajectory.npz       time series at ~10 Hz (joint targets + measured, rover pose, item, ...)
-  data/episodes/<id>/frames/{wrist,chassis}/*.jpg   camera frames at the same rate (optional)
+  data/episodes/<id>/frames/wrist/*.jpg   camera frames at the same rate (optional)
   data/calibration/sim_parameters.json    everything about the simulated robot/scene a real build needs to match
 
 See data/README.md for how these map to the real hardware.
@@ -35,7 +35,7 @@ EPISODES_DIR = DATA_DIR / "episodes"
 RUNS_FILE = DATA_DIR / "runs.jsonl"
 CALIBRATION_FILE = DATA_DIR / "calibration" / "sim_parameters.json"
 SAMPLE_HZ = 10.0
-IMAGE_SIZE = (240, 320)  # height, width
+IMAGE_SIZE = (480, 640)  # height, width: what the real USB camera streams (firmware: 640x480)
 ARM_JOINTS = R.ARM_JOINTS
 
 
@@ -114,11 +114,10 @@ class Recorder:
 
         if self._renderer is None:
             self._renderer = mujoco.Renderer(task.model, *IMAGE_SIZE)
-        for cam, sub in (("wrist_cam", "wrist"), ("chassis_cam", "chassis")):
-            out = self.dir / "frames" / sub
-            out.mkdir(parents=True, exist_ok=True)
-            self._renderer.update_scene(task.data, camera=cam)
-            Image.fromarray(self._renderer.render()).save(out / f"{self.n_frames:05d}.jpg", quality=80)
+        out = self.dir / "frames" / "wrist"
+        out.mkdir(parents=True, exist_ok=True)
+        self._renderer.update_scene(task.data, camera="wrist_cam")
+        Image.fromarray(self._renderer.render()).save(out / f"{self.n_frames:05d}.jpg", quality=85)
         self.n_frames += 1
 
     def finish(self, ok: bool, sim_seconds: float, wall_seconds: float, log: list[str]) -> dict:
@@ -211,7 +210,7 @@ def export_calibration(model: mujoco.MjModel | None = None, path: Path = CALIBRA
         )
     levels = [[W.rack_pos(lv, sl).round(4).tolist() for sl in range(W.SLOTS)] for lv in range(W.LEVELS)]
     cams = {}
-    for name in ("wrist_cam", "chassis_cam"):
+    for name in ("wrist_cam",):
         cid = model.camera(name).id
         cams[name] = {"fovy_deg": float(model.cam_fovy[cid]), "pos_in_parent_m": [round(float(v), 4) for v in model.cam_pos[cid]], "parent_body": model.body(model.cam_bodyid[cid]).name}
     item_bodies = [i for i in range(model.nbody) if model.body(i).name == f"item_{W.ITEM}/object"]
@@ -228,7 +227,6 @@ def export_calibration(model: mujoco.MjModel | None = None, path: Path = CALIBRA
                 "half_track_m": R.HALF_TRACK,
                 "deck_top_z_m": R.DECK_TOP,
                 "arm_mount_xyz_m": list(R.ARM_MOUNT),
-                "chassis_camera_xyz_m": list(R.CHASSIS_CAM_POS),
                 "max_linear_mps": R.MAX_LINEAR,
                 "max_angular_radps": R.MAX_ANGULAR,
                 "footprint_half_extents_m": list(W.ROVER_HALF),
@@ -244,7 +242,7 @@ def export_calibration(model: mujoco.MjModel | None = None, path: Path = CALIBRA
             "gripper_deg": {"open": P.GRIPPER_OPEN_DEG, "release": P.GRIPPER_RELEASE_DEG, "rack_release": S.RACK_RELEASE_DEG, "closed": P.GRIPPER_CLOSED_DEG},
         },
         "manipulation": {
-            "approach": "jaws level and pointing along the approach heading, wrist roll 90 deg so the jaws open sideways",
+            "approach": "jaws level and pointing along the approach heading, wrist roll -90 deg (the real arm reads about -92 when picking) so the jaws open sideways",
             "wrist_roll_deg": P.GRASP_ROLL,
             "pinch_centre_offset_from_gripperframe_m": P.PINCH_Z,
             "grasp_height_above_item_centre_m": S.GRASP_Z_OFF,

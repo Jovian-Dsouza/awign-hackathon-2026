@@ -7,11 +7,9 @@ import { join, resolve } from 'node:path'
 import {
   ARM_MOUNT,
   BASE,
-  CHASSIS_CAM_POS,
   DECK_TOP,
   PI_POS,
   WHEELS,
-  chassisCameraParts,
   chassisParts,
   makeGeometry,
   piParts,
@@ -42,11 +40,10 @@ const model = {
   units: 'm',
   frame: 'x forward, y left, z up',
   base: BASE,
-  anchors: { deck_top: DECK_TOP, arm_mount: ARM_MOUNT, pi: PI_POS, chassis_cam: CHASSIS_CAM_POS },
+  anchors: { deck_top: DECK_TOP, arm_mount: ARM_MOUNT, pi: PI_POS },
   chassis: chassisParts().map(withMesh),
   pi: piParts(),
-  chassis_camera: chassisCameraParts(),
   wheels: Object.fromEntries(WHEELS.map((w) => [w.tag, { position: w.position, handed: w.handed, parts: wheelParts(w.handed) }])),
 }
 writeFileSync(join(outDir, 'robot_parts.json'), JSON.stringify(model, null, 1))
-console.log(`exported ${model.chassis.length + model.pi.length + model.chassis_camera.length} body parts + 4 wheels -> ${outDir}`)
+console.log(`exported ${model.chassis.length + model.pi.length} body parts + 4 wheels -> ${outDir}`)

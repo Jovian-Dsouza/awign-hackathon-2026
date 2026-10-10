@@ -5,8 +5,8 @@
         "observation.images.wrist": {
             "dtype": "video",
             "shape": [
-                240,
-                320,
+                480,
+                640,
                 3
             ],
             "names": [
@@ -15,37 +15,8 @@
                 "channels"
             ],
             "info": {
-                "video.height": 240,
-                "video.width": 320,
-                "video.codec": "av1",
-                "video.pix_fmt": "yuv420p",
-                "video.fps": 10,
-                "video.channels": 3,
-                "has_audio": false,
-                "video.g": 2,
-                "video.crf": 30,
-                "video.preset": 12,
-                "video.fast_decode": 0,
-                "video.video_backend": "pyav",
-                "video.extra_options": {},
-                "is_depth_map": false
-            }
-        },
-        "observation.images.chassis": {
-            "dtype": "video",
-            "shape": [
-                240,
-                320,
-                3
-            ],
-            "names": [
-                "height",
-                "width",
-                "channels"
-            ],
-            "info": {
-                "video.height": 240,
-                "video.width": 320,
+                "video.height": 480,
+                "video.width": 640,
                 "video.codec": "av1",
                 "video.pix_fmt": "yuv420p",
                 "video.fps": 10,
@@ -77,7 +48,7 @@
         "action": {
             "dtype": "float32",
             "shape": [
-                9
+                6
             ],
             "names": [
                 "shoulder_pan.pos",
@@ -85,10 +56,7 @@
                 "elbow_flex.pos",
                 "wrist_flex.pos",
                 "wrist_roll.pos",
-                "gripper.pos",
-                "base_vx.vel",
-                "base_vy.vel",
-                "base_wz.vel"
+                "gripper.pos"
             ]
         },
         "timestamp": {
@@ -127,16 +95,16 @@
             "names": null
         }
     },
-    "total_episodes": 23,
-    "total_frames": 5659,
-    "total_tasks": 23,
+    "total_episodes": 46,
+    "total_frames": 10765,
+    "total_tasks": 46,
     "chunks_size": 1000,
     "data_files_size_in_mb": 100,
     "video_files_size_in_mb": 200,
     "data_path": "data/chunk-{chunk_index:03d}/file-{file_index:03d}.parquet",
     "video_path": "videos/{video_key}/chunk-{chunk_index:03d}/file-{file_index:03d}.mp4",
-    "robot_type": "so101_mecanum_sim",
+    "robot_type": "so101_follower_mecanum_sim",
     "splits": {
-        "train": "0:23"
+        "train": "0:46"
     }
 }

@@ -4,7 +4,7 @@ import { ContactShadows, Environment, Grid, Html, OrbitControls } from '@react-t
 import * as THREE from 'three'
 import Arm from './Arm'
 import Chassis from './Chassis'
-import { ChassisCamera, CHASSIS_CAM_POS, PI_POS, RaspberryPi } from './Parts'
+import { PI_POS, RaspberryPi } from './Parts'
 import Wheel from './Wheel'
 import { BASE, wheelSpeeds, type Twist } from '../lib/mecanum'
 import type { JointState } from '../lib/joints'
@@ -58,12 +58,8 @@ function Rover({ twist, joints, focus }: { twist: Twist; joints: JointState; foc
       <Wheel ref={wheels.rr} position={[-L, -W, R]} handed={1} />
       <Arm joints={joints} position={ARM_MOUNT} wristNode={wristLabel} />
       <RaspberryPi />
-      <ChassisCamera />
       {focus === 'base' && <Callout position={[L, W, 0.1]} title="4 × mecanum wheels" line="forward · sideways · rotate" />}
       {focus === 'arm' && <Callout position={[0.03, 0, DECK_TOP + 0.13]} title="SO-101 arm" line="6 joints" />}
-      {focus === 'eyes' && (
-        <Callout position={[CHASSIS_CAM_POS[0] + 0.02, 0, CHASSIS_CAM_POS[2] + 0.04]} title="Chassis camera" line="looks down the aisle" />
-      )}
       {focus === 'brain' && <Callout position={[PI_POS[0], 0, PI_POS[2] + 0.05]} title="Raspberry Pi" line="onboard computer" />}
     </group>
   )

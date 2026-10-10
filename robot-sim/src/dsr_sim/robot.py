@@ -1,6 +1,6 @@
 """Our robot: 4-wheel mecanum rover + SO-101 arm + Raspberry Pi + two cameras.
 
-The rover geometry (decks, wheels with rollers, Pi, chassis camera) is NOT hand-written here: it is
+The rover geometry (decks, wheels with rollers, Pi) is NOT hand-written here: it is
 loaded from assets/robot/robot_parts.json, exported from the website's model
 (frontend/src/lib/robotModel.ts via `node scripts/export-robot.ts`), so the simulation and the site
 show the identical robot. Re-export after changing the frontend model.
@@ -49,7 +49,6 @@ HALF_WHEELBASE = MODEL["base"]["halfWheelbase"]
 HALF_TRACK = MODEL["base"]["halfTrack"]
 DECK_TOP = MODEL["anchors"]["deck_top"]
 ARM_MOUNT = tuple(MODEL["anchors"]["arm_mount"])
-CHASSIS_CAM_POS = tuple(MODEL["anchors"]["chassis_cam"])
 WHEELS = {tag: (1 if w["position"][0] > 0 else -1, 1 if w["position"][1] > 0 else -1) for tag, w in MODEL["wheels"].items()}
 
 BASE_KV = 400.0
@@ -61,8 +60,23 @@ JAW_FRICTION = 1.0  # sliding friction on the jaws (items are ~1.0). Too grippy 
 
 ARM_JOINTS = ("shoulder_pan", "shoulder_lift", "elbow_flex", "wrist_flex", "wrist_roll", "gripper")
 # Degrees, "new calibration" zero (middle of each joint's range); same convention as LeRobot degrees.
+# "rest" is the Pi firmware's REST_POSE (firmware/combined-web/web_combined.py): lift -66, elbow 98, wrist flex 77,
+# gripper 1 on the 0-100 gripper scale (= -8.9 deg here).
+GRIPPER_DEG_RANGE = (-10.0, 100.0)  # MJCF gripper range <-> LeRobot gripper 0..100
+
+
+def gripper_deg_to_pct(deg: float) -> float:
+    lo, hi = GRIPPER_DEG_RANGE
+    return (deg - lo) / (hi - lo) * 100.0
+
+
+def gripper_pct_to_deg(pct: float) -> float:
+    lo, hi = GRIPPER_DEG_RANGE
+    return lo + pct / 100.0 * (hi - lo)
+
+
 POSES_DEG = {
-    "rest": (0, -100, 95, 65, 0, 0),
+    "rest": (0, -66, 98, 77, 0, -8.9),
     "ready": (0, -40, 55, 60, 0, 40),
     "reach_low": (0, 10, 10, 0, 0, 60),
 }
@@ -196,26 +210,20 @@ def _add_wheels(spec: mujoco.MjSpec, base: mujoco.MjsBody, mats: _Materials) -> 
         _velocity_actuator(spec, f"robot/wheel_{tag}", joint.name, WHEEL_KV, MAX_WHEEL)
 
 
-def _add_chassis_camera_view(base: mujoco.MjsBody) -> None:
-    x, y, z = CHASSIS_CAM_POS
-    # Looks along +x (robot forward) from the lens position, image up = +z.
-    base.add_camera(name="chassis_cam", pos=[x + 0.012, y - 0.022, z + 0.002], xyaxes=[0, -1, 0, 0, 0, 1], fovy=70)
-
-
 # Bar webcam clipped on a printed bracket above the gripper (see the photos of the real arm). Gripper frame:
 # x = jaw-opening direction, -y = top of the gripper at the sim's grasp roll (+90 deg), -z = forward. Boxes are (centre, size, colour); shared with
 # frontend/src/components/Arm.tsx so both models match.
 WRIST_CAM_PARTS = (
-    ("post", (0.0, -0.043, -0.020), (0.022, 0.034, 0.034), "#2b2b30"),    # printed column glued to the gripper top
-    ("bracket", (0.0, -0.0615, -0.030), (0.050, 0.006, 0.040), "#2b2b30"),  # platform the camera sits on
-    ("cheek_l", (-0.027, -0.070, -0.030), (0.005, 0.016, 0.040), "#2b2b30"),
-    ("cheek_r", (0.027, -0.070, -0.030), (0.005, 0.016, 0.040), "#2b2b30"),
-    ("cam_body", (0.0, -0.0755, -0.034), (0.092, 0.024, 0.026), "#0c0c0e"),  # bar camera
-    ("cam_face", (0.0, -0.0755, -0.0475), (0.040, 0.016, 0.003), "#17171a"),  # front bezel
+    ("post", (0.0, 0.043, -0.020), (0.022, 0.034, 0.034), "#2b2b30"),    # printed column glued to the gripper top
+    ("bracket", (0.0, 0.0615, -0.030), (0.050, 0.006, 0.040), "#2b2b30"),  # platform the camera sits on
+    ("cheek_l", (-0.027, 0.070, -0.030), (0.005, 0.016, 0.040), "#2b2b30"),
+    ("cheek_r", (0.027, 0.070, -0.030), (0.005, 0.016, 0.040), "#2b2b30"),
+    ("cam_body", (0.0, 0.0755, -0.034), (0.092, 0.024, 0.026), "#0c0c0e"),  # bar camera
+    ("cam_face", (0.0, 0.0755, -0.0475), (0.040, 0.016, 0.003), "#17171a"),  # front bezel
 )
-WRIST_CAM_LENS = (0.0, -0.0755, -0.0495)  # lens centre
+WRIST_CAM_LENS = (0.0, 0.0755, -0.0495)  # lens centre
 # Thin flat USB lead: leaves the camera's side and runs back along the arm.
-WRIST_CAM_CABLE = ((-0.046, -0.0755, -0.034), (-0.056, -0.074, -0.018), (-0.050, -0.052, 0.020), (-0.034, -0.030, 0.062))
+WRIST_CAM_CABLE = ((-0.046, 0.0755, -0.034), (-0.056, 0.074, -0.018), (-0.050, 0.052, 0.020), (-0.034, 0.030, 0.062))
 WRIST_CAM_TILT_DEG = 12.0
 
 
@@ -240,7 +248,7 @@ def _add_wrist_camera(spec: mujoco.MjSpec, mats: _Materials) -> None:
         deco(f"cable{i}", mujoco.mjtGeom.mjGEOM_CAPSULE, "#0a0a0c", 0.7, fromto=[*a, *b], size=[0.0014, 0, 0])
     # Looks forward (-z) and tips down 12 deg toward the jaws; image up = tilted -y, image right = +x.
     c, s = np.cos(np.deg2rad(WRIST_CAM_TILT_DEG)), np.sin(np.deg2rad(WRIST_CAM_TILT_DEG))
-    grip.add_camera(name="wrist_cam", pos=[lx, ly, lz + 0.001], xyaxes=[1, 0, 0, 0, -c, s], fovy=75)
+    grip.add_camera(name="wrist_cam", pos=[lx, ly, lz + 0.001], xyaxes=[1, 0, 0, 0, c, -s], fovy=75)
 
 
 def _recolor_arm(spec: mujoco.MjSpec) -> None:
@@ -287,12 +295,11 @@ def add_robot(spec: mujoco.MjSpec, dock: DockConfig, so101_xml: Path = SO101_XML
         base.add_joint(name=f"robot/base_{axis_name}", type=mujoco.mjtJoint.mjJNT_SLIDE, axis=axis, damping=1.0)
     base.add_joint(name="robot/base_yaw", type=mujoco.mjtJoint.mjJNT_HINGE, axis=[0, 0, 1], damping=0.05)
 
-    for part in (*MODEL["chassis"], *MODEL["pi"], *MODEL["chassis_camera"]):
+    for part in (*MODEL["chassis"], *MODEL["pi"]):
         geom = _add_part(base, part, mats, collide=part["name"] in COLLIDING)
         if part["name"] in COLLIDING:
             geom.mass = 0.4 if part["name"] == "battery" else 0.15
     _add_wheels(spec, base, mats)
-    _add_chassis_camera_view(base)
     _velocity_actuator(spec, "robot/vx", "robot/base_x", BASE_KV, MAX_LINEAR)
     _velocity_actuator(spec, "robot/vy", "robot/base_y", BASE_KV, MAX_LINEAR)
     _velocity_actuator(spec, "robot/wz", "robot/base_yaw", 30.0, MAX_ANGULAR)

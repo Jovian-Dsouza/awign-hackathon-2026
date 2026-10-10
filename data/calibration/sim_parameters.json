@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-10T12:05:47+00:00",
+ "generated": "2026-10-10T14:01:13+00:00",
  "mujoco": "3.15.0",
  "notes": "Simulation values. Treat as the starting point for the real robot, to be verified on hardware.",
  "robot": {
@@ -13,11 +13,6 @@
     0.03,
     0,
     0.0915
-   ],
-   "chassis_camera_xyz_m": [
-    0.13,
-    0,
-    0.1115
    ],
    "max_linear_mps": 0.5,
    "max_angular_radps": 3.0,
@@ -142,15 +137,6 @@
      -0.02
     ],
     "parent_body": "so101/gripper"
-   },
-   "chassis_cam": {
-    "fovy_deg": 70.0,
-    "pos_in_parent_m": [
-     0.142,
-     -0.022,
-     0.1135
-    ],
-    "parent_body": "robot/base"
    }
   }
  },
@@ -161,11 +147,11 @@
   "poses_deg": {
    "rest": {
     "shoulder_pan": 0,
-    "shoulder_lift": -100,
-    "elbow_flex": 95,
-    "wrist_flex": 65,
+    "shoulder_lift": -66,
+    "elbow_flex": 98,
+    "wrist_flex": 77,
     "wrist_roll": 0,
-    "gripper": 0
+    "gripper": -8.9
    },
    "ready": {
     "shoulder_pan": 0,
@@ -192,8 +178,8 @@
   }
  },
  "manipulation": {
-  "approach": "jaws level and pointing along the approach heading, wrist roll 90 deg so the jaws open sideways",
-  "wrist_roll_deg": 90.0,
+  "approach": "jaws level and pointing along the approach heading, wrist roll -90 deg (the real arm reads about -92 when picking) so the jaws open sideways",
+  "wrist_roll_deg": -90.0,
   "pinch_centre_offset_from_gripperframe_m": 0.036,
   "grasp_height_above_item_centre_m": 0.015,
   "grasp_depth_past_item_centre_m": 0.03,

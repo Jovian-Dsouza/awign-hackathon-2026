@@ -1,0 +1,102 @@
+{
+ "id": "20261010-193329-restock_misplaced",
+ "created": "2026-10-10T14:03:36+00:00",
+ "scenario": "restock_misplaced",
+ "title": "Restock a misplaced item",
+ "params": {
+  "rack": [
+   0,
+   2
+  ],
+  "item_xy": [
+   -0.402,
+   -0.088
+  ],
+  "dest_rack": [
+   2,
+   1
+  ],
+  "assist": true
+ },
+ "success": true,
+ "sim_seconds": 20.98,
+ "wall_seconds": 7.37,
+ "stages": {
+  "drive_to_item": 1.2,
+  "pre_grasp": 3.16,
+  "drive_in": 1.12,
+  "grasp": 1.22,
+  "lift_back_out": 1.62,
+  "carry": 1.5,
+  "drive_to_rack": 1.9,
+  "slide_in": 3.2,
+  "release": 0.91,
+  "back_out": 2.35,
+  "return_home": 2.75
+ },
+ "samples": 208,
+ "sample_hz": 10.0,
+ "frames": 208,
+ "notes": {
+  "pick_heading_deg": 0.0,
+  "pick_reach": 0.34,
+  "pick_stage": [
+   -0.906,
+   -0.088
+  ],
+  "lateral_correction_m": 0.0037,
+  "assist_attached": true,
+  "hold_offset_m": [
+   0.029,
+   -0.0025,
+   0.0149
+  ],
+  "item_lifted_z": 0.0409,
+  "place_reach": 0.37,
+  "place_stage": [
+   -0.497,
+   -0.277
+  ],
+  "release_recenter_m": 0.0037,
+  "final_item": [
+   -0.498,
+   0.257,
+   0.291
+  ],
+  "target": [
+   -0.5,
+   0.258,
+   0.294
+  ]
+ },
+ "grasp_assist": true,
+ "constants": {
+  "gripper_open_deg": 52.0,
+  "gripper_release_deg": 70.0,
+  "gripper_closed_deg": -5.0,
+  "pinch_z_m": 0.036,
+  "grasp_roll_deg": -90.0,
+  "grasp_z_off_m": 0.015,
+  "grasp_y_off_m": 0.03,
+  "mouth_gap_m": 0.095,
+  "advance_m": 0.125,
+  "carry_reach_m": 0.24,
+  "carry_height_m": 0.2
+ },
+ "versions": {
+  "mujoco": "3.15.0",
+  "robot_model": "4c0db90a4d04",
+  "layout": "edb1caa4c7ee",
+  "inventory": "4a0b514ca26d"
+ },
+ "log": [
+  "restock: the alphabet_soup was left at [-0.402 -0.088  0.021]; it belongs in rack level 2, slot 1",
+  "  1/3 drive to the item (approach heading 0 deg) and grip it",
+  "    [ik] residual 11.4 mm, tool tilt 3 deg for target [-0.497 -0.088  0.056]",
+  "    [ik] residual 11.4 mm, tool tilt 3 deg for target [-0.497 -0.088  0.036]",
+  "    [ik] residual 14.9 mm, tool tilt 3 deg for target [-0.592 -0.089  0.2  ]",
+  "  2/3 carry it to the shelf and slide it into its rack",
+  "  3/3 check: item ended at [-0.498  0.257  0.291] (slot [-0.5    0.258  0.294]) -> BACK IN RACK",
+  "  returning to the start position"
+ ]
+}

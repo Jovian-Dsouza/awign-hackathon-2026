@@ -15,4 +15,4 @@ assets/third_party/
 # Rendered previews (run `uv run qcw-render`)
 renders/
 .coverage
-MUJOCO_LOG.TXT
+MUJOCO_LOG.TXToutputs/

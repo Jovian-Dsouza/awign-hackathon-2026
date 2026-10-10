@@ -1,5 +1,5 @@
 """Scripted check of the robot: drive the mecanum base in every direction, move the arm,
-and save frames from the overview, wrist and chassis cameras.
+and save frames from the overview and wrist cameras.
 
 Usage:  uv run dsr-demo [--out-dir renders]
 """
@@ -16,7 +16,7 @@ from dsr_sim.constants import DEFAULT_SCENE, PROJECT_ROOT
 from dsr_sim.control import Robot
 from dsr_sim.render import write_png
 
-CAMERAS = ("overview", "wrist_cam", "chassis_cam")
+CAMERAS = ("overview", "wrist_cam")
 SIZE = (480, 640)  # height, width
 
 

@@ -36,12 +36,12 @@ const SECTIONS: { id: Focus; fig: string; label: string; title: [string, string]
   {
     id: 'eyes',
     fig: '03',
-    label: 'The eyes',
-    title: ['Two cameras.', 'Two jobs.'],
-    body: 'A small USB camera on a 3D-printed clip rides on the gripper for a close view of the item. A USB bar camera on the front of the chassis looks down the aisle.',
+    label: 'The eye',
+    title: ['One camera.', 'Right at the claw.'],
+    body: 'A USB bar camera on a 3D-printed bracket rides on the gripper and looks straight at the item. It is the only camera: the learned picking policy sees what the gripper sees.',
     specs: [
-      ['wrist camera', 'USB camera on a printed clip, on the gripper'],
-      ['chassis camera', 'USB bar camera, front of the chassis'],
+      ['wrist camera', 'USB bar camera on a printed bracket, on the gripper'],
+      ['stream', '640 × 480 · 30 fps'],
       ['feeds', 'learned picking policy'],
     ],
   },
@@ -82,7 +82,7 @@ export default function Home() {
         <nav>
           <a href="#base">Base</a>
           <a href="#arm">Arm</a>
-          <a href="#eyes">Cameras</a>
+          <a href="#eyes">Camera</a>
           <a href="#brain">Brain</a>
           <Link className="cta dark" to="/model">
             Drive it
@@ -107,7 +107,7 @@ export default function Home() {
             <span className="muted">Let the robot find it.</span>
           </h1>
           <p className="sub">
-            A compact mecanum-base robot with an SO-101 arm and two cameras. It reads the shelf, spots what is out of place, and learns to pick it up.
+            A compact mecanum-base robot with an SO-101 arm and a wrist camera. It reads the shelf, spots what is out of place, and learns to pick it up.
           </p>
           <div className="buttons">
             <Link className="cta dark" to="/model">

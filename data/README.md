@@ -8,12 +8,13 @@ data/
   calibration/sim_parameters.json   what the simulated robot + scene look like and how it is driven
   runs.jsonl                        one line per recorded run: parameters, success, timings, key measurements
   lerobot/dark_store_so101/         LeRobotDataset v3 export (parquet + mp4) for `lerobot-train`
+  pi_trajectories/                  episodes as Pi-panel playback files
   tools/export_lerobot.py           the converter
+  tools/export_pi_trajectories.py   Pi-panel trajectory writer
   episodes/<id>/
       meta.json                     parameters, outcome, per-stage durations, tuned constants, log
       trajectory.npz                10 Hz time series (see below)
-      frames/wrist/*.jpg            wrist-camera frames  (git-ignored: large)
-      frames/chassis/*.jpg          chassis-camera frames (git-ignored: large)
+      frames/wrist/*.jpg            wrist-camera frames, 640x480  (git-ignored: large)
 ```
 
 ## How it is produced
@@ -46,17 +47,16 @@ Joint order and zero point match LeRobot's SO-101 with `use_degrees=True`: zero 
 (SO-101 "new calibration"). The gripper is in degrees of jaw angle here; LeRobot's SO-101 reports it on a 0–100 scale,
 so a mapping has to be fitted on the real arm (see below).
 
-## Recorded set (as of 2026-10-10, 43 runs)
+## Recorded set (re-collected 2026-10-10 after the camera / rest-pose / roll changes, 54 attempts)
 
-| Simulation | Grasp assist | Success | Mean sim time |
-|---|---|---|---|
-| shelf_to_tray (every rack once) | on | 9/9 | 26 s |
-| shelf_to_tray (every rack once) | off | 3/9 | 26 s |
-| restock_misplaced (random table spots, random dest rack) | on | 14/15 | 23 s |
-| restock_misplaced (random table spots, random dest rack) | off | 6/10 | 19 s |
+| Simulation | Grasp assist | Ran | Succeeded | Refused (unreachable spot) | Mean sim time |
+|---|---|---|---|---|---|
+| shelf_to_tray (every rack once) | on | 9 | 9 | 0 | 26 s |
+| restock_misplaced (random table spots, random dest rack) | on | 37 | 37 | 8 | 23 s |
 
-The one assisted failure is an item left right by the table corner next to the rover's start spot (−0.68, −0.38),
-where no stand-off pose fits on the table. The assist-off failures are grip failures (item dropped or wedged).
+"Refused" = the planner rejected the spot before moving (behind the tray, too close to the shelf, no stand-off pose
+fits). They are in `runs.jsonl` with `success: false` and 0 s of sim time, and they are not exported. The assist-off
+(friction only) runs from the earlier set are not repeated here; they succeeded far less often (3/9 and 6/10).
 
 ## What carries over to the real robot — and what does not
 
@@ -88,50 +88,46 @@ where no stand-off pose fits on the table. The assist-off failures are grip fail
 
 ## LeRobot dataset (for ACT training)
 
-`tools/export_lerobot.py` converts the recorded episodes into a **LeRobotDataset (v3)** using LeRobot's own writer, so
-`lerobot-train`, `lerobot-dataset-viz` etc. read it directly. Needs `lerobot[dataset]` and ffmpeg, not MuJoCo.
-
-```bash
-uv run --with 'lerobot[dataset]' python data/tools/export_lerobot.py            # -> data/lerobot/dark_store_so101
-uv run --with 'lerobot[dataset]' python data/tools/export_lerobot.py --arm-only --out data/lerobot/arm_only
-# options: --scenario, --assist on|off|any, --include-failed, --no-videos
-```
+`tools/export_lerobot.py` converts the recorded episodes into a **LeRobotDataset (v3)** with LeRobot's own writer, so
+`lerobot-train`, `lerobot-dataset-viz` etc. read it directly. It follows the real robot's conventions, taken from the
+Pi firmware (`../firmware/combined-web/web_combined.py`, which drives the arm through LeRobot's `SO101Follower`):
 
 | Feature | Shape | What |
 |---|---|---|
-| `observation.images.wrist` | 3×240×320 video | gripper camera |
-| `observation.images.chassis` | 3×240×320 video | front-of-chassis camera |
-| `observation.state` | 6 | measured joints in degrees: shoulder_pan, shoulder_lift, elbow_flex, wrist_flex, wrist_roll, gripper |
-| `action` | 9 (6 with `--arm-only`) | commanded joint targets (deg) + rover velocities vx, vy (m/s), wz (rad/s) |
+| `observation.images.wrist` | 3x480x640 video | the only camera: USB bar camera on the gripper (firmware streams 640x480) |
+| `observation.state` | 6 | `<joint>.pos`: body joints in degrees, gripper 0..100 (0 = closed) |
+| `action` | 6 (9 with `--with-base`) | commanded `<joint>.pos`, same units; base_vx/vy/wz in the Arduino's -255..255 `V` units |
 | `task` | text | e.g. "pick up the soup can from rack level 2 slot 0 and put it in the tray" |
 
-10 fps, robot type `so101_mecanum_sim`. Ground-truth item position and the assist-weld flag are left out on purpose
-(they do not exist on the real robot). Only successful episodes **with camera frames** are exported by default.
+```bash
+uv run --with 'lerobot[dataset]' python data/tools/export_lerobot.py                 # arm only, one camera
+uv run --with 'lerobot[dataset]' python data/tools/export_lerobot.py --with-base --out data/lerobot/with_base
+# options: --scenario, --assist on|off|any, --include-failed, --no-videos
+```
 
-**Current export:** 23 episodes, 5,659 frames, 21 MB (the 9 + 14 assisted successes from the recorded set).
+Ground-truth item position and the assist-weld flag are left out on purpose (they do not exist on the real robot).
+Only successful episodes **with camera frames** are exported by default.
 
-Train (checked end to end with 4 CPU steps: 52M-parameter ACT, loss 100 → 53; use a GPU for real runs):
+`tools/export_pi_trajectories.py` writes the same episodes as `{t, pos}` JSON in the format of the Pi panel's
+record/playback (`~/.so101_arm/trajs/`), so a simulated pick can be replayed slowly on the real arm first.
+
+Train (ACT, wrist camera only; use a GPU or Apple MPS):
 
 ```bash
 uv run --with 'lerobot[dataset,training]' lerobot-train \
   --dataset.repo_id=local/dark_store_so101 --dataset.root=data/lerobot/dark_store_so101 \
-  --policy.type=act --policy.push_to_hub=false --policy.device=cuda \
-  --batch_size=8 --steps=50000 --output_dir=outputs/act_dark_store
+  --policy.type=act --policy.push_to_hub=false --policy.device=mps \
+  --batch_size=8 --steps=20000 --output_dir=outputs/act_dark_store
 ```
 
 Reality check before you expect a useful policy:
 
-- **23 episodes is a smoke-test size**, not a training set (ACT work typically uses 50+ varied demonstrations per
-  task). Generate more with `dsr-collect` — about 12 s per episode with images.
-- Demonstrations are **scripted and near-identical** per rack, and the item is always the same can, so a policy trained
-  on them will be brittle. Their best use is pre-training / pipeline validation, then fine-tuning on real teleoperated data.
-- Rover velocities in `action` come from a script, not a human; use `--arm-only` if the base is driven by ROS and ACT
-  should only control the arm.
-- Images are rendered. Expect a domain gap to real cameras (lighting, exposure, lens). The sim now models the real
-  clip-on bar camera (printed post + bracket above the gripper, thin USB lead), but recorded frames before that
-  change used the stock 32 mm module; re-run `dsr-collect` to refresh images.
-- **Wrist-roll sign:** the sim grasps at wrist_roll **+90°**; the real arm's pick pose reads about **−92°** (camera on
-  top in both). Negate `wrist_roll` (and check the gripper scale) when mapping sim data to the real arm.
+- Demonstrations are **scripted and near-identical** per rack, with one item, so a policy trained on them will be
+  brittle. Best use: pre-training / pipeline validation, then fine-tune on real teleoperated episodes.
+- With grasp assist on, a successful sim pick does not prove friction holds the item.
+- Images are rendered; expect a domain gap to the real camera (lighting, exposure, lens; intrinsics unknown).
+- Units match the firmware (degrees, gripper 0..100), and the sim picks at wrist roll about -90 like the real arm
+  (about -92), but the sim's gripper 0..100 mapping assumes the SO-101's calibrated range matches its joint limits.
 
 ## Using it for the real build
 

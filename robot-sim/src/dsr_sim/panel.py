@@ -1,10 +1,10 @@
 """Control panel: the live simulation with real buttons, in your browser. No terminal needed once it is up.
 
-  uv run dsr-panel            # the page at http://127.0.0.1:8765 plus the native MuJoCo window (same run)
+  uv run dsr-panel            # the page at http://127.0.0.1:8765 - the only window you need
+  uv run dsr-panel --native   # optional: also a native MuJoCo window mirroring the run (debugging)
 
-Everything is controlled from the page: pick the rack / drop the item anywhere on the table, then press Run.
-The native window follows whatever you run; if you close it, the "Open MuJoCo window" button brings it back.
-(In the native window: 1 / 2 run a simulation, Space start/pause, R reset.)
+Everything is controlled from the page: pick the rack / drop the item anywhere on the table, pick the camera
+(overview / robot / shelf / tray / wrist), then press Run.
 
 Each Run button resets everything to the start (rover on the dock, arm folded, items in place),
 runs the whole task, and drives back to the start position. Clicking another button mid-run
@@ -36,6 +36,7 @@ from dsr_sim.world import ParamError, Params, layout_info, validate
 
 WIDTH, HEIGHT = 960, 600
 FPS = 20
+WRIST_FPS = 12
 
 
 def _under_mjpython() -> bool:
@@ -76,7 +77,7 @@ class Tee(io.TextIOBase):
 
 
 # Fixed on-robot cameras the page can switch to at any time (before or during a run).
-CAMERA_VIEWS = {"5": "wrist_cam", "6": "chassis_cam"}
+CAMERA_VIEWS = {"5": "wrist_cam"}
 
 
 class Worker:
@@ -95,10 +96,15 @@ class Worker:
         self.frame_ready = threading.Condition()
         self.jpeg: bytes = b""
         self.frame_id = 0
+        self.wrist_jpeg: bytes = b""  # the robot's only camera, shown in its own panel
+        self.wrist_id = 0
+        self.viewers = 0  # open /stream connections; nothing is rendered while nobody is watching
+        self._wrist_renderer: mujoco.Renderer | None = None
+        self._last_wrist = 0.0
         self.pending: tuple[str, Params, bool] | None = None  # (scenario name or __reset__, params, record)
         self.params = Params()
         self.result: dict | None = None
-        self.want_native = True
+        self.want_native = False
         self.native_ok = _native_possible()
         self.state = "ready"
         self.title = ""
@@ -120,7 +126,7 @@ class Worker:
         self._apply_native_view()
 
     def _apply_native_view(self) -> None:
-        """Make the MuJoCo window show the same camera as the page (wrist / chassis, or the free camera)."""
+        """Make the MuJoCo window show the same camera as the page (wrist, or the free camera)."""
         if self.native is None:
             return
         try:
@@ -207,6 +213,8 @@ class Worker:
             self.log.append(f"could not open the MuJoCo window: {exc}")
 
     def render(self, force: bool = False) -> None:
+        if self.viewers <= 0 and self.frame_id > 0:
+            return
         now = time.time()
         if not force and now - self._last_render < 1.0 / FPS:
             return
@@ -220,6 +228,17 @@ class Worker:
             self.jpeg = buf.getvalue()
             self.frame_id += 1
             self.frame_ready.notify_all()
+        if force or now - self._last_wrist >= 1.0 / WRIST_FPS:
+            self._last_wrist = now
+            if self._wrist_renderer is None:
+                self._wrist_renderer = mujoco.Renderer(self.model, 480, 640)  # what the real USB camera streams
+            self._wrist_renderer.update_scene(self.data, camera="wrist_cam")
+            wbuf = io.BytesIO()
+            Image.fromarray(self._wrist_renderer.render()).save(wbuf, "JPEG", quality=82)
+            with self.frame_ready:
+                self.wrist_jpeg = wbuf.getvalue()
+                self.wrist_id += 1
+                self.frame_ready.notify_all()
 
     # ---- main loop
     def _take_pending(self):
@@ -295,6 +314,25 @@ PAGE = r"""<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Dar
 @media(max-width:980px){.wrap{grid-template-columns:1fr}}
 .view{position:relative;background:#000;border-radius:12px;overflow:hidden}
 .view img{width:100%;display:block;cursor:grab;user-select:none;-webkit-user-drag:none}
+.stagebox{display:flex;flex-direction:column;gap:8px}
+.stagebar{display:flex;align-items:center;gap:12px}.stagebar .hint{flex:1}.stagebar button{padding:6px 10px}
+.stage{display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:start}
+@media(max-width:1250px){.stage{grid-template-columns:1fr}}
+.vtitle{position:absolute;right:12px;top:12px;background:#000a;color:#fff;border-radius:8px;padding:4px 10px;font-size:12px;z-index:1}
+.wristview img{cursor:default}
+.fsbar{display:none}
+body.fs .panel,body.fs .stagebar{display:none}
+body.fs .wrap{grid-template-columns:minmax(0,1fr);padding:0;height:100vh;width:100vw;background:#000}
+body.fs .stagebox{height:100vh;min-width:0;width:100vw}
+body.fs .stage{display:block;position:relative;height:100vh;width:100vw;background:#000}
+body.fs .stage>.view:first-child{position:absolute;inset:0;border-radius:0}
+body.fs .stage>.view:first-child img{width:100%;height:100%;object-fit:cover}
+body.fs .wristview{position:absolute;top:16px;right:16px;width:min(30vw,520px);z-index:3;border:2px solid #ffffff55;border-radius:12px;box-shadow:0 6px 24px #0009}
+body.fs .wristview img{width:100%;height:auto;aspect-ratio:4/3;object-fit:cover}
+body.fs .wristview .vtitle{top:8px;right:8px;font-size:11px}
+body.fs .fsbar{display:flex;gap:8px;position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:5;opacity:.25;transition:opacity .2s}
+body.fs .fsbar:hover{opacity:1}
+
 .badge{position:absolute;left:12px;top:12px;background:#000a;color:#fff;border-radius:8px;padding:6px 10px;font-size:13px}
 .panel{display:flex;flex-direction:column;gap:12px}
 h1{font-size:1.05rem;margin:0}h2{font-size:.95rem;margin:0 0 8px}
@@ -313,7 +351,14 @@ canvas{width:100%;border-radius:8px;background:var(--bg);cursor:crosshair;border
 .log{font:12px ui-monospace,Menlo,monospace;color:var(--muted);min-height:9em;white-space:pre-wrap}
 .status{font-weight:600}.status.done{color:var(--ok)}.status.failed{color:var(--bad)}
 </style></head><body><div class="wrap">
-<div class="view"><img id="v" src="/stream" alt="simulation"><div class="badge" id="badge">connecting…</div></div>
+<div class="stagebox">
+  <div class="stagebar"><b>Live</b><span class="hint" style="margin:0">drag the environment to orbit, scroll to zoom</span>
+    <button id="fs" title="Full screen (Esc to leave)">⛶ Full screen</button></div>
+  <div class="stage">
+    <div class="view"><div class="vtitle">Environment</div><img id="v" src="/stream" alt="environment"><div class="badge" id="badge">connecting…</div></div>
+    <div class="view wristview"><div class="vtitle">Wrist camera · what the robot sees (640×480)</div><img id="w" src="/stream_wrist" alt="wrist camera"></div>
+  </div>
+</div>
 <div class="panel">
   <h1>Dark-store robot</h1>
 
@@ -341,11 +386,11 @@ canvas{width:100%;border-radius:8px;background:var(--bg);cursor:crosshair;border
   <div class="card"><div class="row"><button id="pause">⏸ Pause</button><button id="reset">⟲ Reset</button></div>
     <div class="row" style="margin-top:8px"><button id="slow">− Slower</button><button id="speed" disabled>1×</button><button id="fast">+ Faster</button></div></div>
   <div class="card"><div class="row"><button data-v="1">Overview</button><button data-v="2">Robot</button><button data-v="3">Shelf</button><button data-v="4">Tray</button></div>
-    <div class="row" style="margin-top:8px"><button data-v="5">Wrist camera</button><button data-v="6">Chassis camera</button></div>
-    <div class="row" style="margin-top:8px"><button id="native">Open MuJoCo window</button></div>
-    <div class="hint">Wrist / Chassis camera = what the robot's own cameras see (pick it before or during a run). Drag the picture to orbit, scroll to zoom. The MuJoCo window mirrors every run.</div></div>
+        <div class="row" style="margin-top:8px;display:none"><button id="native">Open MuJoCo window</button></div>
+    <div class="hint">The wrist camera (the robot's only camera) is always shown in its own panel.</div></div>
   <div class="card"><div class="status" id="state">Ready</div><div class="log" id="log"></div></div>
 </div></div>
+<div class="fsbar"><button id="fs-exit">✕ Exit full screen</button><button id="fs-pause">⏸ Pause</button><button id="fs-reset">⟲ Reset</button></div>
 <script>
 const $=id=>document.getElementById(id), post=(u,b)=>fetch(u,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(b||{})});
 let L=null, rack=[0,2], dest=null, item=[0.30,-0.02];
@@ -396,6 +441,11 @@ async function run(name){
 $('run-shelf_to_tray').onclick=()=>run('shelf_to_tray'); $('run-restock_misplaced').onclick=()=>run('restock_misplaced');
 $('pause').onclick=()=>post('/api/pause');$('reset').onclick=()=>post('/api/reset');$('native').onclick=()=>post('/api/native');
 $('slow').onclick=()=>post('/api/speed',{f:1/1.5});$('fast').onclick=()=>post('/api/speed',{f:1.5});
+const goFull=()=>document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>document.body.classList.add('fs'));
+$('fs').onclick=goFull;$('fs-exit').onclick=()=>{document.fullscreenElement?document.exitFullscreen():document.body.classList.remove('fs')};
+$('fs-pause').onclick=()=>post('/api/pause');$('fs-reset').onclick=()=>post('/api/reset');
+document.addEventListener('fullscreenchange',()=>document.body.classList.toggle('fs',!!document.fullscreenElement));
+document.addEventListener('keydown',e=>{if(e.key==='f'&&e.target.tagName!=='INPUT')goFull()});
 document.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>post('/api/view',{key:b.dataset.v}));
 let drag=null,acc={x:0,y:0},sending=false;
 $('v').addEventListener('mousedown',e=>{drag=[e.clientX,e.clientY];e.preventDefault();$('v').style.cursor='grabbing'});
@@ -403,7 +453,7 @@ addEventListener('mouseup',()=>{drag=null;$('v').style.cursor='grab'});
 addEventListener('mousemove',e=>{if(!drag)return;acc.x+=e.clientX-drag[0];acc.y+=e.clientY-drag[1];drag=[e.clientX,e.clientY];
  if(!sending){sending=true;setTimeout(()=>{post('/api/orbit',{dx:acc.x,dy:acc.y});acc={x:0,y:0};sending=false},40)}});
 $('v').addEventListener('wheel',e=>{e.preventDefault();post('/api/zoom',{steps:e.deltaY>0?1:-1})},{passive:false});
-addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;if(e.code==='Space'){e.preventDefault();post('/api/pause')}else if('123456'.includes(e.key))post('/api/view',{key:e.key})});
+addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;if(e.code==='Space'){e.preventDefault();post('/api/pause')}else if('1234'.includes(e.key))post('/api/view',{key:e.key})});
 async function tick(){try{const s=await (await fetch('/api/status')).json();
  const names={ready:'Ready',running:'Running',done:'Done ✓',failed:'Did not work out'};
  $('state').className='status '+s.state; $('state').textContent=(s.paused&&s.state==='running'?'Paused — ':'')+(names[s.state]||s.state)+(s.title?': '+s.title:'');
@@ -438,7 +488,9 @@ def make_handler(worker: Worker):
                 self._send(200, json.dumps(worker.status()).encode(), "application/json")
             elif self.path == "/api/layout":
                 self._send(200, json.dumps(layout_info()).encode(), "application/json")
-            elif self.path == "/stream":
+            elif self.path in ("/stream", "/stream_wrist"):
+                wrist = self.path == "/stream_wrist"
+                worker.viewers += 1
                 self.send_response(200)
                 self.send_header("Content-Type", "multipart/x-mixed-replace; boundary=frame")
                 self.send_header("Cache-Control", "no-store")
@@ -447,13 +499,19 @@ def make_handler(worker: Worker):
                 try:
                     while not worker.stop:
                         with worker.frame_ready:
-                            worker.frame_ready.wait_for(lambda: worker.frame_id != last or worker.stop, timeout=1.0)
-                            frame, last = worker.jpeg, worker.frame_id
+                            if wrist:
+                                worker.frame_ready.wait_for(lambda: worker.wrist_id != last or worker.stop, timeout=1.0)
+                                frame, last = worker.wrist_jpeg, worker.wrist_id
+                            else:
+                                worker.frame_ready.wait_for(lambda: worker.frame_id != last or worker.stop, timeout=1.0)
+                                frame, last = worker.jpeg, worker.frame_id
                         if frame:
                             self.wfile.write(b"--frame\r\nContent-Type: image/jpeg\r\nContent-Length: %d\r\n\r\n" % len(frame))
                             self.wfile.write(frame + b"\r\n")
                 except (BrokenPipeError, ConnectionResetError):
                     pass
+                finally:
+                    worker.viewers -= 1
             else:
                 self._send(404, b"not found", "text/plain")
 
@@ -506,8 +564,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--scene", type=Path, default=DEFAULT_SCENE)
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--no-browser", action="store_true", help="do not open the page automatically")
-    parser.add_argument("--no-native", action="store_true", help="web page only: do not open the native MuJoCo window")
+    parser.add_argument("--native", action="store_true", help="also open a native MuJoCo window mirroring the run (debugging)")
+    parser.add_argument("--no-native", action="store_true", help=argparse.SUPPRESS)  # old flag; web only is the default now
     args = parser.parse_args(argv)
+    args.no_native = args.no_native or not args.native
     if not args.no_native:
         _relaunch_under_mjpython(list(sys.argv[1:] if argv is None else argv))
 

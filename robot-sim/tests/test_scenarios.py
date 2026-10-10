@@ -93,7 +93,7 @@ def test_wrist_camera_never_rotates_underneath():
 
         def watch(_task, data=data, worst=worst):
             rot = data.xmat[grip].reshape(3, 3)
-            worst["up"] = min(worst["up"], float((rot @ np.array([0.0, -1.0, 0.0]))[2]))  # camera side, world-up part
+            worst["up"] = min(worst["up"], float((rot @ np.array([0.0, 1.0, 0.0]))[2]))  # camera side, world-up part
             worst["z"] = min(worst["z"], float(min(data.geom_xpos[g][2] for g in parts)))
 
         task.observers.append(watch)

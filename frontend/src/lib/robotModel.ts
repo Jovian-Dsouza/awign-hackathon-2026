@@ -37,7 +37,6 @@ export const BASE = {
 export const DECK_TOP = 0.0915 // z of the upper deck's top surface (arm mounts here)
 export const ARM_MOUNT: Vec3 = [0.03, 0, DECK_TOP]
 export const PI_POS: Vec3 = [-0.095, 0, DECK_TOP]
-export const CHASSIS_CAM_POS: Vec3 = [0.13, 0, DECK_TOP + 0.02]
 
 export const WHEELS: { tag: 'fl' | 'fr' | 'rl' | 'rr'; position: Vec3; handed: 1 | -1 }[] = [
   { tag: 'fl', position: [BASE.halfWheelbase, BASE.halfTrack, BASE.wheelRadius], handed: 1 },
@@ -111,7 +110,6 @@ const part = (name: string, shape: PartShape, args: number[], position: Vec3, co
 })
 
 const [px, py, pz] = PI_POS
-const [cx, cy, cz] = CHASSIS_CAM_POS
 const add = (p: Vec3, d: Vec3): Vec3 => [p[0] + d[0], p[1] + d[1], p[2] + d[2]]
 
 export function chassisParts(): Part[] {
@@ -171,17 +169,4 @@ export function piParts(): Part[] {
     part('pi_led_green', 'sphere', [0.0012, 8, 8], add(PI_POS, [-0.0325, -0.02, 0.0085]), '#35ff6a', { emissive: '#35ff6a', emissiveIntensity: 1.5 }),
   )
   return out
-}
-
-// Black USB bar camera across the front of the top deck (illustrative; matches the photo).
-export function chassisCameraParts(): Part[] {
-  const rotZ = quatEuler(0, 0, Math.PI / 2) // cylinder axis Y -> X (lens looks forward)
-  return [
-    part('cam_bracket', 'box', [0.016, 0.03, 0.024], add(CHASSIS_CAM_POS, [-0.004, 0, -0.022]), '#2b2b30', { roughness: 0.65 }),
-    part('cam_body', 'box', [0.014, 0.085, 0.024], CHASSIS_CAM_POS, '#0f0f12', { roughness: 0.55, castShadow: true }),
-    part('cam_pad', 'box', [0.002, 0.04, 0.02], add(CHASSIS_CAM_POS, [0.0075, 0.02, 0]), '#1c1c20', { roughness: 0.9 }),
-    part('cam_ring', 'cylinder', [0.0085, 0.0085, 0.003, 24], add(CHASSIS_CAM_POS, [0.0075, -0.022, 0.002]), '#b9bec6', { metalness: 0.9, roughness: 0.3, quaternion: rotZ }),
-    part('cam_lens', 'cylinder', [0.0052, 0.0052, 0.002, 20], add(CHASSIS_CAM_POS, [0.0092, -0.022, 0.002]), '#05060a', { roughness: 0.2, quaternion: rotZ }),
-    part('cam_led', 'sphere', [0.0013, 8, 8], add(CHASSIS_CAM_POS, [0.0078, -0.022, -0.0085]), '#ff2a2a', { emissive: '#ff2a2a', emissiveIntensity: 1.5 }),
-  ]
 }

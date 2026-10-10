@@ -15,7 +15,7 @@ import numpy as np
 
 from dsr_sim.constants import DEFAULT_SCENE, PROJECT_ROOT
 
-DEFAULT_CAMERAS = ("overview", "top_down", "shelf_A_cam", "drop_tray_cam", "wrist_cam", "chassis_cam")
+DEFAULT_CAMERAS = ("overview", "top_down", "shelf_A_cam", "drop_tray_cam", "wrist_cam")
 WIDTH, HEIGHT = 1280, 800
 
 

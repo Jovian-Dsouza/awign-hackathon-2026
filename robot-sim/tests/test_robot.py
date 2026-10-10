@@ -6,6 +6,7 @@ from dsr_sim.build_scene import build_scene_xml
 from dsr_sim.config import load_inventory, load_layout
 from dsr_sim.constants import DEFAULT_INVENTORY, DEFAULT_LAYOUT
 from dsr_sim.control import Robot, wheel_speeds
+from dsr_sim.robot import ARM_JOINTS, ARM_PREFIX, POSES_DEG
 
 
 @pytest.fixture(scope="module")
@@ -27,7 +28,7 @@ def step(model, data, seconds):
 
 def test_cameras_exist(scene):
     model, _ = scene
-    for cam in ("wrist_cam", "chassis_cam", "overview"):
+    for cam in ("wrist_cam", "overview"):
         assert mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_CAMERA, cam) >= 0
 
 
@@ -67,6 +68,12 @@ def test_mecanum_ik_signs():
 def test_arm_tracks_command(scene):
     model, data = scene
     robot = Robot(model, data)
+    # Start from "ready" (set directly): unfolding from the firmware rest pose in one jump snags the jaws on the
+    # deck; the scenarios unfold it with slow interpolated moves.
+    robot.set_arm_deg("ready")
+    for joint, deg in zip(ARM_JOINTS, POSES_DEG["ready"]):
+        data.qpos[model.jnt_qposadr[model.joint(ARM_PREFIX + joint).id]] = np.deg2rad(deg)
+    mujoco.mj_forward(model, data)
     robot.set_arm_deg("reach_low")
     step(model, data, 3.0)
     got = robot.arm_deg()
