@@ -53,6 +53,11 @@ class Settings:
     # Shared secret the remote sender must present. Remote ingest is refused while empty.
     camera_ingest_token: str = _env("CAMERA_INGEST_TOKEN", "")
 
+    # External monitor camera (the Overwatch service, see ../../overwatch). Empty token = the
+    # relay and webhook are refused.
+    monitor_url: str = _env("MONITOR_URL", "http://127.0.0.1:8010")
+    monitor_ingest_token: str = _env("MONITOR_INGEST_TOKEN", "")
+
     # Storage
     db_path: Path = Path(_env("DB_PATH", str(BACKEND_DIR / "data" / "uthale.db")))
     evidence_dir: Path = Path(_env("EVIDENCE_DIR", str(BACKEND_DIR / "data" / "evidence")))

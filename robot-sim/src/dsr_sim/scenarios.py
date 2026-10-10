@@ -45,12 +45,20 @@ TRAY_ROLL = 0.0  # wrist roll over the tray: jaws open up/down, so the item simp
 CARRY_REACH = 0.24  # shoulder-to-jaws distance while carrying (jaws level, in front of the rover)
 CARRY_HEIGHT = 0.2  # m above the table while carrying
 UP = np.array([0.0, 0.0, 1.0])
-ITEM_HALF_HEIGHT = 0.0245  # soup can half height (scaled), m; logged with the recordings
+ITEM_HALF_HEIGHT = 0.044  # Happydent pot half height, m; logged with the recordings
+TALL_HALF_HEIGHT = 0.035  # items taller than 2 x this are gripped near the top when nothing is above them
+GRIP_BELOW_TOP = 0.022  # m, jaw axis below the top of a tall item: the real arm grips the pot at its cap, which keeps
+# the cap ~10 cm from the camera (gripped at mid-height it is 3 cm from the lens and fills the whole frame)
 LATERAL_BIAS = 0.0  # m, shifts the grasp sideways (left of the approach direction); calibration knob
 HELD_MAX_DISTANCE = 0.06  # m, an item further than this from the jaw centre after the pull-back is not being held
+AVOID_TALL_RADIUS = 0.22  # m, the rover keeps this far from a tall item it is about to pick up (it would knock it over)
 CAMERA_ABOVE_JAW = 0.09  # m, top of the wrist camera above the jaw axis (measured from where it hit the board above)
 LIFT_OUT = 0.03  # m, the item is lifted this far off the board before the rover backs out
 CEILING_MARGIN = 0.01  # m, kept between the wrist camera and the board above while lifting out
+PLACE_CEILING_MARGIN = 0.014  # m, kept between the wrist camera and the board above while sliding an item into a rack
+SLIDE_IN_SLOW_Z = 0.30  # m, above this jaw height the item is raised before it is moved up to the shelf
+RISE_STANDOFF = 0.07  # m, how far back from the rack mouth that rise happens
+ARM_MAX_JAW_Z = 0.422  # m, highest jaw axis (before the final drop) the arm holds a pot at: higher it sags short of the target
 MIN_JAW_ABOVE_BOARD = 0.032  # m, lowest the jaw axis goes above the board it is picking from (lower and the gripper body clips it)
 TRAY_MIN_JAW_Z = 0.10  # m, lowest the jaw axis goes above the tray floor: lower and the gripper body sits in the near wall
 
@@ -110,9 +118,9 @@ def _reach_or_fail(task: Task, mouth: np.ndarray, heading: float, what: str) -> 
     return reach
 
 
-def _drive_route(task: Task, goal: tuple[float, float], yaw: float, speed: float = 0.35, precise: bool = False) -> None:
+def _drive_route(task: Task, goal: tuple[float, float], yaw: float, speed: float = 0.35, precise: bool = False, avoid=None) -> None:
     px, py, _ = task.robot.pose
-    route = W.find_route((px, py), goal)
+    route = W.find_route((px, py), goal, avoid=avoid)
     if route is None:
         raise Unreachable("no clear path for the rover to get there")
     for wx, wy in route[:-1]:
@@ -140,15 +148,22 @@ def _recenter(task: Task, name: str, heading: float) -> None:
         task.drive_to(px + side[0] * lateral, py + side[1] * lateral, heading, speed=0.08)
 
 
-def _grasp(task: Task, name: str, heading: float, stage_xy=None, reach: float | None = None, ceiling: float | None = None, floor: float | None = None) -> np.ndarray:
+def _grasp(task: Task, name: str, heading: float, stage_xy=None, reach: float | None = None, ceiling: float | None = None, floor: float | None = None, max_jaw_above_base: float | None = None) -> np.ndarray:
     """Approach `name` along `heading`, grip it and back out. Returns the jaw-centre offset in the heading frame.
 
     `ceiling`: height of the underside of whatever is above the item (the next shelf board). A tall item is gripped
     lower so the wrist camera still clears it when the item is lifted out. `floor`: top of the board it sits on; a
-    flat item is gripped no lower than MIN_JAW_ABOVE_BOARD above it so the gripper body does not clip the board."""
+    flat item is gripped no lower than MIN_JAW_ABOVE_BOARD above it so the gripper body does not clip the board.
+    `max_jaw_above_base`: highest the jaw axis may sit above the item's base, when it has to fit under a shelf board later
+    (a tall item gripped near its top would drive the wrist camera into that board)."""
     fwd = _fwd(heading)
     item0 = task.item_pos(name)
     grasp_dz = GRASP_Z_OFF
+    half = task.item_half_height(name)
+    if half > TALL_HALF_HEIGHT:
+        grasp_dz = max(grasp_dz, half - GRIP_BELOW_TOP)
+    if max_jaw_above_base is not None:
+        grasp_dz = min(grasp_dz, max_jaw_above_base - half)
     if ceiling is not None:
         grasp_dz = min(grasp_dz, ceiling - CAMERA_ABOVE_JAW - LIFT_OUT - CEILING_MARGIN - item0[2])
     if floor is not None:
@@ -165,7 +180,9 @@ def _grasp(task: Task, name: str, heading: float, stage_xy=None, reach: float | 
     grasp_pt = item0 + fwd * GRASP_Y_OFF + UP * grasp_dz
 
     task.stage = "drive_to_item"
-    _drive_route(task, (stage[0], stage[1]), heading, precise=True)
+    # a tall item standing on the table must not be run over on the way (a short one fits under the rover's deck)
+    avoid = (float(item0[0]), float(item0[1]), AVOID_TALL_RADIUS) if ceiling is None and half > TALL_HALF_HEIGHT else None
+    _drive_route(task, (stage[0], stage[1]), heading, precise=True, avoid=avoid)
     task.stage = "pre_grasp"
     task.reach(pre + UP * 0.02, fwd, 1.3, GRIPPER_OPEN_DEG, GRASP_ROLL, PINCH_Z)
     task.reach(pre, fwd, 0.5, GRIPPER_OPEN_DEG, GRASP_ROLL, PINCH_Z)
@@ -225,6 +242,10 @@ def _place(task: Task, name: str, target: np.ndarray, heading: float, hold: np.n
     task.stage = "drive_to_rack"
     _drive_route(task, (stage[0], stage[1]), heading, speed=0.3, precise=True)
     task.stage = "slide_in"
+    if pre[2] > SLIDE_IN_SLOW_Z:
+        # a high rack: rise first, a few cm back from the shelf. The straight joint-space move from the carry pose
+        # swings the item forward under the board below the rack before it is high enough, and it jams there.
+        task.reach(pre - fwd * RISE_STANDOFF + UP * 0.02, fwd, 2.0, GRIPPER_CLOSED_DEG, GRASP_ROLL, PINCH_Z)
     task.reach(pre, fwd, 1.5, GRIPPER_CLOSED_DEG, GRASP_ROLL, PINCH_Z)
     task.run(0.4)
     axis = _approach_axis(task)
@@ -329,6 +350,7 @@ def run_shelf_to_tray(task: Task, p: Params) -> bool:
 def _plan_table_pick(task: Task, item: np.ndarray) -> tuple[float, float]:
     """Pick the approach heading (and the stand-off reach) that is reachable, on the table and clear of obstacles."""
     start = np.array(task.robot.pose[:2])
+    avoid = (float(item[0]), float(item[1]), AVOID_TALL_RADIUS) if task.item_half_height(ITEM) > TALL_HALF_HEIGHT else None
     best = None
     for k in range(8):
         heading = k * np.pi / 4
@@ -342,7 +364,7 @@ def _plan_table_pick(task: Task, item: np.ndarray) -> tuple[float, float]:
         end = stage + fwd[:2] * ADVANCE
         if not (W.rover_pose_ok(stage[0], stage[1], heading) and W.rover_pose_ok(end[0], end[1], heading)):
             continue
-        route = W.find_route(start, stage)
+        route = W.find_route(start, stage, avoid=avoid)
         if route is None:
             continue
         length = sum(np.linalg.norm(np.array(b) - np.array(a)) for a, b in zip([tuple(start)] + route[:-1], route))
@@ -360,7 +382,9 @@ def run_restock(task: Task, p: Params) -> bool:
     ref = mujoco.MjData(m)
     ref.qpos[:] = m.qpos0
     mujoco.mj_forward(m, ref)
-    home_centre = ref.xpos[m.body(f"item_{ITEM}").id].copy()
+    body = m.body(f"item_{ITEM}").id
+    # the item's centre (middle of its collision box) at its home slot: not the body origin, which for the pot is its base
+    home_centre = ref.xpos[body] + ref.xmat[body].reshape(3, 3) @ task._item_box(ITEM)[0]
     target = home_centre + (W.rack_pos(*dest) - W.rack_pos(*W.home_rack()))
     drop_z = 0.006  # slide in just above the board, then let it drop the last few mm
     start = task.item_pos(ITEM)
@@ -368,7 +392,11 @@ def run_restock(task: Task, p: Params) -> bool:
     try:
         heading, reach = _plan_table_pick(task, start)
         task.say(f"  1/3 drive to the item (approach heading {np.degrees(heading):.0f} deg) and grip it", "grasp")
-        hold = _grasp(task, ITEM, heading, reach=reach, floor=TABLE_TOP)
+        # the rack it goes into limits how high the pot may be gripped: the camera rides 9 cm above the jaws
+        clear = _ceiling_above(dest[0]) - W.LAYOUT.shelf.board_heights[dest[0]]
+        board = W.LAYOUT.shelf.board_heights[dest[0]]
+        max_jaw = min(clear - CAMERA_ABOVE_JAW - drop_z - PLACE_CEILING_MARGIN, ARM_MAX_JAW_Z - board)
+        hold = _grasp(task, ITEM, heading, reach=reach, floor=TABLE_TOP, max_jaw_above_base=max_jaw)
         _carry_pose(task, heading)
 
         task.say("  2/3 carry it to the shelf and slide it into its rack", "place")

@@ -15,8 +15,8 @@ from dsr_sim.shelf import slot_world_pos
 
 LAYOUT = load_layout(DEFAULT_LAYOUT)
 INVENTORY = load_inventory(DEFAULT_INVENTORY, LAYOUT)
-ITEM = "alphabet_soup"  # the one item the scripts are tuned for
-ITEM_RADIUS = 0.0245  # soup can radius, m (scaled to what a real SO-101 gripper can open around)
+ITEM = "happydent_wave"  # the misplaced item of the restock run: the pot the real ACT demos were recorded with
+ITEM_RADIUS = 0.0215  # half the pot's wider side, m
 
 ROVER_HALF = (0.165, 0.125)  # half length (along heading) and half width, including the wheels
 ROVER_CIRCLE = 0.19  # circle that always covers the rover; used for path clearance
@@ -82,7 +82,7 @@ def item_at(rack: tuple[int, int]) -> str | None:
 
 
 def target_item(scenario: str, p: "Params") -> str:
-    """The item a run handles: whatever sits in the chosen rack, or the soup can for the restock run."""
+    """The item a run handles: whatever sits in the chosen rack, or the Happydent pot for the restock run."""
     if scenario == "shelf_to_tray":
         return item_at(p.rack) or ITEM
     return ITEM
@@ -146,14 +146,28 @@ def segment_clear(p0, p1, radius: float = ROVER_CIRCLE, leaving: float = 0.0) ->
     return True
 
 
-def find_route(start_xy, goal_xy, leaving: float = 0.30) -> list[tuple[float, float]] | None:
-    """Waypoints (excluding the start) from start to goal: straight if clear, else via the near-edge lane."""
-    if segment_clear(start_xy, goal_xy, leaving=leaving):
+def _passes_clear(p0, p1, avoid) -> bool:
+    """True if the segment p0 -> p1 stays at least avoid[2] away from the point (avoid[0], avoid[1])."""
+    p0, p1, c = np.asarray(p0, float), np.asarray(p1, float), np.asarray(avoid[:2], float)
+    d = p1 - p0
+    t = 0.0 if not d.any() else float(np.clip(np.dot(c - p0, d) / np.dot(d, d), 0.0, 1.0))
+    return float(np.linalg.norm(p0 + t * d - c)) >= avoid[2]
+
+
+def find_route(start_xy, goal_xy, leaving: float = 0.30, avoid: tuple[float, float, float] | None = None) -> list[tuple[float, float]] | None:
+    """Waypoints (excluding the start) from start to goal: straight if clear, else via a lane along the table.
+
+    `avoid` = (x, y, radius): a tall item standing on the table that the rover must not run over (it drives
+    over short ones, but a deck-high one would be knocked over). With it, parallel lanes are tried too."""
+    clear = lambda a, b, **kw: segment_clear(a, b, **kw) and (avoid is None or _passes_clear(a, b, avoid))  # noqa: E731
+    if clear(start_xy, goal_xy, leaving=leaving):
         return [tuple(goal_xy)]
-    a = (start_xy[0], CORRIDOR_Y)
-    b = (goal_xy[0], CORRIDOR_Y)
-    if segment_clear(start_xy, a, leaving=leaving) and segment_clear(a, b) and segment_clear(b, goal_xy):
-        return [a, b, tuple(goal_xy)]
+    lanes = (CORRIDOR_Y,) if avoid is None else (CORRIDOR_Y, -0.17, -0.07, 0.03)
+    for lane in lanes:
+        a = (start_xy[0], lane)
+        b = (goal_xy[0], lane)
+        if clear(start_xy, a, leaving=leaving) and clear(a, b) and clear(b, goal_xy):
+            return [a, b, tuple(goal_xy)]
     return None
 
 

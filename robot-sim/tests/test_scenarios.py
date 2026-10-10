@@ -52,9 +52,9 @@ def test_shelf_to_tray_picks_what_is_in_the_chosen_rack(rack):
     assert abs(task.item_pos(name)[0] - tray[0]) < 0.13 and start[2] != task.item_pos(name)[2]
 
 
-@pytest.mark.parametrize("rack", [[1, 1], [2, 0]])
+@pytest.mark.parametrize("rack", [[2, 0]])
 def test_flat_item_the_jaws_cannot_hold_is_reported_not_faked(rack):
-    """The tape and the box cutter lie flat: nothing but friction holds items, so the run must fail honestly."""
+    """The box cutter lies flat: nothing but friction holds items, so the run must fail honestly."""
     from dsr_sim.world import item_at
 
     model = mujoco.MjModel.from_xml_path(str(DEFAULT_SCENE))
@@ -129,7 +129,7 @@ def test_wrist_camera_never_rotates_underneath():
     grip = model.body("so101/gripper").id
     parts = [g for g in range(model.ngeom) if (model.geom(g).name or "").startswith("robot/wrist_cam_")]
     assert parts
-    for name, params in (("shelf_to_tray", Params(rack=(1, 0))), ("restock_misplaced", Params(item_xy=(0.3, 0.25), dest_rack=(1, 1)))):
+    for name, params in (("shelf_to_tray", Params(rack=(1, 0))), ("restock_misplaced", Params(item_xy=(0.3, 0.25), dest_rack=(1, 2)))):
         data = mujoco.MjData(model)
         scenario = SCENARIOS[name]
         RUN.reset_scene(model, data, scenario, params)

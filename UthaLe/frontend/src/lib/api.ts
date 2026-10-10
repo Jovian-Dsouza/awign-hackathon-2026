@@ -1,6 +1,6 @@
 import type {
   ActivityEvent, Analytics, Anomaly, CameraStatus, CatalogItem, CommandResult, Health, Order,
-  OrderDetail, Overview, Priority, QcRecord, RobotStatus, SettingsInfo, Task,
+  MonitorIncident, MonitorStatus, OrderDetail, Overview, Priority, QcRecord, RobotStatus, SettingsInfo, Task,
 } from '../types'
 
 /** Empty = same origin (the Vite dev server proxies /api to FastAPI). */
@@ -52,6 +52,14 @@ export const api = {
   cameraStop: () => post<CameraStatus>('/api/camera/stop'),
   cameraSetIndex: (device_index: number) =>
     request<CameraStatus>('/api/camera/config', { method: 'PUT', body: JSON.stringify({ device_index }) }),
+
+  monitorStatus: () => request<MonitorStatus>('/api/monitor/status'),
+  monitorStreamUrl: (nonce: number) => `${API_BASE}/api/monitor/stream?n=${nonce}`,
+  monitorIncidents: () => request<MonitorIncident[]>('/api/monitor/incidents?limit=20'),
+  monitorSnapshotUrl: (id: number) => `${API_BASE}/api/monitor/incidents/${id}/snapshot`,
+  monitorVerdict: (id: number, verdict: 'approve_recovery' | 'escalate' | 'dismiss') =>
+    post<MonitorIncident>(`/api/monitor/incidents/${id}/verdict`, { verdict }),
+  monitorCaptureReference: () => post<unknown>('/api/monitor/reference'),
 
   robotStatus: () => request<RobotStatus>('/api/robot/status'),
   robotCommand: (command: string, extra: { order_id?: string; anomaly?: Anomaly } = {}) =>

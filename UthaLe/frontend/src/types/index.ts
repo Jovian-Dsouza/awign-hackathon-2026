@@ -179,3 +179,47 @@ export interface Health {
   robot_adapter: string
   simulated: boolean
 }
+
+
+/** External monitor camera (Overwatch service), proxied by the backend at /api/monitor. */
+export interface MonitorDecision {
+  action: 'ignore' | 'propose_recovery' | 'escalate'
+  severity: number
+  recoverable: boolean
+  reasons: string[]
+  decider: string
+  p_recoverable: number | null
+  latency_ms: number | null
+}
+
+export interface MonitorIncident {
+  id: number
+  code: string
+  ts: number
+  kind: string
+  zone: string
+  status: 'open' | 'actioned' | 'escalated' | 'dismissed'
+  observation: { kind: string; zone: string; summary: string; features: Record<string, number | string | boolean> }
+  final: MonitorDecision
+  rules: MonitorDecision
+  laya: MonitorDecision | null
+  snapshot: string | null
+  verdict: string | null
+  cleared_ts: number | null
+  responder: { ok: boolean; dry_run?: boolean; detail: string } | null
+}
+
+export interface MonitorStatus {
+  reachable: boolean
+  error?: string
+  camera?: {
+    state: string; source: string; width: number | null; height: number | null
+    fps: number | null; error: string | null; agent_connected?: boolean
+  }
+  reference_set?: boolean
+  alignment?: { shift_px?: number; match?: number }
+  health?: { active_faults: string[] }
+  laya?: { mode: string; available: boolean; error: string | null } | null
+  responder?: { name: string; dry_run: boolean; reachable: boolean | null }
+  open_incidents?: number
+}

@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Overwatch</title>
+<style>
+  :root {
+    --bg:#0f1115; --panel:#171a21; --line:#272c36; --text:#e6e8ec; --mute:#8b93a1;
+    --ok:#4ade80; --warn:#fbbf24; --bad:#f87171; --accent:#60a5fa;
+  }
+  @media (prefers-color-scheme: light) {
+    :root { --bg:#f4f5f7; --panel:#fff; --line:#dfe2e8; --text:#14171c; --mute:#5b6472;
+            --ok:#15803d; --warn:#a16207; --bad:#b91c1c; --accent:#1d4ed8; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text);
+         font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif; }
+  header { display:flex; flex-wrap:wrap; gap:8px 14px; align-items:center; padding:10px 16px;
+           border-bottom:1px solid var(--line); background:var(--panel); }
+  header h1 { font-size:16px; margin:0 8px 0 0; }
+  .chip { padding:2px 9px; border:1px solid var(--line); border-radius:99px; color:var(--mute); font-size:12px; }
+  .chip.ok { color:var(--ok); } .chip.warn { color:var(--warn); } .chip.bad { color:var(--bad); }
+  main { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(320px,1fr); gap:16px; padding:16px; }
+  @media (max-width: 900px) { main { grid-template-columns:1fr; } }
+  section { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:12px; }
+  h2 { font-size:13px; margin:0 0 10px; color:var(--mute); text-transform:uppercase; letter-spacing:.05em; }
+  .feed { position:relative; background:#000; border-radius:6px; overflow:hidden; }
+  .feed img { display:block; width:100%; height:auto; }
+  .feed canvas { position:absolute; inset:0; width:100%; height:100%; cursor:crosshair; }
+  .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:10px; }
+  button { font:inherit; padding:6px 11px; border-radius:6px; border:1px solid var(--line);
+           background:transparent; color:var(--text); cursor:pointer; }
+  button:hover { border-color:var(--accent); }
+  button.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+  button.danger { color:var(--bad); border-color:var(--bad); }
+  input[type=text] { font:inherit; padding:5px 8px; border-radius:6px; border:1px solid var(--line);
+                     background:var(--bg); color:var(--text); width:130px; }
+  .inc { border:1px solid var(--line); border-radius:8px; padding:10px; margin-bottom:10px; }
+  .inc.open { border-color:var(--warn); }
+  .inc img { width:100%; border-radius:6px; margin:8px 0; background:#000; }
+  .inc h3 { margin:0; font-size:14px; display:flex; justify-content:space-between; gap:8px; }
+  .muted { color:var(--mute); } .small { font-size:12px; }
+  .kv { display:grid; grid-template-columns:auto 1fr; gap:2px 10px; font-size:12px; margin-top:6px; }
+  .empty { color:var(--mute); padding:20px 4px; }
+  #err { color:var(--bad); font-size:12px; margin-top:6px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Overwatch</h1>
+  <span id="cam" class="chip">camera …</span>
+  <span id="ref" class="chip">reference …</span>
+  <span id="health" class="chip">health …</span>
+  <span id="laya" class="chip">laya …</span>
+  <span id="resp" class="chip">responder …</span>
+  <span style="flex:1"></span>
+  <button class="danger" id="hold" title="Stops the robot base only. Not an emergency stop.">Hold robot base</button>
+</header>
+
+<main>
+  <section>
+    <h2>Live monitor</h2>
+    <div class="feed" id="feed">
+      <img id="video" src="/stream" alt="Live monitor camera">
+      <canvas id="draw"></canvas>
+    </div>
+    <div class="row">
+      <button class="primary" id="capRef">Capture clean reference</button>
+      <button id="clrRef">Clear reference</button>
+      <span class="muted small">Do this with the arena tidy and the robot out of view.</span>
+    </div>
+    <div class="row">
+      <input type="text" id="zname" placeholder="zone name" value="floor">
+      <button id="zwatch">Draw watch zone</button>
+      <button id="zignore">Draw ignore zone</button>
+      <button id="zclear">Clear zones</button>
+      <span class="muted small" id="zhint">No zones: the whole frame is watched.</span>
+    </div>
+    <div id="err"></div>
+  </section>
+
+  <section>
+    <h2>Incidents <span class="muted" id="count"></span></h2>
+    <div id="list"><div class="empty">No incidents yet.</div></div>
+    <div class="small muted" id="fb"></div>
+  </section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const SEV = ["harmless", "minor", "major", "critical"];
+let zones = [], drawMode = null, dragStart = null, dragNow = null, lastStatus = null;
+
+async function api(path, opts) {
+  const r = await fetch(path, opts);
+  if (!r.ok) {
+    let msg = r.statusText;
+    try { msg = (await r.json()).detail || msg; } catch (_) {}
+    throw new Error(msg);
+  }
+  return r.json();
+}
+const post = (p, b) => api(p, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(b || {})});
+const showErr = e => { $("err").textContent = e ? String(e.message || e) : ""; };
+const chip = (el, text, cls) => { el.textContent = text; el.className = "chip " + (cls || ""); };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function renderStatus(s) {
+  lastStatus = s;
+  const c = s.camera;
+  chip($("cam"), c.state === "streaming" ? `${c.width}×${c.height} @ ${c.fps ?? "?"} fps` : `camera ${c.state}`,
+       c.state === "streaming" ? "ok" : "bad");
+  $("cam").title = c.source + (c.error ? "\n" + c.error : "");
+  const al = s.alignment || {};
+  const moved = f0 => f0.includes("scene_shift");
+  chip($("ref"), s.reference_set ? (moved(s.health.active_faults) || (al.shift_px > 2.5) ? "view moved: detection paused" : "reference set")
+                                 : "no reference (detection idle)",
+       s.reference_set ? (al.shift_px > 2.5 || (al.match !== undefined && al.match < 0.1) ? "bad" : "ok") : "warn");
+  $("ref").title = al.shift_px !== undefined ? `shift ${al.shift_px}px · match ${al.match}` : "";
+  const f = s.health.active_faults;
+  chip($("health"), f.length ? "fault: " + f.join(", ") : "camera healthy", f.length ? "bad" : "ok");
+  $("health").title = `luma ${s.health.luma} · contrast ${s.health.contrast} · detail ${s.health.detail}`;
+  if (!s.laya) chip($("laya"), "laya off", "");
+  else chip($("laya"), `laya ${s.laya.mode}` + (s.laya.available ? "" : " · not loaded"), s.laya.available ? "ok" : "warn");
+  if (s.laya && s.laya.error) $("laya").title = s.laya.error;
+  const r = s.responder;
+  chip($("resp"), `responder: ${r.name}${r.dry_run ? " (dry run)" : r.reachable ? " · reachable" : " · unreachable"}`,
+       r.dry_run ? "warn" : r.reachable ? "ok" : "bad");
+  zones = s.zones;
+  $("zhint").textContent = zones.length ? zones.map(z => z.name + (z.mode === "ignore" ? " (ignored)" : "")).join(", ")
+                                        : "No zones: the whole frame is watched.";
+  c.error ? showErr(c.error) : null;
+}
+
+function incCard(i) {
+  const o = i.observation, f = i.final, laya = i.laya;
+  const open = i.status === "open";
+  const cleared = i.cleared_ts ? `<span class="chip ok">object no longer visible</span>` : "";
+  const layaLine = laya
+    ? `<div class="kv"><span class="muted">Laya</span><span>${esc(laya.action)} · P(recoverable) ${Math.round((laya.p_recoverable ?? 0) * 100)}% · ${laya.latency_ms} ms${i.status !== "open" ? "" : " <span class='muted'>(shadow)</span>"}</span></div>` : "";
+  const feats = Object.entries(o.features || {}).filter(([k]) => k !== "fault")
+    .map(([k, v]) => `${k} ${v}`).join(" · ");
+  const buttons = open ? `
+    <div class="row">
+      ${o.kind === "foreign_object" ? `<button class="primary" data-v="approve_recovery" data-id="${i.id}">Approve recovery</button>` : ""}
+      <button data-v="escalate" data-id="${i.id}">Not recoverable: escalate</button>
+      <button data-v="dismiss" data-id="${i.id}">False alarm</button>
+      <select data-sev="${i.id}" title="Severity (optional, used as a training label)">
+        <option value="">severity…</option>${SEV.map((n, k) => `<option value="${k}">${n}</option>`).join("")}
+      </select>
+    </div>` : `<div class="small muted">${esc(i.status)}${i.verdict_note ? " · " + esc(i.verdict_note) : ""}${
+        i.responder ? " · robot: " + esc(i.responder.detail) : ""}</div>`;
+  return `<div class="inc ${open ? "open" : ""}">
+    <h3><span>${esc(i.code)} · ${esc(o.kind.replace("_", " "))}</span>
+        <span class="chip ${f.severity >= 2 ? "bad" : "warn"}">${SEV[f.severity]}</span></h3>
+    <div class="small muted">${new Date(i.ts * 1000).toLocaleTimeString()} · zone ${esc(o.zone)} ${cleared}</div>
+    ${i.snapshot ? `<img loading="lazy" src="/api/incidents/${i.id}/snapshot" alt="">` : ""}
+    <div>${esc(o.summary)}</div>
+    <div class="kv"><span class="muted">Decision</span><b>${esc(f.action.replace("_", " "))}</b>
+      <span class="muted">Why</span><span>${esc(f.reasons.join(" "))}</span></div>
+    ${layaLine}
+    ${feats ? `<div class="small muted" style="margin-top:6px">${esc(feats)}</div>` : ""}
+    ${buttons}
+  </div>`;
+}
+
+async function refreshIncidents() {
+  const list = await api("/api/incidents?limit=30");
+  $("count").textContent = list.length ? `(${list.filter(i => i.status === "open").length} open)` : "";
+  $("list").innerHTML = list.length ? list.map(incCard).join("") : `<div class="empty">No incidents yet.</div>`;
+}
+
+async function refreshFeedback() {
+  const f = await api("/api/feedback/summary");
+  $("fb").textContent = f.verdicts
+    ? `Admin verdicts: ${f.verdicts}. Rules agree ${Math.round(f.rules_accuracy * 100)}%` +
+      (f.laya_scored ? `, Laya agrees ${Math.round(f.laya_accuracy * 100)}% (${f.laya_scored} scored).` : ".") +
+      " Training data: /api/feedback.jsonl"
+    : "No admin verdicts yet. Every verdict becomes a training label.";
+}
+
+async function tick() {
+  try { renderStatus(await api("/api/status")); await refreshIncidents(); await refreshFeedback(); showErr(null); }
+  catch (e) { showErr(e); }
+}
+
+$("list").addEventListener("click", async ev => {
+  const b = ev.target.closest("button[data-v]");
+  if (!b) return;
+  const sel = document.querySelector(`select[data-sev="${b.dataset.id}"]`);
+  const body = {verdict: b.dataset.v, severity: sel && sel.value !== "" ? Number(sel.value) : null};
+  b.disabled = true;
+  try {
+    const r = await post(`/api/incidents/${b.dataset.id}/verdict`, body);
+    if (r.responder && !r.responder.ok) showErr("Robot could not act: " + r.responder.detail);
+    else showErr(null);
+  } catch (e) { showErr(e); }
+  tick();
+});
+
+$("capRef").onclick = async () => { try { await post("/api/reference"); showErr(null); tick(); } catch (e) { showErr(e); } };
+$("clrRef").onclick = async () => { try { await api("/api/reference", {method: "DELETE"}); tick(); } catch (e) { showErr(e); } };
+$("hold").onclick = async () => {
+  try { const r = await post("/api/robot/hold"); showErr(r.ok ? (r.dry_run ? r.detail : null) : r.detail); }
+  catch (e) { showErr(e); }
+};
+
+// ---- zone drawing: drag a rectangle on the live image ----
+const canvas = $("draw"), ctx = canvas.getContext("2d");
+function setMode(m) { drawMode = m; canvas.style.pointerEvents = m ? "auto" : "none"; }
+setMode(null);
+$("zwatch").onclick = () => setMode("watch");
+$("zignore").onclick = () => setMode("ignore");
+$("zclear").onclick = async () => { try { await api("/api/zones", {method: "PUT", headers: {"Content-Type": "application/json"}, body: "[]"}); tick(); } catch (e) { showErr(e); } };
+function norm(ev) {
+  const r = canvas.getBoundingClientRect();
+  return [Math.min(1, Math.max(0, (ev.clientX - r.left) / r.width)), Math.min(1, Math.max(0, (ev.clientY - r.top) / r.height))];
+}
+function paint() {
+  canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (dragStart && dragNow) {
+    ctx.strokeStyle = drawMode === "ignore" ? "#aaa" : "#4ade80"; ctx.lineWidth = 2;
+    ctx.strokeRect(dragStart[0] * canvas.width, dragStart[1] * canvas.height,
+                   (dragNow[0] - dragStart[0]) * canvas.width, (dragNow[1] - dragStart[1]) * canvas.height);
+  }
+}
+canvas.addEventListener("mousedown", ev => { dragStart = norm(ev); dragNow = dragStart; paint(); });
+canvas.addEventListener("mousemove", ev => { if (dragStart) { dragNow = norm(ev); paint(); } });
+canvas.addEventListener("mouseup", async () => {
+  if (!dragStart || !dragNow) return;
+  const [x0, y0] = dragStart, [x1, y1] = dragNow;
+  dragStart = dragNow = null; paint();
+  if (Math.abs(x1 - x0) < 0.02 || Math.abs(y1 - y0) < 0.02) { setMode(null); return; }
+  const z = {name: $("zname").value.trim() || "zone", mode: drawMode,
+             points: [[Math.min(x0, x1), Math.min(y0, y1)], [Math.max(x0, x1), Math.min(y0, y1)],
+                      [Math.max(x0, x1), Math.max(y0, y1)], [Math.min(x0, x1), Math.max(y0, y1)]]};
+  setMode(null);
+  try {
+    await api("/api/zones", {method: "PUT", headers: {"Content-Type": "application/json"},
+                             body: JSON.stringify([...zones, z])});
+    tick();
+  } catch (e) { showErr(e); }
+});
+
+tick(); setInterval(tick, 2000);
+</script>
+</body>
+</html>
