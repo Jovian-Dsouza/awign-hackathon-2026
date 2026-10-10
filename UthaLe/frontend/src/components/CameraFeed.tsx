@@ -50,7 +50,9 @@ export function CameraFeed({ className, tall }: { className?: string; tall?: boo
       className={className}
       icon={Camera}
       title="Live camera"
-      subtitle={status ? `USB camera · index ${status.device_index} · ${status.backend.toUpperCase()}` : 'Connecting to camera service…'}
+      subtitle={!status ? 'Connecting to camera service…'
+        : status.backend === 'remote' ? 'Remote camera · Raspberry Pi over WebSocket'
+          : `USB camera · index ${status.device_index} · ${status.backend.toUpperCase()}`}
       bodyClass="p-0"
       actions={
         <>

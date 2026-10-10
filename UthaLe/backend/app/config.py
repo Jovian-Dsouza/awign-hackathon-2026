@@ -47,6 +47,11 @@ class Settings:
     camera_jpeg_quality: int = int(_env("CAMERA_JPEG_QUALITY", "80"))
     camera_autostart: bool = _env_bool("CAMERA_AUTOSTART", True)
     camera_overlay: bool = _env_bool("CAMERA_OVERLAY", True)
+    # "usb" = local OpenCV device. "remote" = frames pushed over a WebSocket by
+    # pi-streamer/stream_camera.py (e.g. a Raspberry Pi reaching this PC through ngrok).
+    camera_source: str = _env("CAMERA_SOURCE", "usb").lower()
+    # Shared secret the remote sender must present. Remote ingest is refused while empty.
+    camera_ingest_token: str = _env("CAMERA_INGEST_TOKEN", "")
 
     # Storage
     db_path: Path = Path(_env("DB_PATH", str(BACKEND_DIR / "data" / "uthale.db")))
