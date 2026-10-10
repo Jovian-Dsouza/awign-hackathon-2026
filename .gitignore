@@ -16,3 +16,5 @@ assets/third_party/
 renders/
 .coverage
 MUJOCO_LOG.TXToutputs/
+MUJOCO_LOG.TXT
+.DS_Store
