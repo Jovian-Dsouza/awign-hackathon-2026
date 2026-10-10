@@ -1,0 +1,33 @@
+[project]
+name = "overwatch"
+version = "0.1.0"
+description = "External-camera monitoring and fast decision service for the dark-store robot"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=1.26",
+    "opencv-python-headless>=4.9",
+    "fastapi>=0.110",
+    "uvicorn>=0.27",
+    "httpx>=0.27",
+]
+
+[project.optional-dependencies]
+# Laya pulls torch + transformers (~2 GB). Only install when you want the model.
+laya = ["laya>=0.4.2"]
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[project.scripts]
+overwatch = "overwatch.__main__:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/overwatch"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

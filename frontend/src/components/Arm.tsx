@@ -22,9 +22,9 @@ function restyle(robot: URDFRobot) {
   })
 }
 
-// Bar webcam on a printed bracket above the gripper, as built on the real arm (see the photos). All numbers are in
-// gripper_link coordinates (x = jaw-opening direction, +y = camera side, -z = forward) and match
-// robot-sim/src/dsr_sim/robot.py (WRIST_CAM_*), which mirrors y because the sim's grasp roll has the opposite sign.
+// Bar webcam on a printed bracket above the gripper, as built on the real arm (see the photos). The drawing's numbers
+// are in gripper_link coordinates (x = jaw-opening direction, +y = camera side, -z = forward) and match
+// robot-sim/src/dsr_sim/robot.py (WRIST_CAM_*).
 const PRINTED = '#2b2b30'
 const WRIST_PARTS: { pos: [number, number, number]; size: [number, number, number]; color: string }[] = [
   { pos: [0, 0.043, -0.02], size: [0.022, 0.034, 0.034], color: PRINTED }, // post glued to the gripper top

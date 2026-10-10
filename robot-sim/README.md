@@ -68,7 +68,7 @@ What that took:
 - **Collision shapes.** MuJoCo collides a mesh as one convex hull, which filled the gap between the jaws and made
   the folded arm lie inside itself. `scripts/decompose_collision.py` splits the SO-101 meshes into convex pieces
   (CoACD) in `assets/so101/collision/`; `robot._convex_collision` uses them.
-- **Stowed pose.** At the firmware REST_POSE the CAD parts of 7 link pairs overlap by 1-2 cm (the elbow sits at its
+- **Stowed pose.** In the folded rest pose (the real arm's start pose) the CAD parts of 7 link pairs overlap by 1-2 cm (the elbow sits at its
   limit); only those pairs have contact switched off (`robot.STOWED_OVERLAPS`). Everything else is real contact.
 - **Grasp heights.** Fingers are +-7 mm thick and the gripper body is 24 mm below them, so the jaw axis stays
   >= 32 mm above the surface it picks from, and lower than the board above minus the camera when lifting out.

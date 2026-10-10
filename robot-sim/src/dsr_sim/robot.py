@@ -60,8 +60,6 @@ JAW_FRICTION = 1.0  # sliding friction on the jaws (items are ~1.0). Too grippy 
 
 ARM_JOINTS = ("shoulder_pan", "shoulder_lift", "elbow_flex", "wrist_flex", "wrist_roll", "gripper")
 # Degrees, "new calibration" zero (middle of each joint's range); same convention as LeRobot degrees.
-# "rest" is the Pi firmware's REST_POSE (firmware/combined-web/web_combined.py): lift -66, elbow 98, wrist flex 77,
-# gripper 1 on the 0-100 gripper scale (= -8.9 deg here).
 GRIPPER_DEG_RANGE = (-10.0, 100.0)  # MJCF gripper range <-> LeRobot gripper 0..100
 
 
@@ -75,8 +73,13 @@ def gripper_pct_to_deg(pct: float) -> float:
     return lo + pct / 100.0 * (hi - lo)
 
 
+# "rest" is where the real arm starts every episode of the working ACT pipeline: the 10 recordings in
+# data/real/so101_pick_test1_*/ all begin at pan -3, lift -85.8, elbow 97, wrist flex 3.8, roll -81, gripper 1.3
+# (observation.state, LeRobot degrees; gripper 0..100). The sim's wrist-roll zero sits 90 deg from the real
+# calibration (the real arm picks at roll ~0 where the sim's level-jaw grasp is -90), so the roll is real - 90 = -171,
+# which is past the sim joint's limit (-157.2): the nearest reachable value is used. Elbow 97 is clipped to 96.8.
 POSES_DEG = {
-    "rest": (0, -66, 98, 77, 0, -8.9),
+    "rest": (-2.9, -85.8, 96.8, 3.8, -157.0, -4.2),
     "ready": (0, -40, 55, 60, 0, 40),
     "reach_low": (0, 10, 10, 0, 0, 60),
 }
@@ -221,10 +224,30 @@ WRIST_CAM_PARTS = (
     ("cam_body", (0.0, 0.0755, -0.034), (0.092, 0.024, 0.026), "#0c0c0e"),  # bar camera
     ("cam_face", (0.0, 0.0755, -0.0475), (0.040, 0.016, 0.003), "#17171a"),  # front bezel
 )
-WRIST_CAM_LENS = (0.0, 0.0755, -0.0495)  # lens centre
+WRIST_CAM_LENS = (0.0, 0.0755, -0.0495)  # lens centre of the part drawing above (its own frame)
 # Thin flat USB lead: leaves the camera's side and runs back along the arm.
 WRIST_CAM_CABLE = ((-0.046, 0.0755, -0.034), (-0.056, 0.074, -0.018), (-0.050, 0.052, 0.020), (-0.034, 0.030, 0.062))
-WRIST_CAM_TILT_DEG = 12.0
+
+# The camera's view direction and field of view are FITTED to the real wrist camera, not guessed:
+# data/real/so101_pick_test1_*/ (10 episodes) shows the two jaw blades as dark masks, and the pose below is the one
+# whose rendered jaws overlap those masks best (IoU about 0.8 at 5 gripper openings). The lens stays where the photos
+# of the real arm put it (printed bracket above the gripper, WRIST_CAM_LENS); what the fit adds is that the optic
+# looks 57 deg down toward the jaw tips, so both blades fill the lower half of the frame and converge toward the top,
+# and that the lens is a normal ~45 deg (vertical) webcam lens. The same fit gives the real gripper scale:
+# jaw angle ~ -5.6 + 1.02 * (gripper 0..100).
+WRIST_CAM_POS = (0.0, 0.0755, -0.0485)  # lens centre in the gripper frame, m (1 mm in front of the lens ring)
+WRIST_CAM_EULER_DEG = (-57.0, 3.3, -0.7)  # extrinsic x, y, z rotations of the camera frame (x right, y up, looks -z)
+WRIST_CAM_FOVY = 44.8  # vertical field of view, deg (640x480)
+
+
+def wrist_cam_rotation() -> np.ndarray:
+    """Camera frame (columns: x right, y up, z backwards) expressed in the gripper frame."""
+    rx, ry, rz = np.deg2rad(WRIST_CAM_EULER_DEG)
+    cx, sx, cy, sy, cz, sz = np.cos(rx), np.sin(rx), np.cos(ry), np.sin(ry), np.cos(rz), np.sin(rz)
+    mx = np.array([[1, 0, 0], [0, cx, -sx], [0, sx, cx]])
+    my = np.array([[cy, 0, sy], [0, 1, 0], [-sy, 0, cy]])
+    mz = np.array([[cz, -sz, 0], [sz, cz, 0], [0, 0, 1]])
+    return mz @ my @ mx
 
 
 def _add_wrist_camera(spec: mujoco.MjSpec, mats: _Materials) -> None:
@@ -232,6 +255,7 @@ def _add_wrist_camera(spec: mujoco.MjSpec, mats: _Materials) -> None:
     grip = spec.body(ARM_PREFIX + "gripper")
     if grip is None:
         raise AssetError("SO-101 gripper body not found; cannot mount wrist camera")
+    rot = wrist_cam_rotation()
 
     def deco(name, geom_type, color, roughness=0.6, **kw):
         g = grip.add_geom(type=geom_type, material=mats.get({"color": color, "roughness": roughness}), **kw)
@@ -246,9 +270,7 @@ def _add_wrist_camera(spec: mujoco.MjSpec, mats: _Materials) -> None:
     deco("lens", mujoco.mjtGeom.mjGEOM_CYLINDER, "#05060a", 0.2, pos=[lx, ly, lz - 0.0008], size=[0.0058, 0.0012, 0], quat=[1, 0, 0, 0])
     for i, (a, b) in enumerate(zip(WRIST_CAM_CABLE[:-1], WRIST_CAM_CABLE[1:])):
         deco(f"cable{i}", mujoco.mjtGeom.mjGEOM_CAPSULE, "#0a0a0c", 0.7, fromto=[*a, *b], size=[0.0014, 0, 0])
-    # Looks forward (-z) and tips down 12 deg toward the jaws; image up = tilted -y, image right = +x.
-    c, s = np.cos(np.deg2rad(WRIST_CAM_TILT_DEG)), np.sin(np.deg2rad(WRIST_CAM_TILT_DEG))
-    grip.add_camera(name="wrist_cam", pos=[lx, ly, lz + 0.001], xyaxes=[1, 0, 0, 0, c, -s], fovy=75)
+    grip.add_camera(name="wrist_cam", pos=list(WRIST_CAM_POS), xyaxes=[*rot[:, 0], *rot[:, 1]], fovy=WRIST_CAM_FOVY)
 
 
 def _recolor_arm(spec: mujoco.MjSpec) -> None:
@@ -296,9 +318,9 @@ def _convex_collision(spec: mujoco.MjSpec) -> None:
             spec.delete(geom)
 
 
-# Link pairs whose CAD meshes interpenetrate by 1-2 cm in the firmware REST_POSE (the elbow sits at its limit there).
-# They can only touch each other in that folded pose, so their contact is switched off; a collision-free stow is
-# 22 deg away from the firmware pose. Everything else (jaws vs items, arm vs shelf/tray/deck) is real contact.
+# Link pairs whose CAD meshes interpenetrate by 1-2 cm in the folded rest pose (the elbow sits at its limit there; this
+# list was measured at the old firmware REST_POSE and still holds at the real start pose, which folds the same way).
+# They can only touch each other in that folded pose, so their contact is switched off. Everything else (jaws vs items, arm vs shelf/tray/deck) is real contact.
 STOWED_OVERLAPS = (
     ("shoulder", "wrist"),
     ("shoulder", "gripper"),

@@ -25,7 +25,11 @@ from dsr_sim.render import write_png
 from dsr_sim.robot import ARM_JOINTS, ARM_PREFIX
 
 ARM_IK_JOINTS = ("shoulder_pan", "shoulder_lift", "elbow_flex", "wrist_flex")
-GRIPPER_OPEN_DEG = 52.0  # tuned in the simulator: passes a 0.06 m can without shoving it, narrow enough for the racks
+# Pre-grasp jaw opening. Tuned in the simulator: the smallest value that still clears the widest item (the milk carton
+# fails at 38 deg; bottle, milk and soup all pick at 42 and above). The real arm approaches with the jaws only
+# part-open (gripper 13-23 of 100 in data/real), which keeps the moving jaw in the wrist-camera frame; 52 deg threw it
+# out of view.
+GRIPPER_OPEN_DEG = 44.0
 GRIPPER_RELEASE_DEG = 70.0  # wide enough that a 0.06 m can is free of both jaws
 GRIPPER_CLOSED_DEG = -5.0  # past closed: the item stops the jaw and the actuator squeezes
 SHOULDER_FORWARD = 0.069  # arm base x offset from rover centre (mount 0.03 + shoulder 0.039)
