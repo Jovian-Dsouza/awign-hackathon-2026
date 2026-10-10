@@ -1,0 +1,37 @@
+# Warehouse layout. Units: metres / degrees. World origin = floor centre, +z up.
+# Shelves stand along the north wall (+y) and face south; the packing station
+# sits in the open area to the south so a mobile manipulator can shuttle between.
+
+room:
+  size: [10.0, 8.0]          # x, y
+  wall_height: 1.2
+  wall_thickness: 0.1
+
+shelf:
+  width: 1.2
+  depth: 0.45
+  height: 1.8
+  board_heights: [0.10, 0.55, 1.05, 1.45]   # top surface of each level (level 1 is tall: top-down grasps need headroom;
+                                            # level 0 sits well below the base lidar plane at 0.166 m)
+  board_thickness: 0.025
+  post_size: 0.04
+  lip_height: 0.0            # optional front lip (0 = none; a lip blocks Stretch side grasps)
+  slots_per_level: 4
+  pickable_levels: [1, 2]    # levels in a mobile manipulator's reach band
+
+shelves:
+  - {name: A, pos: [-2.5, 3.65], yaw_deg: 0}
+  - {name: B, pos: [0.0, 3.65], yaw_deg: 0}
+  - {name: C, pos: [2.5, 3.65], yaw_deg: 0}
+
+station:
+  pos: [0.0, -1.6]
+  yaw_deg: 0
+  table_size: [1.2, 0.7, 0.72]  # width, depth, height (low bench: Stretch lift tops out at 1.1 m)
+  tote_size: [0.38, 0.36, 0.12]  # outer width, depth, height (deep enough for the gripper body)
+  num_totes: 2
+
+robot_dock:                  # Stretch 3 spawns here
+  pos: [-3.5, -1.6]
+  pad_size: [0.9, 0.9]
+  yaw_deg: 0                 # heading +x; Stretch's arm extends to its right (-y)

@@ -1,0 +1,1065 @@
+<mujoco model="quickcommerce_warehouse">
+  <compiler angle="radian" />
+  <option impratio="10" integrator="implicitfast" cone="elliptic" noslip_iterations="3" />
+  <size nkey="1" />
+  <statistic extent="6" center="0 0.5 0.8" />
+  <visual>
+    <global offwidth="1600" offheight="1000" />
+    <headlight ambient="0.35 0.35 0.35" diffuse="0.45 0.45 0.45" specular="0.05 0.05 0.05" />
+  </visual>
+  <default>
+    <default class="item_ketchup/main" />
+    <default class="item_bbq_sauce/main" />
+    <default class="item_mustard/main">
+      <default class="item_mustard/ycb_col">
+        <geom group="3" rgba="0.4 0.5 0.6 1" />
+      </default>
+      <default class="item_mustard/ycb_viz">
+        <geom type="mesh" contype="0" conaffinity="0" />
+      </default>
+    </default>
+    <default class="item_salad_dressing/main" />
+    <default class="item_tomato_sauce/main" />
+    <default class="item_cookies/main" />
+    <default class="item_mac_and_cheese/main" />
+    <default class="item_pudding_mix/main">
+      <default class="item_pudding_mix/ycb_col">
+        <geom group="3" rgba="0.4 0.5 0.6 1" />
+      </default>
+      <default class="item_pudding_mix/ycb_viz">
+        <geom type="mesh" contype="0" conaffinity="0" />
+      </default>
+    </default>
+    <default class="item_popcorn/main" />
+    <default class="item_crackers/main">
+      <default class="item_crackers/ycb_col">
+        <geom group="3" rgba="0.4 0.5 0.6 1" />
+      </default>
+      <default class="item_crackers/ycb_viz">
+        <geom type="mesh" contype="0" conaffinity="0" />
+      </default>
+    </default>
+    <default class="item_sugar/main">
+      <default class="item_sugar/ycb_col">
+        <geom group="3" rgba="0.4 0.5 0.6 1" />
+      </default>
+      <default class="item_sugar/ycb_viz">
+        <geom type="mesh" contype="0" conaffinity="0" />
+      </default>
+    </default>
+    <default class="item_tomato_soup/main">
+      <default class="item_tomato_soup/ycb_col">
+        <geom group="3" rgba="0.4 0.5 0.6 1" />
+      </default>
+      <default class="item_tomato_soup/ycb_viz">
+        <geom type="mesh" contype="0" conaffinity="0" />
+      </default>
+    </default>
+    <default class="item_tuna/main">
+      <default class="item_tuna/ycb_col">
+        <geom group="3" rgba="0.4 0.5 0.6 1" />
+      </default>
+      <default class="item_tuna/ycb_viz">
+        <geom type="mesh" contype="0" conaffinity="0" />
+      </default>
+    </default>
+    <default class="item_butter/main" />
+    <default class="item_cream_cheese/main" />
+    <default class="item_alphabet_soup/main" />
+    <default class="item_milk/main" />
+    <default class="item_orange_juice/main" />
+    <default class="robot/main">
+      <default class="robot/stretch">
+        <geom solref="0.005" />
+        <general biastype="affine" />
+        <default class="robot/wheel">
+          <joint stiffness="0.02" armature="0.1" damping="30" frictionloss="1" />
+          <general ctrlrange="-6 6" forcerange="-100 100" gear="3" gainprm="100" biasprm="0 0 -100" />
+        </default>
+        <default class="robot/lift">
+          <joint type="slide" stiffness="0.03" range="0 1.1" armature="0.01" damping="35" frictionloss="1.5" />
+          <general ctrlrange="0 1.1" forcerange="-70 70" gainprm="400" biasprm="0 -200 -100" />
+        </default>
+        <default class="robot/telescope">
+          <joint type="slide" stiffness="0.02" range="0 0.13" armature="0.01" damping="50" frictionloss="1.5" />
+          <general ctrlrange="0 0.52" forcerange="-56 56" gainprm="150" biasprm="0 -100 -10" />
+        </default>
+        <default class="robot/head">
+          <joint damping="1" />
+          <general gainprm="10" biasprm="0 -10" />
+          <default class="robot/head_pan">
+            <joint range="-4.04 1.73" />
+            <general ctrlrange="-4.04 1.73" />
+          </default>
+          <default class="robot/head_tilt">
+            <joint range="-1.53 0.79" />
+            <general ctrlrange="-1.53 0.79" />
+          </default>
+        </default>
+        <default class="robot/wrist">
+          <joint damping="1" />
+          <general gainprm="10" biasprm="0 -10" />
+          <default class="robot/wrist_yaw">
+            <joint range="-1.39 4.42" armature="0.01" damping="7" frictionloss="0.1" axis="0 0 -1" />
+            <general ctrlrange="-1.39 4.42" gainprm="20" biasprm="0 -20" />
+          </default>
+          <default class="robot/wrist_pitch">
+            <joint range="-1.57 0.56" armature="0.01" frictionloss="0.1" />
+            <general ctrlrange="-1.57 0.56" gainprm="50" biasprm="0 -50" />
+          </default>
+          <default class="robot/wrist_roll">
+            <joint range="-3.14 3.14" armature="0.01" frictionloss="0.1" />
+            <general ctrlrange="-3.14 3.14" gainprm="20" biasprm="0 -20" />
+          </default>
+          <default class="robot/finger_open">
+            <joint range="-0.6 0.6" armature="0.01" damping="0.0001" frictionloss="0.1" axis="0 -1 0" />
+            <general ctrlrange="-0.6 0.6" gainprm="4000" biasprm="0 -4000 -124" />
+          </default>
+          <default class="robot/finger_slide">
+            <joint type="slide" range="-0.02 0.04" armature="0.1" damping="0.0001" />
+            <general ctrlrange="-0.02 0.04" gainprm="4000" biasprm="0 -4000 -124" />
+          </default>
+        </default>
+        <default class="robot/visual">
+          <geom type="mesh" contype="0" conaffinity="0" group="2" />
+        </default>
+        <default class="robot/collision">
+          <geom type="mesh" group="3" />
+          <default class="robot/caster">
+            <geom size="0.02 0 0" type="sphere" condim="1" priority="1" />
+          </default>
+          <default class="robot/rubber">
+            <geom condim="6" priority="1" friction="2 0.02 0.1" solref="0.02" solimp="0.99 0.99 0.01" />
+          </default>
+        </default>
+      </default>
+    </default>
+  </default>
+  <asset>
+    <texture type="2d" colorspace="auto" name="floor_tex" builtin="checker" mark="edge" rgb1="0.55 0.56 0.58" rgb2="0.5 0.51 0.53" markrgb="0.42 0.43 0.45" width="512" height="512" />
+    <texture type="skybox" colorspace="auto" name="skybox" builtin="gradient" rgb1="0.85 0.88 0.92" rgb2="0.35 0.38 0.42" width="512" height="3072" />
+    <texture type="2d" colorspace="linear" name="item_ketchup/tex-textured" file="third_party/hope/ketchup/texture_map.png" />
+    <texture type="2d" colorspace="linear" name="item_bbq_sauce/tex-bbq_sauce" file="third_party/hope/bbq_sauce/texture_map.png" />
+    <texture type="2d" colorspace="sRGB" name="item_mustard/006_mustard_bottle" file="third_party/ycb/YCB_sim/textures/006_mustard_bottle.png" />
+    <texture type="2d" colorspace="sRGB" name="item_salad_dressing/tex-textured" file="third_party/hope/salad_dressing/texture_map.png" />
+    <texture type="2d" colorspace="linear" name="item_tomato_sauce/tex-textured" file="third_party/hope/tomato_sauce/texture_map.png" />
+    <texture type="2d" colorspace="linear" name="item_cookies/tex-cookies" file="third_party/hope/cookies/texture_map.png" />
+    <texture type="2d" colorspace="linear" name="item_mac_and_cheese/tex-textured" file="third_party/hope/macaroni_and_cheese/texture_map.png" />
+    <texture type="2d" colorspace="sRGB" name="item_pudding_mix/008_pudding_box" file="third_party/ycb/YCB_sim/textures/008_pudding_box.png" />
+    <texture type="2d" colorspace="linear" name="item_popcorn/tex-popcorn" file="third_party/hope/popcorn/texture_map.png" />
+    <texture type="2d" colorspace="sRGB" name="item_crackers/003_cracker_box" file="third_party/ycb/YCB_sim/textures/003_cracker_box.png" />
+    <texture type="2d" colorspace="sRGB" name="item_sugar/004_sugar_box" file="third_party/ycb/YCB_sim/textures/004_sugar_box.png" />
+    <texture type="2d" colorspace="sRGB" name="item_tomato_soup/005_tomato_soup_can" file="third_party/ycb/YCB_sim/textures/005_tomato_soup_can.png" />
+    <texture type="2d" colorspace="sRGB" name="item_tuna/007_tuna_fish_can" file="third_party/ycb/YCB_sim/textures/007_tuna_fish_can.png" />
+    <texture type="2d" colorspace="linear" name="item_butter/tex-butter" file="third_party/hope/butter/texture_map.png" />
+    <texture type="2d" colorspace="linear" name="item_cream_cheese/tex-cream_cheese" file="third_party/hope/cream_cheese/texture_map.png" />
+    <texture type="2d" colorspace="linear" name="item_alphabet_soup/tex-textured" file="third_party/hope/alphabet_soup/texture_map.png" />
+    <texture type="2d" colorspace="linear" name="item_milk/tex-textured" file="third_party/hope/milk/texture_map.png" />
+    <texture type="2d" colorspace="linear" name="item_orange_juice/tex-textured" file="third_party/hope/orange_juice/texture_map.png" />
+    <texture type="2d" colorspace="linear" name="robot/hand_crush" file="third_party/stretch3/assets/hand_crush.png" />
+    <texture type="2d" colorspace="linear" name="robot/serial" file="third_party/stretch3/assets/serial.png" />
+    <texture type="2d" colorspace="linear" name="robot/mobile_base_right_corner_aruco_sticker" file="third_party/stretch3/assets/mobile_base_right_corner_aruco_sticker.png" />
+    <texture type="2d" colorspace="linear" name="robot/mobile_base_left_corner_aruco_sticker" file="third_party/stretch3/assets/mobile_base_left_corner_aruco_sticker.png" />
+    <texture type="2d" colorspace="linear" name="robot/hand_pinch" file="third_party/stretch3/assets/hand_pinch.png" />
+    <texture type="2d" colorspace="linear" name="robot/arm_inner_wrist_aruco_sticker" file="third_party/stretch3/assets/arm_inner_wrist_aruco_sticker.png" />
+    <texture type="2d" colorspace="linear" name="robot/arm_top_wrist_aruco_sticker" file="third_party/stretch3/assets/arm_top_wrist_aruco_sticker.png" />
+    <texture type="2d" colorspace="linear" name="robot/shoulder_aruco_sticker" file="third_party/stretch3/assets/shoulder_aruco_sticker.png" />
+    <texture type="2d" colorspace="linear" name="robot/right_finger_aruco" file="third_party/stretch3/assets/right_finger_aruco.png" />
+    <texture type="2d" colorspace="linear" name="robot/left_finger_aruco" file="third_party/stretch3/assets/left_finger_aruco.png" />
+    <texture type="2d" colorspace="linear" name="robot/gripper_cam_aruco_sticker" file="third_party/stretch3/assets/gripper_cam_aruco_sticker.png" />
+    <material name="rack_steel" rgba="0.15 0.32 0.62 1" />
+    <material name="board" rgba="0.78 0.62 0.42 1" />
+    <material name="lip" rgba="0.95 0.55 0.1 1" />
+    <material name="back_panel" rgba="0.82 0.84 0.86 1" />
+    <material name="cardboard" rgba="0.72 0.55 0.36 1" />
+    <material name="cardboard_dark" rgba="0.6 0.45 0.28 1" />
+    <material name="wall" rgba="0.9 0.9 0.88 1" />
+    <material name="tape_yellow" rgba="0.98 0.8 0.1 1" />
+    <material name="tape_green" rgba="0.15 0.7 0.35 1" />
+    <material name="table_top" rgba="0.85 0.86 0.88 1" />
+    <material name="table_leg" rgba="0.25 0.25 0.28 1" />
+    <material name="tote" rgba="0.1 0.55 0.3 1" />
+    <material name="sign" rgba="0.9 0.2 0.25 1" />
+    <material name="dock" rgba="0.2 0.45 0.85 0.6" />
+    <material name="drop_zone" rgba="0.1 0.9 0.3 0.4" />
+    <material name="floor" texture="floor_tex" texrepeat="10 8" />
+    <material name="item_ketchup/textured" texture="item_ketchup/tex-textured" reflectance="0.5" />
+    <material name="item_bbq_sauce/bbq_sauce" texture="item_bbq_sauce/tex-bbq_sauce" reflectance="0.5" />
+    <material name="item_mustard/006_mustard_bottle" texture="item_mustard/006_mustard_bottle" />
+    <material name="item_salad_dressing/textured" texture="item_salad_dressing/tex-textured" reflectance="0.5" />
+    <material name="item_tomato_sauce/textured" texture="item_tomato_sauce/tex-textured" reflectance="0.5" />
+    <material name="item_cookies/cookies" texture="item_cookies/tex-cookies" reflectance="0.5" />
+    <material name="item_mac_and_cheese/textured" texture="item_mac_and_cheese/tex-textured" reflectance="0.5" />
+    <material name="item_pudding_mix/008_pudding_box" texture="item_pudding_mix/008_pudding_box" />
+    <material name="item_popcorn/popcorn" texture="item_popcorn/tex-popcorn" reflectance="0.5" />
+    <material name="item_crackers/003_cracker_box" texture="item_crackers/003_cracker_box" />
+    <material name="item_sugar/004_sugar_box" texture="item_sugar/004_sugar_box" />
+    <material name="item_tomato_soup/005_tomato_soup_can" texture="item_tomato_soup/005_tomato_soup_can" />
+    <material name="item_tuna/007_tuna_fish_can" texture="item_tuna/007_tuna_fish_can" />
+    <material name="item_butter/butter" texture="item_butter/tex-butter" reflectance="0.5" />
+    <material name="item_cream_cheese/cream_cheese" texture="item_cream_cheese/tex-cream_cheese" reflectance="0.5" />
+    <material name="item_alphabet_soup/textured" texture="item_alphabet_soup/tex-textured" reflectance="0.5" />
+    <material name="item_milk/textured" texture="item_milk/tex-textured" reflectance="0.5" />
+    <material name="item_orange_juice/textured" texture="item_orange_juice/tex-textured" reflectance="0.5" />
+    <material name="robot/Caster_Rollers_Red" rgba="0.8 0.001381 0 1" />
+    <material name="robot/Generic_Black" rgba="0.036889 0.036889 0.036889 1" />
+    <material name="robot/3D_Print_Black" rgba="0.114435 0.114435 0.114435 1" />
+    <material name="robot/Pantone_Black_6_U" rgba="0.072272 0.076185 0.093059 1" />
+    <material name="robot/Plug_White" />
+    <material name="robot/Pure_Black" rgba="0 0 0 1" />
+    <material name="robot/Gray_Lens" reflectance="0.3" rgba="0.3 0.3 0.3 1" />
+    <material name="robot/Reflective_Metal" shininess="0.25" reflectance="0.3" rgba="0.8 0.8 0.8 1" />
+    <material name="robot/Respeaker_Blue_Glow" rgba="0.006995 0.05448 0.799103 1" />
+    <material name="robot/Runstop_White_Glow" rgba="0.8 0.8 0.8 1" />
+    <material name="robot/Speaker_Housing_Black" rgba="0.003642 0.003642 0.003642 1" />
+    <material name="robot/Wheel_Rubber_Gray" rgba="0.418986 0.424087 0.429225 1" />
+    <material name="robot/Lightbar_Green" rgba="0 0.8 0.002964 1" />
+    <material name="robot/Pantone_705_U" rgba="1 0.723054 0.760525 1" />
+    <material name="robot/Pantone_Cool_Gray_4_U" rgba="0.473531 0.47932 0.48515 1" />
+    <material name="robot/Power_Button_Green" rgba="0.010852 0.02365 0.002724 1" />
+    <material name="robot/USB_Blue" rgba="0.000557 0.010166 0.8 1" />
+    <material name="robot/White_Plastic" shininess="0.25" />
+    <material name="robot/Laser_Black" rgba="0.03741 0.03741 0.03741 1" />
+    <material name="robot/Hand_Crush_Sticker" texture="robot/hand_crush" />
+    <material name="robot/Stretch_Serial_Sticker" texture="robot/serial" />
+    <material name="robot/Aruco_Right_Base_Sticker" texture="robot/mobile_base_right_corner_aruco_sticker" />
+    <material name="robot/Aruco_Left_Base_Sticker" texture="robot/mobile_base_left_corner_aruco_sticker" />
+    <material name="robot/Hand_Pinch_Sticker" texture="robot/hand_pinch" />
+    <material name="robot/Carbon_Fiber" rgba="0.061246 0.061246 0.061246 1" />
+    <material name="robot/Aruco_Inner_Wrist_Sticker" texture="robot/arm_inner_wrist_aruco_sticker" />
+    <material name="robot/Aruco_Top_Wrist_Sticker" texture="robot/arm_top_wrist_aruco_sticker" />
+    <material name="robot/suction_rubber" rgba="0.25098 0.25098 0.25098 1" />
+    <material name="robot/Aruco_Shoulder_Sticker" texture="robot/shoulder_aruco_sticker" />
+    <material name="robot/Aruco_right_finger_Sticker" texture="robot/right_finger_aruco" />
+    <material name="robot/Aruco_left_finger_Sticker" texture="robot/left_finger_aruco" />
+    <material name="robot/Aruco_gripper_cam_Sticker" texture="robot/gripper_cam_aruco_sticker" />
+    <mesh name="item_ketchup/textured_vis" file="third_party/hope/ketchup/visual/textured_vis.msh" scale="0.015 0.015 0.015" />
+    <mesh name="item_bbq_sauce/bbq_sauce_vis" file="third_party/hope/bbq_sauce/visual/bbq_sauce_vis.msh" scale="0.01155 0.01155 0.01155" />
+    <mesh name="item_mustard/006_mustard_bottle" file="third_party/ycb/YCB_sim/meshes/006_mustard_bottle.msh" />
+    <mesh name="item_salad_dressing/textured_vis" file="third_party/hope/salad_dressing/visual/textured_vis.msh" scale="0.015 0.015 0.015" />
+    <mesh name="item_tomato_sauce/textured_vis" file="third_party/hope/tomato_sauce/visual/textured_vis.msh" scale="0.015 0.015 0.015" />
+    <mesh name="item_cookies/cookies_vis" file="third_party/hope/cookies/visual/cookies_vis.msh" scale="0.0075 0.0075 0.0075" />
+    <mesh name="item_mac_and_cheese/textured_vis" file="third_party/hope/macaroni_and_cheese/visual/textured_vis.msh" scale="0.00875 0.00875 0.00875" />
+    <mesh name="item_pudding_mix/008_pudding_box" file="third_party/ycb/YCB_sim/meshes/008_pudding_box.msh" />
+    <mesh name="item_popcorn/popcorn_vis" file="third_party/hope/popcorn/visual/popcorn_vis.msh" scale="0.0075 0.0075 0.0075" />
+    <mesh name="item_crackers/003_cracker_box" file="third_party/ycb/YCB_sim/meshes/003_cracker_box.msh" />
+    <mesh name="item_sugar/004_sugar_box" file="third_party/ycb/YCB_sim/meshes/004_sugar_box.msh" />
+    <mesh name="item_tomato_soup/005_tomato_soup_can" file="third_party/ycb/YCB_sim/meshes/005_tomato_soup_can.msh" />
+    <mesh name="item_tuna/007_tuna_fish_can" file="third_party/ycb/YCB_sim/meshes/007_tuna_fish_can.msh" />
+    <mesh name="item_butter/butter_vis" file="third_party/hope/butter/visual/butter_vis.msh" scale="0.01125 0.01125 0.01125" />
+    <mesh name="item_cream_cheese/cream_cheese_vis" file="third_party/hope/cream_cheese/visual/cream_cheese_vis.msh" scale="0.012 0.012 0.012" />
+    <mesh name="item_alphabet_soup/textured_vis" content_type="model/vnd.mujoco.msh" file="third_party/hope/alphabet_soup/visual/textured_vis.msh" scale="0.015 0.015 0.015" />
+    <mesh name="item_milk/textured_vis" content_type="model/vnd.mujoco.msh" file="third_party/hope/milk/visual/textured_vis.msh" scale="0.01125 0.01125 0.01125" />
+    <mesh name="item_orange_juice/textured_vis" content_type="model/vnd.mujoco.msh" file="third_party/hope/orange_juice/visual/textured_vis.msh" scale="0.01125 0.01125 0.01125" />
+    <mesh name="robot/base_link_0" content_type="model/obj" file="third_party/stretch3/assets/base_link_0.obj" />
+    <mesh name="robot/base_link_2" file="third_party/stretch3/assets/base_link_2.obj" inertia="shell" />
+    <mesh name="robot/base_link_3" file="third_party/stretch3/assets/base_link_3.obj" />
+    <mesh name="robot/base_link_4" file="third_party/stretch3/assets/base_link_4.obj" />
+    <mesh name="robot/base_link_5" content_type="model/obj" file="third_party/stretch3/assets/base_link_5.obj" />
+    <mesh name="robot/base_link_6" file="third_party/stretch3/assets/base_link_6.obj" inertia="shell" />
+    <mesh name="robot/base_link_7" file="third_party/stretch3/assets/base_link_7.obj" />
+    <mesh name="robot/base_link_8" content_type="model/obj" file="third_party/stretch3/assets/base_link_8.obj" />
+    <mesh name="robot/base_link_collision" content_type="model/stl" file="third_party/stretch3/assets/base_link_casterless.stl" />
+    <mesh name="robot/link_aruco_right_base" file="third_party/stretch3/assets/link_aruco_right_base.obj" inertia="shell" />
+    <mesh name="robot/link_aruco_left_base" file="third_party/stretch3/assets/link_aruco_left_base.obj" inertia="shell" />
+    <mesh name="robot/respeaker_base" file="third_party/stretch3/assets/respeaker_base.obj" />
+    <mesh name="robot/link_mast" file="third_party/stretch3/assets/link_mast.obj" />
+    <mesh name="robot/link_head_0" content_type="model/obj" file="third_party/stretch3/assets/link_head_0.obj" />
+    <mesh name="robot/link_head_1" file="third_party/stretch3/assets/link_head_1.obj" />
+    <mesh name="robot/link_head_2" file="third_party/stretch3/assets/link_head_2.obj" />
+    <mesh name="robot/link_head_3" file="third_party/stretch3/assets/link_head_3.obj" />
+    <mesh name="robot/link_head_4" file="third_party/stretch3/assets/link_head_4.obj" />
+    <mesh name="robot/link_head_5" file="third_party/stretch3/assets/link_head_5.obj" />
+    <mesh name="robot/link_head_6" file="third_party/stretch3/assets/link_head_6.obj" />
+    <mesh name="robot/link_head_7" file="third_party/stretch3/assets/link_head_7.obj" />
+    <mesh name="robot/link_head_8" file="third_party/stretch3/assets/link_head_8.obj" />
+    <mesh name="robot/link_head_9" file="third_party/stretch3/assets/link_head_9.obj" />
+    <mesh name="robot/link_head_10" content_type="model/obj" file="third_party/stretch3/assets/link_head_10.obj" />
+    <mesh name="robot/link_head_11" content_type="model/obj" file="third_party/stretch3/assets/link_head_11.obj" />
+    <mesh name="robot/link_head_pan_0" file="third_party/stretch3/assets/link_head_pan_0.obj" />
+    <mesh name="robot/link_head_pan_1" content_type="model/obj" file="third_party/stretch3/assets/link_head_pan_1.obj" />
+    <mesh name="robot/link_head_tilt_0" content_type="model/obj" file="third_party/stretch3/assets/link_head_tilt_0.obj" />
+    <mesh name="robot/link_head_tilt_1" content_type="model/obj" file="third_party/stretch3/assets/link_head_tilt_1.obj" />
+    <mesh name="robot/link_right_wheel_0" content_type="model/obj" file="third_party/stretch3/assets/link_right_wheel_0.obj" />
+    <mesh name="robot/link_right_wheel_1" content_type="model/obj" file="third_party/stretch3/assets/link_right_wheel_1.obj" />
+    <mesh name="robot/link_left_wheel_0" content_type="model/obj" file="third_party/stretch3/assets/link_left_wheel_0.obj" />
+    <mesh name="robot/link_left_wheel_1" content_type="model/obj" file="third_party/stretch3/assets/link_left_wheel_1.obj" />
+    <mesh name="robot/link_lift_0" content_type="model/obj" file="third_party/stretch3/assets/link_lift_0.obj" />
+    <mesh name="robot/link_lift_1" file="third_party/stretch3/assets/link_lift_1.obj" inertia="shell" />
+    <mesh name="robot/link_lift_2" file="third_party/stretch3/assets/link_lift_2.obj" />
+    <mesh name="robot/link_lift_3" file="third_party/stretch3/assets/link_lift_3.obj" />
+    <mesh name="robot/link_lift_4" content_type="model/obj" file="third_party/stretch3/assets/link_lift_4.obj" />
+    <mesh name="robot/link_lift_5" file="third_party/stretch3/assets/link_lift_5.obj" />
+    <mesh name="robot/link_lift_6" content_type="model/obj" file="third_party/stretch3/assets/link_lift_6.obj" />
+    <mesh name="robot/link_lift_7" file="third_party/stretch3/assets/link_lift_7.obj" />
+    <mesh name="robot/link_lift_8" content_type="model/obj" file="third_party/stretch3/assets/link_lift_8.obj" />
+    <mesh name="robot/link_lift_9" content_type="model/obj" file="third_party/stretch3/assets/link_lift_9.obj" />
+    <mesh name="robot/link_aruco_shoulder" content_type="model/obj" file="third_party/stretch3/assets/link_aruco_shoulder.obj" inertia="shell" />
+    <mesh name="robot/link_arm_l4_0" content_type="model/obj" file="third_party/stretch3/assets/link_arm_l4_0.obj" />
+    <mesh name="robot/link_arm_l4_1" content_type="model/obj" file="third_party/stretch3/assets/link_arm_l4_1.obj" />
+    <mesh name="robot/link_arm_l3_0" content_type="model/obj" file="third_party/stretch3/assets/link_arm_l3_0.obj" />
+    <mesh name="robot/link_arm_l3_1" content_type="model/obj" file="third_party/stretch3/assets/link_arm_l3_1.obj" />
+    <mesh name="robot/link_arm_l2_0" content_type="model/obj" file="third_party/stretch3/assets/link_arm_l2_0.obj" />
+    <mesh name="robot/link_arm_l2_1" content_type="model/obj" file="third_party/stretch3/assets/link_arm_l2_1.obj" />
+    <mesh name="robot/link_arm_l1_0" content_type="model/obj" file="third_party/stretch3/assets/link_arm_l1_0.obj" />
+    <mesh name="robot/link_arm_l1_1" content_type="model/obj" file="third_party/stretch3/assets/link_arm_l1_1.obj" />
+    <mesh name="robot/link_arm_l0_0" content_type="model/obj" file="third_party/stretch3/assets/link_arm_l0_0.obj" />
+    <mesh name="robot/link_arm_l0_1" content_type="model/obj" file="third_party/stretch3/assets/link_arm_l0_1.obj" />
+    <mesh name="robot/link_arm_l0_2" content_type="model/obj" file="third_party/stretch3/assets/link_arm_l0_2.obj" />
+    <mesh name="robot/link_aruco_inner_wrist" content_type="model/obj" file="third_party/stretch3/assets/link_aruco_inner_wrist.obj" inertia="shell" />
+    <mesh name="robot/link_aruco_top_wrist" content_type="model/obj" file="third_party/stretch3/assets/link_aruco_top_wrist.obj" inertia="shell" />
+    <mesh name="robot/laser" content_type="model/obj" file="third_party/stretch3/assets/laser.obj" />
+    <mesh name="robot/link_gripper_finger_left_0" content_type="model/obj" file="third_party/stretch3/assets/link_gripper_finger_left_0.obj" scale="0.9 1 1" />
+    <mesh name="robot/link_gripper_finger_left_1" content_type="model/obj" file="third_party/stretch3/assets/link_gripper_finger_left_1.obj" scale="0.9 1 1" />
+    <mesh name="robot/link_gripper_finger_right_0" content_type="model/obj" file="third_party/stretch3/assets/link_gripper_finger_right_0.obj" scale="0.9 1 1" />
+    <mesh name="robot/link_gripper_finger_right_1" content_type="model/obj" file="third_party/stretch3/assets/link_gripper_finger_right_1.obj" scale="0.9 1 1" />
+    <mesh name="robot/link_gripper_0" content_type="model/obj" file="third_party/stretch3/assets/link_gripper_0.obj" />
+    <mesh name="robot/link_gripper_1" content_type="model/obj" file="third_party/stretch3/assets/link_gripper_1.obj" />
+    <mesh name="robot/link_wrist_yaw" content_type="model/obj" file="third_party/stretch3/assets/link_wrist_yaw.obj" />
+    <mesh name="robot/link_DW3_wrist_pitch" content_type="model/stl" file="third_party/stretch3/assets/link_DW3_wrist_pitch.stl" />
+    <mesh name="robot/link_DW3_wrist_quick_connect" content_type="model/stl" file="third_party/stretch3/assets/link_DW3_wrist_quick_connect.stl" />
+    <mesh name="robot/link_DW3_wrist_yaw_bottom" content_type="model/stl" file="third_party/stretch3/assets/link_DW3_wrist_yaw_bottom.stl" />
+    <mesh name="robot/link_SE3_head_nav_cam" content_type="model/stl" file="third_party/stretch3/assets/link_SE3_head_nav_cam.stl" />
+    <mesh name="robot/link_SG3_aruco_d405" content_type="model/obj" file="third_party/stretch3/assets/link_SG3_aruco_d405.obj" inertia="shell" />
+    <mesh name="robot/link_SG3_gripper_body" content_type="model/obj" file="third_party/stretch3/assets/link_SG3_gripper_body.obj" />
+    <mesh name="robot/link_d405" content_type="model/stl" file="third_party/stretch3/assets/link_d405.stl" />
+    <mesh name="robot/link_d405_lens" content_type="model/stl" file="third_party/stretch3/assets/link_d405_lens.stl" />
+    <mesh name="robot/link_d405_front_plate" content_type="model/stl" file="third_party/stretch3/assets/link_d405_front_plate.stl" />
+    <mesh name="robot/link_SG3_gripper_left_finger_0" content_type="model/obj" file="third_party/stretch3/assets/link_SG3_gripper_left_finger_0.obj" />
+    <mesh name="robot/link_SG3_gripper_right_finger_0" content_type="model/obj" file="third_party/stretch3/assets/link_SG3_gripper_right_finger_0.obj" />
+    <mesh name="robot/link_SG3_gripper_left_finger_1" content_type="model/obj" file="third_party/stretch3/assets/link_SG3_gripper_left_finger_1.obj" />
+    <mesh name="robot/link_SG3_gripper_right_finger_1" content_type="model/obj" file="third_party/stretch3/assets/link_SG3_gripper_right_finger_1.obj" />
+    <mesh name="robot/link_SG3_gripper_left_inner_finger" content_type="model/stl" file="third_party/stretch3/assets/link_SG3_gripper_left_inner_finger.stl" />
+    <mesh name="robot/link_SG3_gripper_right_inner_finger" content_type="model/stl" file="third_party/stretch3/assets/link_SG3_gripper_right_inner_finger.stl" />
+    <mesh name="robot/link_SG3_gripper_inner_finger" content_type="model/stl" file="third_party/stretch3/assets/link_SG3_gripper_inner_finger.stl" />
+    <mesh name="robot/link_SG3_gripper_left_finger_aruco" content_type="model/obj" file="third_party/stretch3/assets/link_SG3_gripper_left_finger_aruco.obj" inertia="shell" />
+    <mesh name="robot/link_SG3_gripper_right_finger_aruco" content_type="model/obj" file="third_party/stretch3/assets/link_SG3_gripper_right_finger_aruco.obj" inertia="shell" />
+    <mesh name="robot/link_SG3_gripper_right_fingertip" content_type="model/stl" file="third_party/stretch3/assets/link_SG3_gripper_right_fingertip.stl" />
+    <mesh name="robot/link_SG3_gripper_left_fingertip" content_type="model/stl" file="third_party/stretch3/assets/link_SG3_gripper_left_fingertip.stl" />
+  </asset>
+  <worldbody>
+    <geom name="floor" size="5 4 0.05" type="plane" material="floor" />
+    <geom name="wall_north" size="5.1 0.05 0.6" pos="0 4.05 0.6" type="box" material="wall" />
+    <geom name="wall_south" size="5.1 0.05 0.6" pos="0 -4.05 0.6" type="box" material="wall" />
+    <geom name="wall_east" size="0.05 4 0.6" pos="5.05 0 0.6" type="box" material="wall" />
+    <geom name="wall_west" size="0.05 4 0.6" pos="-5.05 0 0.6" type="box" material="wall" />
+    <geom name="tape_shelf_line" size="3.4 0.03 0.001" pos="0 3.075 0.001" type="box" contype="0" conaffinity="0" group="2" material="tape_yellow" />
+    <geom name="tape_walkway_w" size="0.03 1.7125 0.001" pos="-0.6 1.0625 0.001" type="box" contype="0" conaffinity="0" group="2" material="tape_green" />
+    <geom name="tape_walkway_e" size="0.03 1.7125 0.001" pos="0.6 1.0625 0.001" type="box" contype="0" conaffinity="0" group="2" material="tape_green" />
+    <geom name="robot_dock_pad" size="0.45 0.45 0.001" pos="-3.5 -1.6 0.001" type="box" contype="0" conaffinity="0" group="2" material="dock" />
+    <site name="robot_spawn" size="0.05" pos="-3.5 -1.6 0" group="4" rgba="0.2 0.45 0.85 0" />
+    <camera name="overview" quat="0.826476 0.452193 0.160963 0.294193" pos="3.75 -3.8 4.2" fovy="60" />
+    <camera name="top_down" pos="0 0 11" />
+    <light name="sun" pos="0 0 6" dir="0.188144 0.282216 -0.940721" diffuse="0.5 0.5 0.5" />
+    <light name="ceiling_station" castshadow="false" pos="0 -1.6 4" diffuse="0.3 0.3 0.3" />
+    <light name="ceiling_A" castshadow="false" pos="-2.5 2.15 4" dir="0 0.447214 -0.894427" diffuse="0.25 0.25 0.25" />
+    <light name="ceiling_B" castshadow="false" pos="0 2.15 4" dir="0 0.447214 -0.894427" diffuse="0.25 0.25 0.25" />
+    <light name="ceiling_C" castshadow="false" pos="2.5 2.15 4" dir="0 0.447214 -0.894427" diffuse="0.25 0.25 0.25" />
+    <body name="shelf_A" pos="-2.5 3.65 0">
+      <geom name="shelf_A_post0" size="0.02 0.02 0.9" pos="-0.58 -0.205 0.9" type="box" material="rack_steel" />
+      <geom name="shelf_A_post1" size="0.02 0.02 0.9" pos="0.58 -0.205 0.9" type="box" material="rack_steel" />
+      <geom name="shelf_A_post2" size="0.02 0.02 0.9" pos="-0.58 0.205 0.9" type="box" material="rack_steel" />
+      <geom name="shelf_A_post3" size="0.02 0.02 0.9" pos="0.58 0.205 0.9" type="box" material="rack_steel" />
+      <geom name="shelf_A_back" size="0.56 0.004 0.9" pos="0 0.221 0.9" type="box" material="back_panel" />
+      <geom name="shelf_A_L0_board" size="0.6 0.225 0.0125" pos="0 0 0.0875" type="box" material="board" />
+      <geom name="shelf_A_L0_beam" size="0.6 0.0075 0.015" pos="0 -0.2175 0.085" type="box" material="lip" />
+      <geom name="shelf_A_L1_board" size="0.6 0.225 0.0125" pos="0 0 0.5375" type="box" material="board" />
+      <geom name="shelf_A_L1_beam" size="0.6 0.0075 0.015" pos="0 -0.2175 0.535" type="box" material="lip" />
+      <geom name="shelf_A_L2_board" size="0.6 0.225 0.0125" pos="0 0 1.0375" type="box" material="board" />
+      <geom name="shelf_A_L2_beam" size="0.6 0.0075 0.015" pos="0 -0.2175 1.035" type="box" material="lip" />
+      <geom name="shelf_A_L3_board" size="0.6 0.225 0.0125" pos="0 0 1.4375" type="box" material="board" />
+      <geom name="shelf_A_L3_beam" size="0.6 0.0075 0.015" pos="0 -0.2175 1.435" type="box" material="lip" />
+      <geom name="shelf_A_L0_stock0" size="0.12 0.16 0.055" pos="-0.42 0 0.155" type="box" material="cardboard_dark" />
+      <geom name="shelf_A_L0_stock1" size="0.13 0.17 0.075" pos="-0.14 0 0.175" type="box" material="cardboard" />
+      <geom name="shelf_A_L0_stock2" size="0.11 0.16 0.045" pos="0.14 0 0.145" type="box" material="cardboard_dark" />
+      <geom name="shelf_A_L0_stock3" size="0.12 0.17 0.065" pos="0.42 0 0.165" type="box" material="cardboard" />
+      <geom name="shelf_A_L3_stock0" size="0.12 0.17 0.065" pos="-0.42 0 1.515" type="box" material="cardboard" />
+      <geom name="shelf_A_L3_stock1" size="0.12 0.16 0.055" pos="-0.14 0 1.505" type="box" material="cardboard_dark" />
+      <geom name="shelf_A_L3_stock2" size="0.13 0.17 0.075" pos="0.14 0 1.525" type="box" material="cardboard" />
+      <geom name="shelf_A_L3_stock3" size="0.11 0.16 0.045" pos="0.42 0 1.495" type="box" material="cardboard_dark" />
+      <geom name="shelf_A_header" size="0.6 0.01 0.06" pos="0 -0.235 1.74" type="box" contype="0" conaffinity="0" group="2" rgba="0.85 0.2 0.2 1" />
+      <site name="shelf_A_L0_S0" size="0.01" pos="-0.42 -0.04 0.1" group="4" rgba="0 1 0 0" />
+      <site name="shelf_A_L0_S1" size="0.01" pos="-0.14 -0.04 0.1" group="4" rgba="0 1 0 0" />
+      <site name="shelf_A_L0_S2" size="0.01" pos="0.14 -0.04 0.1" group="4" rgba="0 1 0 0" />
+      <site name="shelf_A_L0_S3" size="0.01" pos="0.42 -0.04 0.1" group="4" rgba="0 1 0 0" />
+      <site name="shelf_A_L1_S0" size="0.01" pos="-0.42 -0.04 0.55" group="4" rgba="0 1 0 0" />
+      <site name="shelf_A_L1_S1" size="0.01" pos="-0.14 -0.04 0.55" group="4" rgba="0 1 0 0" />
+      <site name="shelf_A_L1_S2" size="0.01" pos="0.14 -0.04 0.55" group="4" rgba="0 1 0 0" />
+      <site name="shelf_A_L1_S3" size="0.01" pos="0.42 -0.04 0.55" group="4" rgba="0 1 0 0" />
+      <site name="shelf_A_L2_S0" size="0.01" pos="-0.42 -0.04 1.05" group="4" rgba="0 1 0 0" />
+      <site name="shelf_A_L2_S1" size="0.01" pos="-0.14 -0.04 1.05" group="4" rgba="0 1 0 0" />
+      <site name="shelf_A_L2_S2" size="0.01" pos="0.14 -0.04 1.05" group="4" rgba="0 1 0 0" />
+      <site name="shelf_A_L2_S3" size="0.01" pos="0.42 -0.04 1.05" group="4" rgba="0 1 0 0" />
+      <site name="shelf_A_L3_S0" size="0.01" pos="-0.42 -0.04 1.45" group="4" rgba="0 1 0 0" />
+      <site name="shelf_A_L3_S1" size="0.01" pos="-0.14 -0.04 1.45" group="4" rgba="0 1 0 0" />
+      <site name="shelf_A_L3_S2" size="0.01" pos="0.14 -0.04 1.45" group="4" rgba="0 1 0 0" />
+      <site name="shelf_A_L3_S3" size="0.01" pos="0.42 -0.04 1.45" group="4" rgba="0 1 0 0" />
+      <camera name="shelf_A_cam" quat="0.799393 0.600809 0 0" pos="0 -1.9 1.3" fovy="55" />
+    </body>
+    <body name="shelf_B" pos="0 3.65 0">
+      <geom name="shelf_B_post0" size="0.02 0.02 0.9" pos="-0.58 -0.205 0.9" type="box" material="rack_steel" />
+      <geom name="shelf_B_post1" size="0.02 0.02 0.9" pos="0.58 -0.205 0.9" type="box" material="rack_steel" />
+      <geom name="shelf_B_post2" size="0.02 0.02 0.9" pos="-0.58 0.205 0.9" type="box" material="rack_steel" />
+      <geom name="shelf_B_post3" size="0.02 0.02 0.9" pos="0.58 0.205 0.9" type="box" material="rack_steel" />
+      <geom name="shelf_B_back" size="0.56 0.004 0.9" pos="0 0.221 0.9" type="box" material="back_panel" />
+      <geom name="shelf_B_L0_board" size="0.6 0.225 0.0125" pos="0 0 0.0875" type="box" material="board" />
+      <geom name="shelf_B_L0_beam" size="0.6 0.0075 0.015" pos="0 -0.2175 0.085" type="box" material="lip" />
+      <geom name="shelf_B_L1_board" size="0.6 0.225 0.0125" pos="0 0 0.5375" type="box" material="board" />
+      <geom name="shelf_B_L1_beam" size="0.6 0.0075 0.015" pos="0 -0.2175 0.535" type="box" material="lip" />
+      <geom name="shelf_B_L2_board" size="0.6 0.225 0.0125" pos="0 0 1.0375" type="box" material="board" />
+      <geom name="shelf_B_L2_beam" size="0.6 0.0075 0.015" pos="0 -0.2175 1.035" type="box" material="lip" />
+      <geom name="shelf_B_L3_board" size="0.6 0.225 0.0125" pos="0 0 1.4375" type="box" material="board" />
+      <geom name="shelf_B_L3_beam" size="0.6 0.0075 0.015" pos="0 -0.2175 1.435" type="box" material="lip" />
+      <geom name="shelf_B_L0_stock0" size="0.12 0.16 0.055" pos="-0.42 0 0.155" type="box" material="cardboard_dark" />
+      <geom name="shelf_B_L0_stock1" size="0.13 0.17 0.075" pos="-0.14 0 0.175" type="box" material="cardboard" />
+      <geom name="shelf_B_L0_stock2" size="0.11 0.16 0.045" pos="0.14 0 0.145" type="box" material="cardboard_dark" />
+      <geom name="shelf_B_L0_stock3" size="0.12 0.17 0.065" pos="0.42 0 0.165" type="box" material="cardboard" />
+      <geom name="shelf_B_L3_stock0" size="0.12 0.17 0.065" pos="-0.42 0 1.515" type="box" material="cardboard" />
+      <geom name="shelf_B_L3_stock1" size="0.12 0.16 0.055" pos="-0.14 0 1.505" type="box" material="cardboard_dark" />
+      <geom name="shelf_B_L3_stock2" size="0.13 0.17 0.075" pos="0.14 0 1.525" type="box" material="cardboard" />
+      <geom name="shelf_B_L3_stock3" size="0.11 0.16 0.045" pos="0.42 0 1.495" type="box" material="cardboard_dark" />
+      <geom name="shelf_B_header" size="0.6 0.01 0.06" pos="0 -0.235 1.74" type="box" contype="0" conaffinity="0" group="2" rgba="0.2 0.45 0.85 1" />
+      <site name="shelf_B_L0_S0" size="0.01" pos="-0.42 -0.04 0.1" group="4" rgba="0 1 0 0" />
+      <site name="shelf_B_L0_S1" size="0.01" pos="-0.14 -0.04 0.1" group="4" rgba="0 1 0 0" />
+      <site name="shelf_B_L0_S2" size="0.01" pos="0.14 -0.04 0.1" group="4" rgba="0 1 0 0" />
+      <site name="shelf_B_L0_S3" size="0.01" pos="0.42 -0.04 0.1" group="4" rgba="0 1 0 0" />
+      <site name="shelf_B_L1_S0" size="0.01" pos="-0.42 -0.04 0.55" group="4" rgba="0 1 0 0" />
+      <site name="shelf_B_L1_S1" size="0.01" pos="-0.14 -0.04 0.55" group="4" rgba="0 1 0 0" />
+      <site name="shelf_B_L1_S2" size="0.01" pos="0.14 -0.04 0.55" group="4" rgba="0 1 0 0" />
+      <site name="shelf_B_L1_S3" size="0.01" pos="0.42 -0.04 0.55" group="4" rgba="0 1 0 0" />
+      <site name="shelf_B_L2_S0" size="0.01" pos="-0.42 -0.04 1.05" group="4" rgba="0 1 0 0" />
+      <site name="shelf_B_L2_S1" size="0.01" pos="-0.14 -0.04 1.05" group="4" rgba="0 1 0 0" />
+      <site name="shelf_B_L2_S2" size="0.01" pos="0.14 -0.04 1.05" group="4" rgba="0 1 0 0" />
+      <site name="shelf_B_L2_S3" size="0.01" pos="0.42 -0.04 1.05" group="4" rgba="0 1 0 0" />
+      <site name="shelf_B_L3_S0" size="0.01" pos="-0.42 -0.04 1.45" group="4" rgba="0 1 0 0" />
+      <site name="shelf_B_L3_S1" size="0.01" pos="-0.14 -0.04 1.45" group="4" rgba="0 1 0 0" />
+      <site name="shelf_B_L3_S2" size="0.01" pos="0.14 -0.04 1.45" group="4" rgba="0 1 0 0" />
+      <site name="shelf_B_L3_S3" size="0.01" pos="0.42 -0.04 1.45" group="4" rgba="0 1 0 0" />
+      <camera name="shelf_B_cam" quat="0.799393 0.600809 0 0" pos="0 -1.9 1.3" fovy="55" />
+    </body>
+    <body name="shelf_C" pos="2.5 3.65 0">
+      <geom name="shelf_C_post0" size="0.02 0.02 0.9" pos="-0.58 -0.205 0.9" type="box" material="rack_steel" />
+      <geom name="shelf_C_post1" size="0.02 0.02 0.9" pos="0.58 -0.205 0.9" type="box" material="rack_steel" />
+      <geom name="shelf_C_post2" size="0.02 0.02 0.9" pos="-0.58 0.205 0.9" type="box" material="rack_steel" />
+      <geom name="shelf_C_post3" size="0.02 0.02 0.9" pos="0.58 0.205 0.9" type="box" material="rack_steel" />
+      <geom name="shelf_C_back" size="0.56 0.004 0.9" pos="0 0.221 0.9" type="box" material="back_panel" />
+      <geom name="shelf_C_L0_board" size="0.6 0.225 0.0125" pos="0 0 0.0875" type="box" material="board" />
+      <geom name="shelf_C_L0_beam" size="0.6 0.0075 0.015" pos="0 -0.2175 0.085" type="box" material="lip" />
+      <geom name="shelf_C_L1_board" size="0.6 0.225 0.0125" pos="0 0 0.5375" type="box" material="board" />
+      <geom name="shelf_C_L1_beam" size="0.6 0.0075 0.015" pos="0 -0.2175 0.535" type="box" material="lip" />
+      <geom name="shelf_C_L2_board" size="0.6 0.225 0.0125" pos="0 0 1.0375" type="box" material="board" />
+      <geom name="shelf_C_L2_beam" size="0.6 0.0075 0.015" pos="0 -0.2175 1.035" type="box" material="lip" />
+      <geom name="shelf_C_L3_board" size="0.6 0.225 0.0125" pos="0 0 1.4375" type="box" material="board" />
+      <geom name="shelf_C_L3_beam" size="0.6 0.0075 0.015" pos="0 -0.2175 1.435" type="box" material="lip" />
+      <geom name="shelf_C_L0_stock0" size="0.12 0.16 0.055" pos="-0.42 0 0.155" type="box" material="cardboard_dark" />
+      <geom name="shelf_C_L0_stock1" size="0.13 0.17 0.075" pos="-0.14 0 0.175" type="box" material="cardboard" />
+      <geom name="shelf_C_L0_stock2" size="0.11 0.16 0.045" pos="0.14 0 0.145" type="box" material="cardboard_dark" />
+      <geom name="shelf_C_L0_stock3" size="0.12 0.17 0.065" pos="0.42 0 0.165" type="box" material="cardboard" />
+      <geom name="shelf_C_L3_stock0" size="0.12 0.17 0.065" pos="-0.42 0 1.515" type="box" material="cardboard" />
+      <geom name="shelf_C_L3_stock1" size="0.12 0.16 0.055" pos="-0.14 0 1.505" type="box" material="cardboard_dark" />
+      <geom name="shelf_C_L3_stock2" size="0.13 0.17 0.075" pos="0.14 0 1.525" type="box" material="cardboard" />
+      <geom name="shelf_C_L3_stock3" size="0.11 0.16 0.045" pos="0.42 0 1.495" type="box" material="cardboard_dark" />
+      <geom name="shelf_C_header" size="0.6 0.01 0.06" pos="0 -0.235 1.74" type="box" contype="0" conaffinity="0" group="2" rgba="0.2 0.7 0.35 1" />
+      <site name="shelf_C_L0_S0" size="0.01" pos="-0.42 -0.04 0.1" group="4" rgba="0 1 0 0" />
+      <site name="shelf_C_L0_S1" size="0.01" pos="-0.14 -0.04 0.1" group="4" rgba="0 1 0 0" />
+      <site name="shelf_C_L0_S2" size="0.01" pos="0.14 -0.04 0.1" group="4" rgba="0 1 0 0" />
+      <site name="shelf_C_L0_S3" size="0.01" pos="0.42 -0.04 0.1" group="4" rgba="0 1 0 0" />
+      <site name="shelf_C_L1_S0" size="0.01" pos="-0.42 -0.04 0.55" group="4" rgba="0 1 0 0" />
+      <site name="shelf_C_L1_S1" size="0.01" pos="-0.14 -0.04 0.55" group="4" rgba="0 1 0 0" />
+      <site name="shelf_C_L1_S2" size="0.01" pos="0.14 -0.04 0.55" group="4" rgba="0 1 0 0" />
+      <site name="shelf_C_L1_S3" size="0.01" pos="0.42 -0.04 0.55" group="4" rgba="0 1 0 0" />
+      <site name="shelf_C_L2_S0" size="0.01" pos="-0.42 -0.04 1.05" group="4" rgba="0 1 0 0" />
+      <site name="shelf_C_L2_S1" size="0.01" pos="-0.14 -0.04 1.05" group="4" rgba="0 1 0 0" />
+      <site name="shelf_C_L2_S2" size="0.01" pos="0.14 -0.04 1.05" group="4" rgba="0 1 0 0" />
+      <site name="shelf_C_L2_S3" size="0.01" pos="0.42 -0.04 1.05" group="4" rgba="0 1 0 0" />
+      <site name="shelf_C_L3_S0" size="0.01" pos="-0.42 -0.04 1.45" group="4" rgba="0 1 0 0" />
+      <site name="shelf_C_L3_S1" size="0.01" pos="-0.14 -0.04 1.45" group="4" rgba="0 1 0 0" />
+      <site name="shelf_C_L3_S2" size="0.01" pos="0.14 -0.04 1.45" group="4" rgba="0 1 0 0" />
+      <site name="shelf_C_L3_S3" size="0.01" pos="0.42 -0.04 1.45" group="4" rgba="0 1 0 0" />
+      <camera name="shelf_C_cam" quat="0.799393 0.600809 0 0" pos="0 -1.9 1.3" fovy="55" />
+    </body>
+    <body name="packing_station" pos="0 -1.6 0">
+      <geom name="station_table_top" size="0.6 0.35 0.02" pos="0 0 0.7" type="box" material="table_top" />
+      <geom name="station_leg0" size="0.025 0.025 0.34" pos="-0.55 -0.3 0.34" type="box" material="table_leg" />
+      <geom name="station_leg1" size="0.025 0.025 0.34" pos="0.55 -0.3 0.34" type="box" material="table_leg" />
+      <geom name="station_leg2" size="0.025 0.025 0.34" pos="-0.55 0.3 0.34" type="box" material="table_leg" />
+      <geom name="station_leg3" size="0.025 0.025 0.34" pos="0.55 0.3 0.34" type="box" material="table_leg" />
+      <geom name="station_skirt_s" size="0.6 0.01 0.2" pos="0 -0.34 0.25" type="box" material="table_leg" />
+      <geom name="station_skirt_w" size="0.01 0.33 0.2" pos="-0.59 0 0.25" type="box" material="table_leg" />
+      <geom name="station_skirt_n" size="0.6 0.01 0.2" pos="0 0.34 0.25" type="box" material="table_leg" />
+      <geom name="station_skirt_e" size="0.01 0.33 0.2" pos="0.59 0 0.25" type="box" material="table_leg" />
+      <geom name="tote_0_bottom" size="0.19 0.18 0.005" pos="-0.24 0 0.725" type="box" material="tote" />
+      <geom name="tote_0_wall_n" size="0.19 0.005 0.06" pos="-0.24 0.175 0.78" type="box" material="tote" />
+      <geom name="tote_0_wall_s" size="0.19 0.005 0.06" pos="-0.24 -0.175 0.78" type="box" material="tote" />
+      <geom name="tote_0_wall_e" size="0.005 0.17 0.06" pos="-0.055 0 0.78" type="box" material="tote" />
+      <geom name="tote_0_wall_w" size="0.005 0.17 0.06" pos="-0.425 0 0.78" type="box" material="tote" />
+      <geom name="tote_1_bottom" size="0.19 0.18 0.005" pos="0.24 0 0.725" type="box" material="tote" />
+      <geom name="tote_1_wall_n" size="0.19 0.005 0.06" pos="0.24 0.175 0.78" type="box" material="tote" />
+      <geom name="tote_1_wall_s" size="0.19 0.005 0.06" pos="0.24 -0.175 0.78" type="box" material="tote" />
+      <geom name="tote_1_wall_e" size="0.005 0.17 0.06" pos="0.425 0 0.78" type="box" material="tote" />
+      <geom name="tote_1_wall_w" size="0.005 0.17 0.06" pos="0.055 0 0.78" type="box" material="tote" />
+      <geom name="dispatch_sign" size="0.5 0.01 0.12" pos="0 -0.325 1.27" type="box" contype="0" conaffinity="0" group="2" material="sign" />
+      <geom name="dispatch_sign_post_w" size="0.012 0.012 0.335" pos="-0.55 -0.325 1.055" type="box" contype="0" conaffinity="0" group="2" material="table_leg" />
+      <geom name="dispatch_sign_post_e" size="0.012 0.012 0.335" pos="0.55 -0.325 1.055" type="box" contype="0" conaffinity="0" group="2" material="table_leg" />
+      <geom name="dispatch_sign_bar" size="0.55 0.012 0.012" pos="0 -0.325 1.39" type="box" contype="0" conaffinity="0" group="2" material="table_leg" />
+      <geom name="parcel_stack0" size="0.09 0.07 0.04" pos="0.85 -0.1 0.04" type="box" contype="0" conaffinity="0" group="2" material="cardboard" />
+      <geom name="parcel_stack1" size="0.08 0.06 0.035" pos="0.85 -0.1 0.115" type="box" contype="0" conaffinity="0" group="2" material="cardboard" />
+      <geom name="parcel_stack2" size="0.07 0.05 0.03" pos="0.85 -0.1 0.18" type="box" contype="0" conaffinity="0" group="2" material="cardboard" />
+      <site name="tote_0" size="0.02" pos="-0.24 0 0.73" group="4" rgba="0.1 0.9 0.3 0" />
+      <site name="tote_1" size="0.02" pos="0.24 0 0.73" group="4" rgba="0.1 0.9 0.3 0" />
+      <site name="drop_zone" size="0.03" pos="-0.24 0 0.77" group="4" rgba="0.1 0.9 0.3 0.35" />
+      <camera name="packing_station_cam" quat="0.303107 0.178432 0.474887 0.806704" pos="1.4 1.6 1.9" fovy="50" />
+    </body>
+    <frame pos="-2.92068 3.61112 0.66163" quat="0.707107 0.707107 0 0">
+      <body name="item_ketchup">
+        <joint name="item_ketchup_joint" type="free" />
+        <site name="item_ketchup/bottom_site" pos="0 0 -0.09" rgba="0 0 0 0" />
+        <site name="item_ketchup/top_site" pos="0 0 0.06" rgba="0 0 0 0" />
+        <site name="item_ketchup/horizontal_radius_site" pos="0.0375 0.0375 0" rgba="0 0 0 0" />
+        <body name="item_ketchup/object">
+          <geom quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" density="100" material="item_ketchup/textured" mesh="item_ketchup/textured_vis" />
+          <geom size="0.025425 0.042165 0.049605" pos="0.000675 -0.059025 0.001185" quat="0.5 0.5 0.5 -0.5" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.01689 0.02751 0.035895" pos="0.000675 0.005535 0.001185" quat="0.5 0.5 -0.5 -0.5" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.01689 0.02751 0.028035" pos="0.000675 0.037695 0.001185" quat="0.5 0.5 -0.5 -0.5" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.01548 0.02121 0.02772" pos="0.000675 0.082065 0.001185" quat="0 0 0.707107 -0.707107" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.00438 0.006075 0.02772" pos="0.02052 0.082065 0.001185" quat="0.707107 0.707107 0 0" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.004725 0.0069 0.02772" pos="-0.01983 0.082065 0.001185" quat="0 0 0.707107 0.707107" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.003135 0.010275 0.02772" pos="0.00012 0.082065 -0.02331" quat="0.5 -0.5 0.5 0.5" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.00279 0.0111 0.02772" pos="3e-05 0.082065 0.02523" quat="0.5 -0.5 0.5 0.5" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.003885 0.006195 0.02772" pos="0.019995 0.082065 0.013515" quat="0.707107 0.707107 0 0" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.003885 0.00588 0.02772" pos="0.019995 0.082065 -0.010905" quat="0 0 0.707107 0.707107" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.003885 0.006075 0.02772" pos="-0.01881 0.082065 -0.011985" quat="0 0 0.707107 0.707107" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.003885 0.0057 0.02772" pos="-0.018885 0.082065 0.013935" quat="0 0 0.707107 0.707107" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+        </body>
+      </body>
+    </frame>
+    <frame pos="-2.64 3.61 0.63496">
+      <body name="item_bbq_sauce">
+        <joint name="item_bbq_sauce_joint" type="free" />
+        <site name="item_bbq_sauce/bottom_site" pos="0 0 -0.09" rgba="0 0 0 0" />
+        <site name="item_bbq_sauce/top_site" pos="0 0 0.09" rgba="0 0 0 0" />
+        <site name="item_bbq_sauce/horizontal_radius_site" pos="0.0225 0.0225 0" rgba="0 0 0 0" />
+        <body name="item_bbq_sauce/object">
+          <geom quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" density="100" material="item_bbq_sauce/bbq_sauce" mesh="item_bbq_sauce/bbq_sauce_vis" />
+          <geom size="0.021705 0.035235 0.04023" pos="0 0 -0.04173" quat="0 0.707107 0.707107 0" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0" density="100" />
+          <geom size="0.02142 0.021885 0.02715" pos="0 0 0.018495" quat="0.5 0.5 -0.5 -0.5" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0" density="100" />
+          <geom size="0.01965 0.02004 0.02004" pos="0 0 0.05865" quat="0 -0.0480087 0.998847 0" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0" density="100" />
+        </body>
+      </body>
+    </frame>
+    <frame pos="-2.35902 3.6188 0.554555">
+      <body name="item_mustard">
+        <joint name="item_mustard_joint" type="free" />
+        <geom class="item_mustard/ycb_viz" pos="0.014 0.014 0.002" quat="1 0 0 0" mass="0" material="item_mustard/006_mustard_bottle" mesh="item_mustard/006_mustard_bottle" />
+        <geom class="item_mustard/ycb_col" pos="0.014 0.014 0.002" quat="1 0 0 0" type="mesh" mass="0.431" mesh="item_mustard/006_mustard_bottle" />
+      </body>
+    </frame>
+    <frame pos="-2.63856 3.60971 1.16208" quat="0.707107 0.707107 0 0">
+      <body name="item_salad_dressing">
+        <joint name="item_salad_dressing_joint" type="free" />
+        <site name="item_salad_dressing/bottom_site" pos="0 0 -0.09" rgba="0 0 0 0" />
+        <site name="item_salad_dressing/top_site" pos="0 0 0.06" rgba="0 0 0 0" />
+        <site name="item_salad_dressing/horizontal_radius_site" pos="0.0375 0.0375 0" rgba="0 0 0 0" />
+        <body name="item_salad_dressing/object">
+          <geom quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" density="100" material="item_salad_dressing/textured" mesh="item_salad_dressing/textured_vis" />
+          <geom size="0.018555 0.019155 0.027975" pos="0.00018 0.0813 0.000645" quat="0.5 0.5 0.5 -0.5" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.025995 0.031455 0.039555" pos="-0.00144 -0.04707 0.000345" quat="0.707107 0 -0.707107 0" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.01941 0.02241 0.04107" pos="0.00072 0.012645 0.000345" quat="0.707107 0.707107 0 0" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.00312 0.0117 0.027975" pos="0.00018 0.0813 -0.02049" quat="0.5 -0.5 0.5 0.5" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.00312 0.0117 0.027975" pos="0.00018 0.0813 0.022185" quat="0.5 -0.5 0.5 0.5" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.00312 0.0117 0.027975" pos="0.022635 0.0813 -0.00102" quat="0.707106 0.707106 0.000859995 -0.000859995" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.00312 0.0117 0.027975" pos="-0.021705 0.0813 -0.00102" quat="0.707106 0.707106 0.000859995 -0.000859995" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.00312 0.0117 0.027975" pos="-0.017175 0.0813 -0.01593" quat="0.239941 0.239941 0.665153 -0.665153" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.00312 0.0117 0.027975" pos="0.01773 0.0813 -0.01593" quat="0.663883 0.663883 0.243431 -0.243431" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.00312 0.0117 0.027975" pos="0.0183 0.0813 0.01482" quat="0.21187 0.21187 0.674619 -0.674619" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.00312 0.0117 0.027975" pos="-0.01737 0.0813 0.01482" quat="0.665574 -0.665574 0.238771 0.238771" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.004875 0.025935 0.025995" pos="-0.00144 -0.104205 0.000345" quat="0 -0.707107 0.707107 0" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.00837 0.025995 0.033255" pos="-0.00144 -0.08583 0.000345" quat="0.5 0.5 -0.5 -0.5" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.00837 0.025995 0.03435" pos="-0.00144 -0.00651 0.000345" quat="0.5 0.5 -0.5 -0.5" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.00837 0.02568 0.025995" pos="-0.00144 0.010785 0.000345" quat="0.707107 0 0 -0.707107" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+        </body>
+      </body>
+    </frame>
+    <frame pos="-2.35982 3.60505 1.11088" quat="0.707107 0.707107 0 0">
+      <body name="item_tomato_sauce">
+        <joint name="item_tomato_sauce_joint" type="free" />
+        <site name="item_tomato_sauce/bottom_site" pos="0 0 -0.09" rgba="0 0 0 0" />
+        <site name="item_tomato_sauce/top_site" pos="0 0 0.06" rgba="0 0 0 0" />
+        <site name="item_tomato_sauce/horizontal_radius_site" pos="0.0375 0.0375 0" rgba="0 0 0 0" />
+        <body name="item_tomato_sauce/object">
+          <geom quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" density="100" material="item_tomato_sauce/textured" mesh="item_tomato_sauce/textured_vis" />
+          <geom size="0.02811 0.03528 0.054375" pos="0 -0.00156 -0.003525" quat="0.5 -0.5 0.5 0.5" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.00339 0.022065 0.0564" pos="0.038925 0 -0.003135" quat="0.707107 0.707107 0 0" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.00339 0.02493 0.0564" pos="-0.03705 -0.0009 -0.003135" quat="0.707107 0.707107 0 0" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.006315 0.029775 0.0564" pos="-0.00018 -0.0009 -0.034875" quat="0.5 -0.5 0.5 0.5" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.006315 0.029775 0.0564" pos="-0.00018 -0.0009 0.02664" quat="0.5 -0.5 0.5 0.5" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.002655 0.01041 0.0564" pos="-0.00018 -0.0009 -0.04743" quat="0.5 0.5 0.5 -0.5" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.002655 0.01041 0.0564" pos="-0.00018 -0.0009 0.038625" quat="0.5 0.5 0.5 -0.5" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.002655 0.01041 0.0564" pos="-0.04416 -0.0009 -0.004365" quat="0.000299999 0.000299999 -0.707107 0.707107" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.002655 0.01041 0.0564" pos="0.0438 -0.0009 -0.00429" quat="0.707107 0.707107 0.000299999 -0.000299999" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.002655 0.01041 0.0564" pos="0.040275 -0.0009 0.012795" quat="0.121409 -0.121409 0.696606 0.696606" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.002655 0.01041 0.0564" pos="-0.03939 -0.0009 -0.024285" quat="0.686384 0.686384 -0.169931 0.169931" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.002655 0.01041 0.0564" pos="-0.029055 -0.0009 -0.035895" quat="0.303302 -0.303302 0.638755 0.638755" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.002655 0.01041 0.0564" pos="-0.014535 -0.0009 -0.045345" quat="0.41278 -0.41278 0.574119 0.574119" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.002655 0.01041 0.0564" pos="0.01905 -0.0009 0.03411" quat="0.41278 -0.41278 0.574119 0.574119" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.002655 0.01041 0.0564" pos="0.0186 -0.0009 -0.043245" quat="0.603179 0.603179 0.369019 -0.369019" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.002655 0.01041 0.0564" pos="0.033165 -0.0009 -0.03114" quat="0.651373 0.651373 0.275161 -0.275161" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.002655 0.01041 0.0564" pos="0.041175 -0.001485 -0.015405" quat="0.0520499 0.0520499 -0.705188 0.705188" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.002655 0.01041 0.0564" pos="-0.0405 -0.0009 0.01329" quat="0.694962 0.694962 0.13049 -0.13049" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.002655 0.01041 0.0564" pos="-0.030075 -0.0009 0.02712" quat="0.655721 0.655721 0.264631 -0.264631" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.002655 0.01041 0.0564" pos="-0.01626 -0.0009 0.035955" quat="0.562041 -0.562041 0.429081 0.429081" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.002655 0.01041 0.0564" pos="0.033165 -0.0009 -0.03114" quat="0.651373 0.651373 0.275161 -0.275161" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.002655 0.01041 0.0564" pos="0.01905 -0.0009 0.03411" quat="0.41278 -0.41278 0.574119 0.574119" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.00165 0.00936 0.05625" pos="0.034575 -0.000555 0.02583" quat="0.663328 0.663328 -0.244939 0.244939" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.00165 0.00936 0.05625" pos="0.034575 -0.000555 0.02583" quat="0.663328 0.663328 -0.244939 0.244939" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+        </body>
+      </body>
+    </frame>
+    <frame pos="-0.42 3.61 0.5671">
+      <body name="item_cookies">
+        <joint name="item_cookies_joint" type="free" />
+        <site name="item_cookies/bottom_site" pos="0 0 -0.09" rgba="0 0 0 0" />
+        <site name="item_cookies/top_site" pos="0 0 0.06" rgba="0 0 0 0" />
+        <site name="item_cookies/horizontal_radius_site" pos="0.0375 0.0375 0" rgba="0 0 0 0" />
+        <body name="item_cookies/object">
+          <geom quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" density="100" material="item_cookies/cookies" mesh="item_cookies/cookies_vis" />
+          <geom size="0.0141 0.04656 0.061965" quat="0.5 -0.5 0.5 0.5" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0" density="100" />
+        </body>
+      </body>
+    </frame>
+    <frame pos="-0.14 3.61 0.5689">
+      <body name="item_mac_and_cheese">
+        <joint name="item_mac_and_cheese_joint" type="free" />
+        <site name="item_mac_and_cheese/bottom_site" pos="0 0 -0.075" rgba="0 0 0 0" />
+        <site name="item_mac_and_cheese/top_site" pos="0 0 0.05" rgba="0 0 0 0" />
+        <site name="item_mac_and_cheese/horizontal_radius_site" pos="0.03125 0.03125 0" rgba="0 0 0 0" />
+        <body name="item_mac_and_cheese/object">
+          <geom quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" density="100" material="item_mac_and_cheese/textured" mesh="item_mac_and_cheese/textured_vis" />
+          <geom size="0.0159 0.0527125 0.0727125" quat="0.5 -0.5 0.5 0.5" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+        </body>
+      </body>
+    </frame>
+    <frame pos="0.14 3.61 0.553">
+      <body name="item_pudding_mix">
+        <joint name="item_pudding_mix_joint" type="free" />
+        <geom class="item_pudding_mix/ycb_viz" pos="0.016 -0.01 0" quat="0.854956 -0.0171014 0.0103677 0.518314" mass="0" material="item_pudding_mix/008_pudding_box" mesh="item_pudding_mix/008_pudding_box" />
+        <geom class="item_pudding_mix/ycb_col" size="0.045 0.055 0.018" pos="0 0 0.018" type="box" mass="0.187" />
+      </body>
+    </frame>
+    <frame pos="0.42 3.61 0.568">
+      <body name="item_popcorn">
+        <joint name="item_popcorn_joint" type="free" />
+        <site name="item_popcorn/bottom_site" pos="0 0 -0.09" rgba="0 0 0 0" />
+        <site name="item_popcorn/top_site" pos="0 0 0.06" rgba="0 0 0 0" />
+        <site name="item_popcorn/horizontal_radius_site" pos="0.0375 0.0375 0" rgba="0 0 0 0" />
+        <body name="item_popcorn/object">
+          <geom quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" density="100" material="item_popcorn/popcorn" mesh="item_popcorn/popcorn_vis" />
+          <geom size="0.015 0.0315 0.0465" quat="0.707107 0 0.707107 0" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 1" density="100" />
+        </body>
+      </body>
+    </frame>
+    <frame pos="-0.14 3.61 1.053">
+      <body name="item_crackers">
+        <joint name="item_crackers_joint" type="free" />
+        <geom class="item_crackers/ycb_viz" pos="0.014 0.014 0.002" quat="1 0 0 0" mass="0" material="item_crackers/003_cracker_box" mesh="item_crackers/003_cracker_box" />
+        <geom class="item_crackers/ycb_col" size="0.033 0.08 0.105" pos="0 0 0.105" type="box" mass="0.453" />
+      </body>
+    </frame>
+    <frame pos="0.14 3.61 1.053">
+      <body name="item_sugar">
+        <joint name="item_sugar_joint" type="free" />
+        <geom class="item_sugar/ycb_viz" pos="0.005 0.018 0" quat="0.999938 0.00499973 0.00999971 4.9999e-05" mass="0" material="item_sugar/004_sugar_box" mesh="item_sugar/004_sugar_box" />
+        <geom class="item_sugar/ycb_col" size="0.021 0.045 0.088" pos="0 0 0.088" type="box" mass="0.514" />
+      </body>
+    </frame>
+    <frame pos="2.08 3.61 0.553">
+      <body name="item_tomato_soup">
+        <joint name="item_tomato_soup_joint" type="free" />
+        <geom class="item_tomato_soup/ycb_viz" pos="0.01 -0.084 -0.002" quat="1 0 0 0" mass="0" material="item_tomato_soup/005_tomato_soup_can" mesh="item_tomato_soup/005_tomato_soup_can" />
+        <geom class="item_tomato_soup/ycb_col" size="0.033 0.05" pos="0 0 0.05" type="cylinder" mass="0.349" />
+      </body>
+    </frame>
+    <frame pos="2.36 3.61 0.553">
+      <body name="item_tuna">
+        <joint name="item_tuna_joint" type="free" />
+        <geom class="item_tuna/ycb_viz" pos="0.026 0.022 0.002" quat="1 0 0 0" mass="0" material="item_tuna/007_tuna_fish_can" mesh="item_tuna/007_tuna_fish_can" />
+        <geom class="item_tuna/ycb_col" size="0.042 0.016" pos="0 0 0.016" type="cylinder" mass="0.171" />
+      </body>
+    </frame>
+    <frame pos="2.64 3.61 0.566065">
+      <body name="item_butter">
+        <joint name="item_butter_joint" type="free" />
+        <site name="item_butter/bottom_site" pos="0 0 -0.03" rgba="0 0 0 0" />
+        <site name="item_butter/top_site" pos="0 0 0.03" rgba="0 0 0 0" />
+        <site name="item_butter/horizontal_radius_site" pos="0.03 0.03 0" rgba="0 0 0 0" />
+        <body name="item_butter/object">
+          <geom quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" density="100" material="item_butter/butter" mesh="item_butter/butter_vis" />
+          <geom size="0.013065 0.029655 0.057135" quat="0.707107 0 0.707107 0" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0" density="100" />
+        </body>
+      </body>
+    </frame>
+    <frame pos="2.92 3.61 0.566404">
+      <body name="item_cream_cheese">
+        <joint name="item_cream_cheese_joint" type="free" />
+        <site name="item_cream_cheese/bottom_site" pos="0 0 -0.0375" rgba="0 0 0 0" />
+        <site name="item_cream_cheese/top_site" pos="0 0 0.0375" rgba="0 0 0 0" />
+        <site name="item_cream_cheese/horizontal_radius_site" pos="0.045 0.045 0" rgba="0 0 0 0" />
+        <body name="item_cream_cheese/object">
+          <geom quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" density="100" material="item_cream_cheese/cream_cheese" mesh="item_cream_cheese/cream_cheese_vis" />
+          <geom size="0.013404 0.032004 0.060912" quat="0.707107 0 0.707107 0" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0" density="100" />
+        </body>
+      </body>
+    </frame>
+    <frame pos="2.08019 3.60448 1.11088" quat="0.707107 0.707107 0 0">
+      <body name="item_alphabet_soup">
+        <joint name="item_alphabet_soup_joint" type="free" />
+        <site name="item_alphabet_soup/bottom_site" pos="0 0 -0.06" rgba="0 0 0 0" />
+        <site name="item_alphabet_soup/top_site" pos="0 0 0.06" rgba="0 0 0 0" />
+        <site name="item_alphabet_soup/horizontal_radius_site" pos="0.0375 0.0375 0" rgba="0 0 0 0" />
+        <body name="item_alphabet_soup/object">
+          <geom quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" density="100" material="item_alphabet_soup/textured" mesh="item_alphabet_soup/textured_vis" />
+          <geom size="0.02811 0.03528 0.054375" pos="0 -0.00156 -0.003525" quat="0.5 -0.5 0.5 0.5" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.00339 0.022065 0.0564" pos="0.038985 0 -0.003135" quat="0.707107 0.707107 0 0" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.00339 0.02493 0.0564" pos="-0.03705 -0.0009 -0.003135" quat="0.707107 0.707107 0 0" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.006315 0.029775 0.0564" pos="-0.00018 -0.0009 -0.036195" quat="0.5 -0.5 0.5 0.5" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.006315 0.029775 0.0564" pos="-0.00018 -0.0009 0.02664" quat="0.5 -0.5 0.5 0.5" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.002655 0.01041 0.0564" pos="-0.00018 -0.0009 -0.0489" quat="0.5 0.5 0.5 -0.5" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.002655 0.01041 0.0564" pos="-0.00018 -0.0009 0.038625" quat="0.5 0.5 0.5 -0.5" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.002655 0.01041 0.0564" pos="-0.04416 -0.0009 -0.004365" quat="0.000299999 0.000299999 -0.707107 0.707107" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.002655 0.01041 0.0564" pos="0.043965 -0.0009 -0.004365" quat="0.707107 0.707107 0.000299999 -0.000299999" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.002655 0.01041 0.0564" pos="0.040335 -0.0009 0.012795" quat="0.696606 0.696606 -0.121409 0.121409" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.002655 0.01041 0.0564" pos="-0.03981 -0.0009 -0.024285" quat="0.169931 -0.169931 0.686384 0.686384" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.002655 0.01041 0.0564" pos="-0.026445 -0.0009 -0.037425" quat="0.303302 -0.303302 0.638755 0.638755" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.002655 0.01041 0.0564" pos="-0.01446 -0.0009 -0.046485" quat="0.41278 -0.41278 0.574119 0.574119" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.002655 0.01041 0.0564" pos="0.01905 -0.0009 0.03411" quat="0.41278 -0.41278 0.574119 0.574119" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.002655 0.01041 0.0564" pos="0.0186 -0.0009 -0.044415" quat="0.369019 0.369019 -0.603179 0.603179" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.002655 0.01041 0.0564" pos="0.032505 -0.0009 -0.03216" quat="0.651373 0.651373 0.275161 -0.275161" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.002655 0.01041 0.0564" pos="0.04044 -0.001485 -0.017535" quat="0.0520499 0.0520499 -0.705188 0.705188" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.002655 0.01041 0.0564" pos="-0.0405 -0.0009 0.01329" quat="0.13049 0.13049 -0.694962 0.694962" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.002655 0.01041 0.0564" pos="-0.030075 -0.0009 0.02712" quat="0.655721 0.655721 0.264631 -0.264631" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.002655 0.01041 0.0564" pos="0.03039 -0.0009 0.02241" quat="0.20946 -0.20946 0.675371 0.675371" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.002655 0.01041 0.0564" pos="-0.01626 -0.0009 0.035955" quat="0.562041 -0.562041 0.429081 0.429081" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+        </body>
+      </body>
+    </frame>
+    <frame pos="2.35987 3.61 1.15762" quat="0.707107 0.707107 0 0">
+      <body name="item_milk">
+        <joint name="item_milk_joint" type="free" />
+        <site name="item_milk/bottom_site" pos="0 0 -0.09" rgba="0 0 0 0" />
+        <site name="item_milk/top_site" pos="0 0 0.06" rgba="0 0 0 0" />
+        <site name="item_milk/horizontal_radius_site" pos="0.045 0.045 0" rgba="0 0 0 0" />
+        <body name="item_milk/object">
+          <geom quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" density="100" material="item_milk/textured" mesh="item_milk/textured_vis" />
+          <geom size="0.039375 0.039375 0.082125" pos="0.000555 -0.0225 0" quat="0.707107 0.707107 0 0" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.00327 0.020715 0.039465" pos="7.5e-05 0.07176 0.02028" quat="0.286871 0.646301 -0.286871 -0.646301" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.00327 0.020715 0.039465" pos="7.5e-05 0.07176 -0.02016" quat="0.642032 0.296301 0.642032 0.296301" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.004425 0.00522 0.03975" pos="7.5e-05 0.087735 7.5e-05" quat="0.5 0.5 -0.5 -0.5" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+        </body>
+      </body>
+    </frame>
+    <frame pos="2.64013 3.61 1.15762" quat="0.707107 0.707107 0 0">
+      <body name="item_orange_juice">
+        <joint name="item_orange_juice_joint" type="free" />
+        <site name="item_orange_juice/bottom_site" pos="0 0 -0.09" rgba="0 0 0 0" />
+        <site name="item_orange_juice/top_site" pos="0 0 0.06" rgba="0 0 0 0" />
+        <site name="item_orange_juice/horizontal_radius_site" pos="0.0375 0.0375 0" rgba="0 0 0 0" />
+        <body name="item_orange_juice/object">
+          <geom quat="1 0 0 0" type="mesh" contype="0" conaffinity="0" group="1" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" density="100" material="item_orange_juice/textured" mesh="item_orange_juice/textured_vis" />
+          <geom size="0.039375 0.039375 0.082125" pos="-0.000555 -0.0225 0" quat="0.707107 0.707107 0 0" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.00327 0.020715 0.039465" pos="-7.5e-05 0.07176 -0.02028" quat="0.286871 -0.646301 -0.286871 0.646301" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.00327 0.020715 0.039465" pos="-7.5e-05 0.07176 0.02016" quat="0.296301 0.642032 -0.296301 -0.642032" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+          <geom size="0.004425 0.00522 0.03975" pos="-7.5e-05 0.087735 -7.5e-05" quat="0.5 0.5 -0.5 -0.5" type="box" friction="0.95 0.3 0.1" solref="0.001" solimp="0.998 0.998" rgba="0.8 0.8 0.8 0.3" density="100" />
+        </body>
+      </body>
+    </frame>
+    <frame pos="-3.5 -1.6 0">
+      <body name="robot/base_link" childclass="robot/stretch">
+        <joint type="free" />
+        <geom class="robot/visual" pos="0 0 0" quat="1 0 0 0" mass="0" material="robot/Caster_Rollers_Red" mesh="robot/base_link_0" />
+        <geom class="robot/visual" pos="0 0 0" quat="1 0 0 0" mass="0" material="robot/Lightbar_Green" mesh="robot/base_link_2" />
+        <geom class="robot/visual" pos="0 0 0" quat="1 0 0 0" mass="0" material="robot/Power_Button_Green" mesh="robot/base_link_3" />
+        <geom class="robot/visual" pos="0 0 0" quat="1 0 0 0" mass="0" material="robot/USB_Blue" mesh="robot/base_link_4" />
+        <geom class="robot/visual" pos="0 0 0" quat="1 0 0 0" mass="0" material="robot/Generic_Black" mesh="robot/base_link_5" />
+        <geom class="robot/visual" pos="0 0 0" quat="1 0 0 0" mass="0" material="robot/Hand_Crush_Sticker" mesh="robot/base_link_6" />
+        <geom class="robot/visual" quat="1 0 0 0" mass="0" material="robot/Pantone_705_U" mesh="robot/base_link_7" />
+        <geom class="robot/visual" pos="0 0 0" quat="1 0 0 0" mass="0" material="robot/Pantone_Cool_Gray_4_U" mesh="robot/base_link_8" />
+        <geom class="robot/collision" pos="0 0 0" quat="1 0 0 0" mass="15" mesh="robot/base_link_collision" />
+        <geom class="robot/caster" pos="-0.24 0 0.02" mass="0" />
+        <body name="robot/base_imu" pos="-0.12838 0.0031592 0.1474" quat="-2.59734e-06 -0.707105 0.707108 -2.59735e-06">
+          <site name="robot/base_imu" />
+        </body>
+        <body name="robot/link_mast" pos="-0.067 0.135 0.0284" quat="0.707107 0.707107 0 0">
+          <geom class="robot/visual" pos="0 0 0" quat="1 0 0 0" mass="0" material="robot/Generic_Black" mesh="robot/link_mast" />
+          <geom class="robot/collision" pos="0 0 0" quat="1 0 0 0" mass="1.8285" mesh="robot/link_mast" />
+        </body>
+        <body name="robot/link_head" pos="-0.067 0.134995 1.3584" quat="-0.707107 0 0 0.707107">
+          <geom class="robot/visual" quat="1 0 0 0" mass="0" material="robot/Runstop_White_Glow" mesh="robot/link_head_0" />
+          <geom class="robot/visual" mass="0" material="robot/Generic_Black" mesh="robot/link_head_1" />
+          <geom class="robot/visual" pos="0 0 0" quat="1 0 0 0" mass="0" material="robot/Speaker_Housing_Black" mesh="robot/link_head_2" />
+          <geom class="robot/visual" pos="0 0 0" quat="1 0 0 0" mass="0" material="robot/Reflective_Metal" mesh="robot/link_head_3" />
+          <geom class="robot/visual" pos="0 0 0" quat="1 0 0 0" mass="0" material="robot/Reflective_Metal" mesh="robot/link_head_4" />
+          <geom class="robot/visual" pos="0 0 0" quat="1 0 0 0" mass="0" material="robot/Pure_Black" mesh="robot/link_head_5" />
+          <geom class="robot/visual" pos="0 0 0" quat="1 0 0 0" mass="0" material="robot/Reflective_Metal" mesh="robot/link_head_6" />
+          <geom class="robot/visual" pos="0 0 0" quat="1 0 0 0" mass="0" material="robot/Plug_White" mesh="robot/link_head_7" />
+          <geom class="robot/visual" pos="0 0 0" quat="1 0 0 0" mass="0" material="robot/3D_Print_Black" mesh="robot/link_head_8" />
+          <geom class="robot/visual" pos="0 0 0" quat="1 0 0 0" mass="0" material="robot/Respeaker_Blue_Glow" mesh="robot/link_head_9" />
+          <geom class="robot/visual" pos="0 0 0" quat="1 0 0 0" mass="0" material="robot/Pantone_Black_6_U" mesh="robot/link_head_10" />
+          <geom class="robot/visual" pos="0 0 0" quat="1 0 0 0" mass="0" material="robot/Generic_Black" mesh="robot/link_head_11" />
+          <geom class="robot/collision" pos="0 0 0" quat="1 0 0 0" mass="0.833027" mesh="robot/link_head_10" />
+        </body>
+        <body name="robot/link_aruco_right_base" pos="-0.0015028 -0.130497 0.159748" quat="0.707107 0 0 -0.707107">
+          <geom class="robot/visual" quat="1 0 0 0" mass="3.6e-06" material="robot/Aruco_Right_Base_Sticker" mesh="robot/link_aruco_right_base" />
+          <geom class="robot/collision" quat="1 0 0 0" mass="0" mesh="robot/link_aruco_right_base" />
+        </body>
+        <body name="robot/link_aruco_left_base" pos="-0.0015028 0.130497 0.159748" quat="0.707107 0 0 -0.707107">
+          <geom class="robot/visual" quat="1 0 0 0" mass="3.6e-06" material="robot/Aruco_Left_Base_Sticker" mesh="robot/link_aruco_left_base" />
+          <geom class="robot/collision" quat="1 0 0 0" mass="0" mesh="robot/link_aruco_left_base" />
+        </body>
+        <body name="robot/laser" pos="0.004 0 0.1664" quat="0 0 0 1">
+          <geom class="robot/visual" quat="1 0 0 0" mass="0.24" material="robot/Laser_Black" mesh="robot/laser" />
+          <geom class="robot/collision" quat="1 0 0 0" mass="0" mesh="robot/laser" />
+        </body>
+        <body name="robot/link_right_wheel" pos="0 -0.17035 0.0508" quat="0.707107 -0.707107 0 0">
+          <joint name="robot/joint_right_wheel" class="robot/wheel" />
+          <geom class="robot/visual" quat="1 0 0 0" mass="0.15" material="robot/Wheel_Rubber_Gray" mesh="robot/link_right_wheel_0" />
+          <geom class="robot/visual" quat="1 0 0 0" mass="0" material="robot/Generic_Black" mesh="robot/link_right_wheel_1" />
+          <geom class="robot/collision" size="0.05 0.0125" pos="0 0 0.0125" type="cylinder" mass="0" />
+        </body>
+        <body name="robot/link_left_wheel" pos="0 0.17035 0.0508" quat="0.707107 -0.707107 0 0">
+          <joint name="robot/joint_left_wheel" class="robot/wheel" />
+          <geom class="robot/visual" quat="1 0 0 0" mass="0.15" material="robot/Wheel_Rubber_Gray" mesh="robot/link_left_wheel_0" />
+          <geom class="robot/visual" quat="1 0 0 0" mass="0" material="robot/Generic_Black" mesh="robot/link_left_wheel_1" />
+          <geom class="robot/collision" size="0.05 0.0125" pos="0 0 -0.0125" type="cylinder" mass="0" />
+        </body>
+        <body name="robot/link_lift" pos="-0.104385 0.134999 0.2" quat="0.707107 0 0 0.707107" gravcomp="1">
+          <joint name="robot/joint_lift" class="robot/lift" />
+          <geom class="robot/visual" quat="1 0 0 0" mass="0" material="robot/Pantone_705_U" mesh="robot/link_lift_0" />
+          <geom class="robot/visual" pos="0 0 0" quat="1 0 0 0" mass="0" material="robot/Pure_Black" mesh="robot/link_lift_2" />
+          <geom class="robot/visual" pos="0 0 0" quat="1 0 0 0" mass="0" material="robot/Reflective_Metal" mesh="robot/link_lift_3" />
+          <geom class="robot/visual" pos="0 0 0" quat="1 0 0 0" mass="0" material="robot/Plug_White" mesh="robot/link_lift_4" />
+          <geom class="robot/visual" pos="0 0 0" quat="1 0 0 0" mass="0" material="robot/Pantone_Black_6_U" mesh="robot/link_lift_5" />
+          <geom class="robot/visual" pos="0 0 0" quat="1 0 0 0" mass="0" material="robot/Generic_Black" mesh="robot/link_lift_6" />
+          <geom class="robot/visual" quat="1 0 0 0" mass="0" material="robot/Generic_Black" mesh="robot/link_lift_7" />
+          <geom class="robot/visual" quat="1 0 0 0" mass="0" material="robot/3D_Print_Black" mesh="robot/link_lift_8" />
+          <geom class="robot/visual" pos="0 0 0" quat="1 0 0 0" mass="0" material="robot/Pantone_Black_6_U" mesh="robot/link_lift_9" />
+          <geom class="robot/collision" quat="1 0 0 0" mass="0" mesh="robot/link_lift_0" />
+          <geom class="robot/collision" pos="0 0 0" quat="1 0 0 0" mass="0" mesh="robot/link_lift_2" />
+          <geom class="robot/collision" pos="0 0 0" quat="1 0 0 0" mass="0" mesh="robot/link_lift_3" />
+          <geom class="robot/collision" pos="0 0 0" quat="1 0 0 0" mass="0" mesh="robot/link_lift_4" />
+          <geom class="robot/collision" pos="0 0 0" quat="1 0 0 0" mass="0" mesh="robot/link_lift_5" />
+          <geom class="robot/collision" pos="0 0 0" quat="1 0 0 0" mass="0" mesh="robot/link_lift_6" />
+          <geom class="robot/collision" quat="1 0 0 0" mass="0" mesh="robot/link_lift_7" />
+          <geom class="robot/collision" quat="1 0 0 0" mass="1.5" mesh="robot/link_lift_8" />
+          <geom class="robot/collision" pos="0 0 0" quat="1 0 0 0" mass="1.5" mesh="robot/link_lift_9" />
+          <body name="robot/link_arm_l4" gravcomp="1">
+            <geom class="robot/visual" pos="-0.2547 0 0" quat="0.5 0.5 -0.5 -0.5" mass="0" material="robot/Carbon_Fiber" mesh="robot/link_arm_l4_0" />
+            <geom class="robot/visual" pos="-0.2547 0 0" quat="0.5 0.5 -0.5 -0.5" mass="0" material="robot/3D_Print_Black" mesh="robot/link_arm_l4_1" />
+            <geom class="robot/collision" pos="-0.2547 0 0" quat="0.5 0.5 -0.5 -0.5" mass="0.168095" mesh="robot/link_arm_l4_0" />
+            <geom class="robot/collision" pos="-0.2547 0 0" quat="0.5 0.5 -0.5 -0.5" mass="0" mesh="robot/link_arm_l4_1" />
+            <body name="robot/link_arm_l3" pos="-0.2677 0 0" quat="0.5 0.5 -0.5 -0.5" gravcomp="1">
+              <joint name="robot/joint_arm_l3" class="robot/telescope" />
+              <geom class="robot/visual" mass="0.162893" material="robot/Carbon_Fiber" mesh="robot/link_arm_l3_0" />
+              <geom class="robot/visual" quat="1 0 0 0" mass="0" material="robot/3D_Print_Black" mesh="robot/link_arm_l3_1" />
+              <geom class="robot/collision" mass="0" mesh="robot/link_arm_l3_0" />
+              <geom class="robot/collision" quat="1 0 0 0" mass="0" mesh="robot/link_arm_l3_1" />
+              <body name="robot/link_arm_l2" pos="0 0 0.013" gravcomp="1">
+                <joint name="robot/joint_arm_l2" class="robot/telescope" />
+                <geom class="robot/visual" mass="0.157139" material="robot/Carbon_Fiber" mesh="robot/link_arm_l2_0" />
+                <geom class="robot/visual" quat="1 0 0 0" mass="0" material="robot/3D_Print_Black" mesh="robot/link_arm_l2_1" />
+                <geom class="robot/collision" mass="0" mesh="robot/link_arm_l2_0" />
+                <geom class="robot/collision" quat="1 0 0 0" mass="0" mesh="robot/link_arm_l2_1" />
+                <body name="robot/link_arm_l1" pos="0 0 0.013" gravcomp="1">
+                  <joint name="robot/joint_arm_l1" class="robot/telescope" />
+                  <geom class="robot/visual" mass="0.151382" material="robot/Carbon_Fiber" mesh="robot/link_arm_l1_0" />
+                  <geom class="robot/visual" quat="1 0 0 0" mass="0" material="robot/3D_Print_Black" mesh="robot/link_arm_l1_1" />
+                  <geom class="robot/collision" mass="0" mesh="robot/link_arm_l1_0" />
+                  <geom class="robot/collision" quat="1 0 0 0" mass="0" mesh="robot/link_arm_l1_1" />
+                  <body name="robot/link_arm_l0" pos="0 0 -0.01375" gravcomp="1">
+                    <joint name="robot/joint_arm_l0" class="robot/telescope" />
+                    <geom class="robot/visual" quat="1 0 0 0" mass="0" material="robot/3D_Print_Black" mesh="robot/link_arm_l0_0" />
+                    <geom class="robot/visual" mass="0.28501" material="robot/Carbon_Fiber" mesh="robot/link_arm_l0_1" />
+                    <geom class="robot/visual" pos="0 0 0" quat="1 0 0 0" mass="0" material="robot/Generic_Black" mesh="robot/link_arm_l0_2" />
+                    <geom class="robot/collision" quat="1 0 0 0" mass="0" mesh="robot/link_arm_l0_0" />
+                    <geom class="robot/collision" mass="0" mesh="robot/link_arm_l0_1" />
+                    <geom class="robot/collision" pos="0 0 0" quat="1 0 0 0" mass="0" mesh="robot/link_arm_l0_2" />
+                    <body name="robot/link_aruco_top_wrist" pos="0.04725 0.029285 0" quat="0 0 0.707107 0.707107">
+                      <geom class="robot/visual" quat="1 0 0 0" mass="3.6e-06" material="robot/Aruco_Top_Wrist_Sticker" mesh="robot/link_aruco_top_wrist" />
+                      <geom class="robot/collision" quat="1 0 0 0" mass="0" mesh="robot/link_aruco_top_wrist" />
+                    </body>
+                    <body name="robot/link_aruco_inner_wrist" pos="0.04725 -0.0119 -0.02725" quat="0 0 1 0">
+                      <geom class="robot/visual" quat="1 0 0 0" mass="3.6e-06" material="robot/Aruco_Inner_Wrist_Sticker" mesh="robot/link_aruco_inner_wrist" />
+                      <geom class="robot/collision" quat="1 0 0 0" mass="0" mesh="robot/link_aruco_inner_wrist" />
+                    </body>
+                    <body name="robot/link_wrist_yaw" pos="0.083 -0.03075 0" quat="-0.707107 -0.707107 0 0" gravcomp="1">
+                      <joint name="robot/joint_wrist_yaw" class="robot/wrist_yaw" />
+                      <geom class="robot/visual" mass="0.1445" material="robot/Generic_Black" mesh="robot/link_wrist_yaw" />
+                      <geom class="robot/collision" mass="0" mesh="robot/link_wrist_yaw" />
+                      <geom class="robot/visual" pos="0 0 0" quat="0 0.707107 0.707107 0" mass="0" material="robot/Generic_Black" mesh="robot/link_DW3_wrist_yaw_bottom" />
+                      <geom class="robot/collision" pos="0 0 0" quat="1 0 0 0" mass="0" mesh="robot/link_DW3_wrist_yaw_bottom" />
+                      <body name="robot/link_DW3_wrist_pitch" pos="-0.01946 0 0.0305" quat="0.500398 -0.499602 0.5 -0.5" gravcomp="1">
+                        <joint name="robot/joint_wrist_pitch" class="robot/wrist_pitch" axis="0 0 -1" />
+                        <geom class="robot/visual" quat="1 0 0 0" mass="0.1165" material="robot/Generic_Black" mesh="robot/link_DW3_wrist_pitch" />
+                        <geom class="robot/collision" quat="1 0 0 0" mass="0" mesh="robot/link_DW3_wrist_pitch" />
+                        <geom class="robot/visual" pos="-0.0265 -0.024 0.0196" quat="0.707107 0 0 0.707107" mass="0" material="robot/Generic_Black" mesh="robot/link_DW3_wrist_quick_connect" />
+                        <geom class="robot/collision" quat="1 0 0 0" mass="0" mesh="robot/link_DW3_wrist_quick_connect" />
+                        <body name="robot/link_SG3_gripper_body" pos="-0.0399 -0.024 0.0196" quat="0.707107 0 -0.707107 0" gravcomp="1">
+                          <joint name="robot/joint_wrist_roll" class="robot/wrist_roll" />
+                          <geom class="robot/visual" quat="1 0 0 0" mass="0.29" material="robot/Generic_Black" mesh="robot/link_SG3_gripper_body" />
+                          <geom class="robot/collision" quat="1 0 0 0" mass="0" mesh="robot/link_SG3_gripper_body" />
+                          <body name="robot/link_SG3_aruco_d405" pos="0 0.0671264 0.0297716" quat="0.000167007 -0.0012771 0.765787 -0.643093" gravcomp="1">
+                            <geom class="robot/visual" quat="1 0 0 0" mass="3.6e-06" material="robot/Aruco_gripper_cam_Sticker" mesh="robot/link_SG3_aruco_d405" />
+                            <geom class="robot/collision" quat="1 0 0 0" mass="0" mesh="robot/link_SG3_aruco_d405" />
+                            <body name="robot/link_d405" pos="0 -0.03068 0" quat="0.707388 0.706825 0 0">
+                              <geom class="robot/visual" quat="1 0 0 0" mass="0.29" material="robot/Reflective_Metal" mesh="robot/link_d405" />
+                              <geom class="robot/visual" quat="1 0 0 0" mass="3.6e-06" material="robot/Gray_Lens" mesh="robot/link_d405_lens" />
+                              <geom class="robot/visual" quat="1 0 0 0" mass="3.6e-06" material="robot/Pantone_Black_6_U" mesh="robot/link_d405_front_plate" />
+                              <geom class="robot/collision" quat="1 0 0 0" mass="0" mesh="robot/link_d405" />
+                              <body name="robot/d405_cam" quat="0.000796327 0 0 1">
+                                <camera name="robot/d405_rgb" quat="6.34136e-07 -0.000796326 -0.999999 -0.000796326" fovy="58" />
+                                <camera name="robot/d405_depth" quat="6.34136e-07 -0.000796326 -0.999999 -0.000796326" />
+                              </body>
+                            </body>
+                          </body>
+                          <body name="robot/link_grasp_center" pos="0 0 0.23" quat="0.5 -0.5 -0.5 0.5" />
+                          <body name="robot/link_gripper_slider" gravcomp="1">
+                            <joint name="robot/joint_gripper_slide" class="robot/finger_slide" />
+                            <geom class="robot/visual" size="0.03 0.005 0.005" type="box" rgba="0 0 0 0" mass="0.05" />
+                            <body name="robot/link_gripper_finger_left" pos="0.02292 0.0020217 0.035297" quat="-2.59838e-06 -0.706825 2.59631e-06 0.707388" gravcomp="1">
+                              <joint name="robot/joint_gripper_finger_left_open" class="robot/finger_open" stiffness="1" />
+                              <geom class="robot/visual" pos="0 0 0" quat="0.707388 0.706825 0 0" mass="0.05" material="robot/Generic_Black" mesh="robot/link_SG3_gripper_left_finger_0" />
+                              <geom class="robot/collision" pos="0 0 0" quat="0.707388 0.706825 0 0" mass="0" mesh="robot/link_SG3_gripper_left_finger_0" />
+                              <geom class="robot/visual" pos="0 0 0" quat="0.707388 0.706825 0 0" mass="0" material="robot/White_Plastic" mesh="robot/link_SG3_gripper_left_finger_1" />
+                              <geom class="robot/collision" pos="0 0 0" quat="0.707388 0.706825 0 0" mass="0" mesh="robot/link_SG3_gripper_left_finger_1" />
+                              <geom class="robot/visual" pos="-0.17777 0.0018452 -0.011272" quat="-3.63727e-06 0.990216 -5.1257e-07 0.139543" mass="0.05" material="robot/Reflective_Metal" mesh="robot/link_SG3_gripper_inner_finger" />
+                              <body name="robot/rubber_tip_left" pos="-0.17777 0.0018452 -0.011272" quat="0.991431 0.000677364 -0.130525 -0.00514508">
+                                <geom class="robot/visual" quat="1 0 0 0" mass="0.005" material="robot/suction_rubber" mesh="robot/link_SG3_gripper_left_fingertip" />
+                                <geom class="robot/rubber" size="0.02 0.02 0.01" pos="0 0 0.01" type="box" mass="0" />
+                              </body>
+                              <body name="robot/link_SG3_gripper_left_finger_aruco" pos="-0.14425 0.0014877 -0.005189" quat="-0.0396689 0.460058 -0.0826284 0.883145">
+                                <geom class="robot/visual" quat="1 0 0 0" mass="3.6e-06" material="robot/Aruco_left_finger_Sticker" mesh="robot/link_SG3_gripper_left_finger_aruco" />
+                                <geom class="robot/collision" quat="1 0 0 0" mass="0" mesh="robot/link_SG3_gripper_left_finger_aruco" />
+                              </body>
+                            </body>
+                            <body name="robot/link_gripper_finger_right" pos="-0.023281 0 0.035287" quat="-0.706825 5.1947e-06 0.707388 -5.1947e-06" gravcomp="1">
+                              <joint name="robot/joint_gripper_finger_right_open" class="robot/finger_open" stiffness="1" />
+                              <geom class="robot/visual" pos="0 0 0" quat="0.707388 0.706825 0 0" mass="0.05" material="robot/Generic_Black" mesh="robot/link_SG3_gripper_right_finger_0" />
+                              <geom class="robot/collision" pos="0 0 0" quat="0.707388 0.706825 0 0" mass="0" mesh="robot/link_SG3_gripper_right_finger_0" />
+                              <geom class="robot/visual" pos="0 0 0" quat="0.707388 0.706825 0 0" mass="0.05" material="robot/White_Plastic" mesh="robot/link_SG3_gripper_right_finger_1" />
+                              <geom class="robot/collision" pos="0 0 0" quat="0.707388 0.706825 0 0" mass="0" mesh="robot/link_SG3_gripper_right_finger_1" />
+                              <geom class="robot/visual" pos="0.17778 0 0.011272" quat="-5.12557e-07 0.139539 3.63727e-06 -0.990217" mass="0.05" material="robot/Reflective_Metal" mesh="robot/link_SG3_gripper_inner_finger" />
+                              <body name="robot/rubber_tip_right" pos="0.17778 0 0.011272" quat="-0.130526 4.12123e-06 -0.991445 4.12123e-06" gravcomp="1">
+                                <geom class="robot/visual" quat="1 0 0 0" mass="0.005" material="robot/suction_rubber" mesh="robot/link_SG3_gripper_right_fingertip" />
+                                <geom class="robot/rubber" size="0.02 0.02 0.01" pos="0 0 0.01" type="box" mass="0" />
+                              </body>
+                              <body name="robot/link_SG3_gripper_right_finger_aruco" pos="0.14426 0 0.005189" quat="-0.459623 -0.0442548 0.882927 0.0850174">
+                                <geom class="robot/visual" quat="1 0 0 0" mass="3.6e-06" material="robot/Aruco_right_finger_Sticker" mesh="robot/link_SG3_gripper_right_finger_aruco" />
+                                <geom class="robot/collision" quat="1 0 0 0" mass="0" mesh="robot/link_SG3_gripper_right_finger_aruco" />
+                              </body>
+                            </body>
+                          </body>
+                        </body>
+                      </body>
+                    </body>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+          <body name="robot/link_aruco_shoulder" pos="-0.0133769 0.0558541 0.0865">
+            <geom class="robot/visual" quat="1 0 0 0" mass="3.6e-06" material="robot/Aruco_Shoulder_Sticker" mesh="robot/link_aruco_shoulder" />
+            <geom class="robot/collision" quat="1 0 0 0" mass="0" mesh="robot/link_aruco_shoulder" />
+          </body>
+        </body>
+        <body name="robot/link_head_pan" pos="0.00610002 0 1.3552" quat="-1 0 0 0">
+          <joint name="robot/joint_head_pan" class="robot/head_pan" />
+          <geom class="robot/visual" quat="1 0 0 0" mass="0" material="robot/3D_Print_Black" mesh="robot/link_head_pan_0" />
+          <geom class="robot/visual" quat="1 0 0 0" mass="0.127376" material="robot/Generic_Black" mesh="robot/link_head_pan_1" />
+          <geom class="robot/collision" quat="1 0 0 0" mass="0" mesh="robot/link_head_pan_0" />
+          <geom class="robot/collision" quat="1 0 0 0" mass="0" mesh="robot/link_head_pan_1" />
+          <body name="robot/link_head_tilt" pos="-0.0013 0.0277625 -0.0533108" quat="0.707107 0.707107 0 0">
+            <joint name="robot/joint_head_tilt" class="robot/head_tilt" />
+            <geom class="robot/visual" quat="1 0 0 0" mass="0.131108" material="robot/Pantone_Cool_Gray_4_U" mesh="robot/link_head_tilt_0" />
+            <geom class="robot/visual" quat="1 0 0 0" mass="0.131108" material="robot/3D_Print_Black" mesh="robot/link_head_tilt_1" />
+            <geom class="robot/collision" quat="1 0 0 0" mass="0" mesh="robot/link_head_tilt_0" />
+            <geom class="robot/collision" quat="1 0 0 0" mass="0" mesh="robot/link_head_tilt_1" />
+            <body name="robot/realsense" pos="0.0406 0.0053 0.0307">
+              <camera name="robot/d435i_camera_rgb" quat="0.5 -0.5 -0.5 0.5" pos="0 0.015 0" fovy="58" />
+              <camera name="robot/d435i_camera_depth" quat="0.5 -0.5 -0.5 0.5" />
+            </body>
+            <body name="robot/link_SE3_head_nav_cam" pos="0.04 -0.0412 -0.0246" quat="0.707107 0 0.707107 0">
+              <joint name="robot/joint_head_nav_cam" class="robot/head_tilt" stiffness="10" />
+              <geom class="robot/visual" quat="1 0 0 0" mass="0.0283462" material="robot/Generic_Black" mesh="robot/link_SE3_head_nav_cam" />
+              <body name="robot/head_nav_cam">
+                <camera name="robot/nav_camera_rgb" quat="0 -2.67949e-08 1 2.67949e-08" fovy="74" />
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </frame>
+  </worldbody>
+  <contact>
+    <exclude body1="robot/base_link" body2="robot/link_right_wheel" />
+    <exclude body1="robot/base_link" body2="robot/link_left_wheel" />
+    <exclude body1="robot/link_mast" body2="robot/link_lift" />
+    <exclude body1="robot/link_head" body2="robot/link_lift" />
+    <exclude body1="robot/link_head" body2="robot/link_head_pan" />
+    <exclude body1="robot/link_lift" body2="robot/link_arm_l2" />
+    <exclude body1="robot/link_lift" body2="robot/link_arm_l1" />
+    <exclude body1="robot/link_lift" body2="robot/link_arm_l0" />
+    <exclude body1="robot/link_arm_l4" body2="robot/link_arm_l3" />
+    <exclude body1="robot/link_arm_l4" body2="robot/link_arm_l2" />
+    <exclude body1="robot/link_arm_l4" body2="robot/link_arm_l1" />
+    <exclude body1="robot/link_arm_l4" body2="robot/link_arm_l0" />
+    <exclude body1="robot/link_arm_l4" body2="robot/link_wrist_yaw" />
+    <exclude body1="robot/link_arm_l3" body2="robot/link_arm_l1" />
+    <exclude body1="robot/link_arm_l3" body2="robot/link_arm_l0" />
+    <exclude body1="robot/link_arm_l3" body2="robot/link_wrist_yaw" />
+    <exclude body1="robot/link_arm_l2" body2="robot/link_arm_l0" />
+    <exclude body1="robot/link_arm_l2" body2="robot/link_wrist_yaw" />
+    <exclude body1="robot/link_arm_l1" body2="robot/link_arm_l0" />
+    <exclude body1="robot/link_arm_l1" body2="robot/link_wrist_yaw" />
+    <exclude body1="robot/link_arm_l0" body2="robot/link_wrist_yaw" />
+    <exclude body1="robot/link_wrist_yaw" body2="robot/link_gripper_finger_left" />
+    <exclude body1="robot/link_wrist_yaw" body2="robot/link_gripper_finger_right" />
+    <exclude body1="robot/link_DW3_wrist_pitch" body2="robot/link_gripper_finger_left" />
+    <exclude body1="robot/link_DW3_wrist_pitch" body2="robot/link_gripper_finger_right" />
+    <exclude body1="robot/link_SG3_gripper_body" body2="robot/link_gripper_finger_left" />
+    <exclude body1="robot/link_SG3_gripper_body" body2="robot/link_gripper_finger_right" />
+    <exclude body1="robot/rubber_tip_left" body2="robot/rubber_tip_right" />
+  </contact>
+  <tendon>
+    <fixed name="robot/extend">
+      <joint joint="robot/joint_arm_l0" coef="1" />
+      <joint joint="robot/joint_arm_l1" coef="1" />
+      <joint joint="robot/joint_arm_l2" coef="1" />
+      <joint joint="robot/joint_arm_l3" coef="1" />
+    </fixed>
+  </tendon>
+  <equality>
+    <joint joint1="robot/joint_arm_l0" joint2="robot/joint_arm_l1" />
+    <joint joint1="robot/joint_arm_l1" joint2="robot/joint_arm_l2" />
+    <joint joint1="robot/joint_arm_l2" joint2="robot/joint_arm_l3" />
+    <joint joint1="robot/joint_gripper_finger_left_open" joint2="robot/joint_gripper_slide" polycoef="0 10 0 0 0" solref="0.005" />
+    <joint joint1="robot/joint_gripper_finger_right_open" joint2="robot/joint_gripper_slide" polycoef="0 10 0 0 0" solref="0.005" />
+  </equality>
+  <actuator>
+    <general name="robot/left_wheel_vel" class="robot/wheel" joint="robot/joint_left_wheel" ctrlrange="-15 15" />
+    <general name="robot/right_wheel_vel" class="robot/wheel" joint="robot/joint_right_wheel" ctrlrange="-15 15" />
+    <general name="robot/lift" class="robot/lift" joint="robot/joint_lift" biasprm="0 -400" />
+    <general name="robot/arm" class="robot/telescope" tendon="robot/extend" biasprm="0 -150" />
+    <general name="robot/wrist_yaw" class="robot/wrist_yaw" joint="robot/joint_wrist_yaw" />
+    <general name="robot/wrist_pitch" class="robot/wrist_pitch" joint="robot/joint_wrist_pitch" />
+    <general name="robot/wrist_roll" class="robot/wrist_roll" joint="robot/joint_wrist_roll" />
+    <general name="robot/gripper" class="robot/finger_slide" joint="robot/joint_gripper_slide" />
+    <general name="robot/head_pan" class="robot/head_pan" joint="robot/joint_head_pan" />
+    <general name="robot/head_tilt" class="robot/head_tilt" joint="robot/joint_head_tilt" />
+  </actuator>
+  <sensor>
+    <gyro site="robot/base_imu" name="robot/base_gyro" />
+    <accelerometer site="robot/base_imu" name="robot/base_accel" />
+  </sensor>
+  <keyframe>
+    <key name="stow" ctrl="0 0 0.35 0 0 0 0 0 -1.57 -0.5" />
+  </keyframe>
+</mujoco>

@@ -1,0 +1,38 @@
+# Shelf inventory (the warehouse "WMS" slot map). Each item becomes a free body named item_<name>.
+#   source: hope -> assets/third_party/hope/<asset>/<asset>.xml   (LIBERO, MIT)
+#           ycb  -> assets/third_party/ycb/YCB_sim/qc_<asset>.xml (YCB_sim, Apache-2.0)
+#   shelf / level / slot: placement (level index into layout.shelf.board_heights,
+#                         slot 0 = leftmost when facing the shelf)
+#   euler_deg: optional xyz rotation to stand the asset upright (HOPE bottles,
+#              cartons and cans are modelled lying along +y).
+#   yaw_deg:   optional extra rotation about world z after uprighting.
+#
+# Stocking rule for the Stretch 3 picker: flat packs (< 6 cm tall, grasped
+# top-down) live on level 1; on level 2 a top-down grasp would exceed the lift
+# range, so only tall items (grasped from the side) go there. Narrow faces point
+# across the shelf so items fit the 14 cm gripper.
+
+items:
+  # --- Shelf A: sauces & bottles (all side grasps) ---
+  - {name: ketchup,         source: hope, asset: ketchup,             shelf: A, level: 1, slot: 0, euler_deg: [90, 0, 0]}
+  - {name: bbq_sauce,       source: hope, asset: bbq_sauce,           shelf: A, level: 1, slot: 1}
+  - {name: mustard,         source: ycb,  asset: 006_mustard_bottle,  shelf: A, level: 1, slot: 2}
+  - {name: salad_dressing,  source: hope, asset: salad_dressing,      shelf: A, level: 2, slot: 1, euler_deg: [90, 0, 0]}
+  - {name: tomato_sauce,    source: hope, asset: tomato_sauce,        shelf: A, level: 2, slot: 2, euler_deg: [90, 0, 0]}
+
+  # --- Shelf B: snacks (flat packs on level 1) & boxes ---
+  - {name: cookies,         source: hope, asset: cookies,             shelf: B, level: 1, slot: 0}
+  - {name: mac_and_cheese,  source: hope, asset: macaroni_and_cheese, shelf: B, level: 1, slot: 1, scale: 1.25}  # 1.5x is wider than the gripper
+  - {name: pudding_mix,     source: ycb,  asset: 008_pudding_box,     shelf: B, level: 1, slot: 2}
+  - {name: popcorn,         source: hope, asset: popcorn,             shelf: B, level: 1, slot: 3}
+  - {name: crackers,        source: ycb,  asset: 003_cracker_box,     shelf: B, level: 2, slot: 1}
+  - {name: sugar,           source: ycb,  asset: 004_sugar_box,       shelf: B, level: 2, slot: 2}
+
+  # --- Shelf C: cans (level 1) & dairy ---
+  - {name: tomato_soup,     source: ycb,  asset: 005_tomato_soup_can, shelf: C, level: 1, slot: 0}
+  - {name: tuna,            source: ycb,  asset: 007_tuna_fish_can,   shelf: C, level: 1, slot: 1}
+  - {name: butter,          source: hope, asset: butter,              shelf: C, level: 1, slot: 2}
+  - {name: cream_cheese,    source: hope, asset: cream_cheese,        shelf: C, level: 1, slot: 3}
+  - {name: alphabet_soup,   source: hope, asset: alphabet_soup,       shelf: C, level: 2, slot: 0, euler_deg: [90, 0, 0]}
+  - {name: milk,            source: hope, asset: milk,                shelf: C, level: 2, slot: 1, euler_deg: [90, 0, 0]}
+  - {name: orange_juice,    source: hope, asset: orange_juice,        shelf: C, level: 2, slot: 2, euler_deg: [90, 0, 0]}

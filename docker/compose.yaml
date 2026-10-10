@@ -1,0 +1,20 @@
+name: qcw
+
+services:
+  slam:
+    build: ./slam
+    image: qcw-slam:jazzy
+    ports:
+      # rosbridge has no authentication: keep it on loopback, and `qcw-slam down` when not simulating
+      # (any local process or browser page could otherwise talk to it).
+      - "127.0.0.1:9090:9090"
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 2g
+    healthcheck:
+      # slam_toolbox active AND rosbridge accepting connections
+      test: ["CMD", "bash", "-c", "source /opt/ros/jazzy/setup.bash && ros2 lifecycle get /slam_toolbox | grep -q '^active' && (exec 3<>/dev/tcp/127.0.0.1/9090)"]
+      interval: 5s
+      timeout: 10s
+      retries: 12
+      start_period: 10s

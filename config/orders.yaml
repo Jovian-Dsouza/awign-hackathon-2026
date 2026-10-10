@@ -1,0 +1,11 @@
+# Customer orders for the Stretch 3 picker, fulfilled top to bottom.
+# Each item name must exist in config/inventory.yaml. Every SKU has one unit in
+# stock, so an item may appear in at most one order. Each order is packed into
+# its own delivery tote (order 1 -> tote_0, order 2 -> tote_1, ...); there are
+# layout.station.num_totes totes, so at most that many orders per run.
+
+orders:
+  - id: ORD-1001
+    items: [ketchup, cookies, milk]
+  - id: ORD-1002
+    items: [tomato_soup, crackers]

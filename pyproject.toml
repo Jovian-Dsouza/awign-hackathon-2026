@@ -1,0 +1,38 @@
+[project]
+name = "qc-warehouse"
+version = "0.1.0"
+description = "MuJoCo simulation of a quick-commerce dark-store warehouse (shelves, grocery items, packing station)"
+readme = "README.md"
+authors = [
+    { name = "Jovian Shilton Dsouza", email = "dsouzajovian123@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "mujoco>=3.15.0",
+    "numpy>=2.5.3",
+    "pyyaml>=6.0.3",
+    "roslibpy>=2.1.0",
+]
+
+[project.scripts]
+qcw-build = "qc_warehouse.build_scene:main"
+qcw-view = "qc_warehouse.view:main"
+qcw-render = "qc_warehouse.render:main"
+qcw-pick = "qc_warehouse.pick:main"
+qcw-slam = "qc_warehouse.slam_cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "slow: end-to-end robot runs (deselect with -m 'not slow')",
+    "ros: needs the slam_toolbox container (`uv run qcw-slam up`); skipped when unreachable",
+]
+
+[build-system]
+requires = ["uv_build>=0.12.17,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
