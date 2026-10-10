@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import RobotScene from '../components/RobotScene'
+import ThemeToggle from '../components/ThemeToggle'
+import { useResolvedTheme } from '../lib/theme'
 import { JOINTS, POSES, REST, type JointState } from '../lib/joints'
 import { wheelSpeeds, type Twist } from '../lib/mecanum'
 
@@ -14,6 +16,7 @@ export default function Model() {
   const [slider, setSlider] = useState<Twist>({ vx: 0, vy: 0, wz: 0 })
   const [keys, setKeys] = useState<Set<string>>(new Set())
   const [resetKey, setResetKey] = useState(0)
+  const theme = useResolvedTheme()
 
   useEffect(() => {
     const typing = (e: KeyboardEvent) => (e.target as HTMLElement)?.tagName === 'INPUT'
@@ -47,17 +50,20 @@ export default function Model() {
 
   return (
     <div className="model-page">
-      <div className="viewport">
-        <RobotScene twist={twist} joints={joints} resetKey={resetKey} />
-        <Link className="back" to="/">
-          ← Home
-        </Link>
+      <div className="viewport glass">
+        <RobotScene twist={twist} joints={joints} resetKey={resetKey} theme={theme} />
+        <div className="viewport-bar">
+          <Link className="back glass-strong" to="/">
+            ← Home
+          </Link>
+          <ThemeToggle />
+        </div>
       </div>
-      <aside className="panel">
+      <aside className="panel glass">
         <h2>Arm — SO-101</h2>
         <div className="presets">
           {Object.entries(POSES).map(([name, pose]) => (
-            <button key={name} onClick={() => setJoints(pose)}>
+            <button key={name} className="pill" onClick={() => setJoints(pose)}>
               {name}
             </button>
           ))}
@@ -104,8 +110,8 @@ export default function Model() {
           <small className="unit">wheel rad/s</small>
         </div>
         <div className="presets">
-          <button onClick={() => setSlider({ vx: 0, vy: 0, wz: 0 })}>Stop</button>
-          <button onClick={() => setResetKey((n) => n + 1)}>Reset position</button>
+          <button className="pill" onClick={() => setSlider({ vx: 0, vy: 0, wz: 0 })}>Stop</button>
+          <button className="pill" onClick={() => setResetKey((n) => n + 1)}>Reset position</button>
         </div>
       </aside>
     </div>

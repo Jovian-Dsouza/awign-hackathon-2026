@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import RobotScene from '../components/RobotScene'
+import ThemeToggle from '../components/ThemeToggle'
+import { useResolvedTheme } from '../lib/theme'
 import { ARM_POSE, type Focus } from '../lib/story'
 
 const STILL = { vx: 0, vy: 0, wz: 0 }
@@ -62,6 +64,7 @@ const SECTIONS: { id: Focus; fig: string; label: string; title: [string, string]
 
 export default function Home() {
   const [focus, setFocus] = useState<Focus>('hero')
+  const theme = useResolvedTheme()
 
   useEffect(() => {
     const els = ['hero', ...SECTIONS.map((s) => s.id)].map((id) => document.getElementById(id)!)
@@ -77,21 +80,27 @@ export default function Home() {
 
   return (
     <div className="landing">
-      <header className="topbar">
-        <span className="brand">Dark-Store Robot</span>
+      <header className="topbar glass">
+        <span className="brand">
+          <span className="brand-mark" aria-hidden>
+            <svg width="16" height="16" viewBox="0 0 32 32"><path d="M9 8v9a7 7 0 0 0 14 0V8" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" /><circle cx="16" cy="17" r="2.5" fill="#fff" /></svg>
+          </span>
+          Dark-Store Robot
+        </span>
         <nav>
           <a href="#base">Base</a>
           <a href="#arm">Arm</a>
           <a href="#eyes">Camera</a>
           <a href="#brain">Brain</a>
-          <Link className="cta dark" to="/model">
+          <ThemeToggle />
+          <Link className="cta primary sm" to="/model">
             Drive it
           </Link>
         </nav>
       </header>
 
       <div className="stage" aria-hidden>
-        <RobotScene twist={STILL} joints={ARM_POSE[focus]} story={{ focus }} theme="light" />
+        <RobotScene twist={STILL} joints={ARM_POSE[focus]} story={{ focus }} theme={theme} />
         <div className="stage-foot">
           <span>FIG. {focus === 'hero' ? '00' : SECTIONS.find((s) => s.id === focus)!.fig} / {focus === 'hero' ? 'Overview' : SECTIONS.find((s) => s.id === focus)!.label}</span>
           <span>PROTOTYPE · PLACEMENT ILLUSTRATIVE</span>
@@ -110,7 +119,7 @@ export default function Home() {
             A compact mecanum-base robot with an SO-101 arm and a wrist camera. It reads the shelf, spots what is out of place, and learns to pick it up.
           </p>
           <div className="buttons">
-            <Link className="cta dark" to="/model">
+            <Link className="cta primary" to="/model">
               Drive the robot
             </Link>
             <a className="cta ghost" href="#base">
@@ -118,15 +127,15 @@ export default function Home() {
             </a>
           </div>
           <dl className="proof">
-            <div>
+            <div className="glass">
               <dt>4</dt>
               <dd>mecanum wheels</dd>
             </div>
-            <div>
+            <div className="glass">
               <dt>6</dt>
               <dd>arm joints</dd>
             </div>
-            <div>
+            <div className="glass">
               <dt>2</dt>
               <dd>cameras</dd>
             </div>
@@ -145,16 +154,18 @@ export default function Home() {
               <span className="muted">{s.title[1]}</span>
             </h2>
             <p className="sub">{s.body}</p>
-            <table className="specs">
-              <tbody>
-                {s.specs.map(([k, v]) => (
-                  <tr key={k}>
-                    <th>{k}</th>
-                    <td>{v}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="specs-card glass">
+              <table className="specs">
+                <tbody>
+                  {s.specs.map(([k, v]) => (
+                    <tr key={k}>
+                      <th>{k}</th>
+                      <td>{v}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </section>
         ))}
 
@@ -165,7 +176,7 @@ export default function Home() {
             <span className="muted">Move the base. Pose the arm.</span>
           </h2>
           <div className="buttons">
-            <Link className="cta dark" to="/model">
+            <Link className="cta primary" to="/model">
               Open the 3D model
             </Link>
           </div>

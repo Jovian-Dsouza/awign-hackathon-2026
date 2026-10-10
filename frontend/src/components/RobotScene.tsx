@@ -16,7 +16,7 @@ const { halfWheelbase: L, halfTrack: W, wheelRadius: R } = BASE
 function Callout({ position, title, line }: { position: [number, number, number]; title: string; line: string }) {
   return (
     <Html position={position} center zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
-      <div className="callout">
+      <div className="callout glass-strong">
         <b>{title}</b>
         <span>{line}</span>
       </div>
@@ -98,8 +98,8 @@ export default function RobotScene({
 }) {
   const light = theme === 'light'
   return (
-    <Canvas shadows camera={{ position: CAMERA.hero.pos, fov: story ? 34 : 40 }} dpr={[1, 2]}>
-      <color attach="background" args={[light ? '#f3f4f6' : '#0d0f14']} />
+    // Transparent canvas: the page's brand glows show through behind the robot.
+    <Canvas shadows camera={{ position: CAMERA.hero.pos, fov: story ? 34 : 40 }} dpr={[1, 2]} gl={{ alpha: true }}>
       <hemisphereLight args={['#ffffff', light ? '#9aa3b2' : '#333344', light ? 0.9 : 0.6]} />
       <directionalLight position={[2, 3, 2]} intensity={1.6} castShadow />
       <Environment preset="city" />
@@ -107,8 +107,8 @@ export default function RobotScene({
         args={[20, 20]}
         cellSize={0.1}
         sectionSize={0.5}
-        cellColor={light ? '#d9dde4' : '#2a2f3a'}
-        sectionColor={light ? '#c3c9d3' : '#3b4252'}
+        cellColor={light ? '#dfe3ea' : '#1c1f26'}
+        sectionColor={light ? '#a9c6ee' : '#1d3f6e'}
         fadeDistance={6}
         infiniteGrid
       />
