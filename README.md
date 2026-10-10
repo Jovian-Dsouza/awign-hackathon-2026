@@ -27,6 +27,13 @@ localization error of about 2 cm against ground truth.
  └────────────────────────────────────────┘
 ```
 
+## UthaLe operations dashboard
+
+[`UthaLe/`](UthaLe/README.md) is the web platform for running this dark store:
+a live USB camera feed, order → task workflow, robot status/controls and QC
+verification (FastAPI + React). The robot is driven by a simulated adapter
+for now; its catalog is this repo's `config/inventory.yaml`.
+
 ## Setup
 
 ```bash

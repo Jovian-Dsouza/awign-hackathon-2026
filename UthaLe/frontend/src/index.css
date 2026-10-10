@@ -1,0 +1,197 @@
+@import 'tailwindcss';
+
+/* UthaLe design tokens: Apple-style glass. Brand blue #156cdd on white (light)
+   or black (dark); panels are translucent and blur the soft brand glows behind.
+   Light values are the defaults; dark values apply from the OS preference or
+   from the sidebar toggle (data-theme on <html>), and the toggle wins both ways.
+   Status hues (good / warning / serious / critical) always ship with an icon +
+   label, never color alone. */
+@theme {
+  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'SF Mono', 'JetBrains Mono', ui-monospace, Consolas, monospace;
+
+  --color-ground: #ffffff;
+  --color-panel: rgba(255, 255, 255, 0.62);
+  --color-panel-2: rgba(120, 120, 128, 0.08);
+  --color-panel-3: rgba(120, 120, 128, 0.16);
+  --color-elevated: #ffffff;
+  --color-line: rgba(60, 60, 67, 0.1);
+  --color-line-strong: rgba(60, 60, 67, 0.18);
+  --color-glass-edge: rgba(255, 255, 255, 0.75);
+
+  --color-ink: #0b0f14;
+  --color-ink-2: #46505c;
+  --color-ink-3: #737d89;
+
+  --color-brand: #156cdd;
+  --color-brand-dim: #e3eefc;
+
+  --color-ok: #0ca30c;
+  --color-ok-ink: #077a07;
+  --color-warn: #fab219;
+  --color-warn-ink: #8f5f00;
+  --color-serious: #d9693d;
+  --color-crit: #d03b3b;
+  --color-crit-ink: #b42323;
+  --color-info: #156cdd;
+  --color-info-ink: #1059b8;
+  --color-sim: #6250d6;
+  --color-sim-ink: #4f3fc0;
+
+  --animate-pulse-dot: pulse-dot 1.6s ease-in-out infinite;
+  --animate-fade-in: fade-in 0.25s ease-out;
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: none; }
+  }
+}
+
+:root {
+  color-scheme: light;
+  --glass-strong-bg: rgba(255, 255, 255, 0.86);
+  --glass-highlight: rgba(255, 255, 255, 0.85);
+  --glass-shadow: rgba(15, 23, 42, 0.07);
+  --glow-a: rgba(21, 108, 221, 0.16);
+  --glow-b: rgba(120, 90, 255, 0.1);
+  --glow-c: rgba(0, 180, 220, 0.1);
+}
+
+/* Frosted panel: translucent fill + blur. Border color comes from a separate
+   class (border-glass-edge, or a status color) so it can be overridden. */
+@utility glass {
+  background-color: var(--color-panel);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    0 1px 2px var(--glass-shadow),
+    0 12px 32px -8px var(--glass-shadow);
+}
+
+/* Denser glass for floating layers (dialogs, popovers, drawers). */
+@utility glass-strong {
+  background-color: var(--glass-strong-bg);
+  -webkit-backdrop-filter: blur(32px) saturate(180%);
+  backdrop-filter: blur(32px) saturate(180%);
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    0 24px 64px -12px var(--glass-shadow);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --color-ground: #000000;
+    --color-panel: rgba(28, 28, 30, 0.55);
+    --color-panel-2: rgba(118, 118, 128, 0.16);
+    --color-panel-3: rgba(118, 118, 128, 0.26);
+    --color-elevated: rgba(99, 99, 102, 0.55);
+    --color-line: rgba(255, 255, 255, 0.07);
+    --color-line-strong: rgba(255, 255, 255, 0.13);
+    --color-glass-edge: rgba(255, 255, 255, 0.1);
+    --glass-strong-bg: rgba(30, 30, 32, 0.78);
+    --glass-highlight: rgba(255, 255, 255, 0.06);
+    --glass-shadow: rgba(0, 0, 0, 0.55);
+    --glow-a: rgba(21, 108, 221, 0.28);
+    --glow-b: rgba(110, 80, 230, 0.16);
+    --glow-c: rgba(0, 160, 210, 0.12);
+    --color-ink: #f2f2f2;
+    --color-ink-2: #a9a9a9;
+    --color-ink-3: #727272;
+    --color-brand-dim: #0b2447;
+    --color-ok-ink: #63d863;
+    --color-warn-ink: #fcc75a;
+    --color-serious: #ec835a;
+    --color-crit-ink: #f27a7a;
+    --color-info-ink: #7fb0f0;
+    --color-sim: #9085e9;
+    --color-sim-ink: #b9b1f5;
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --color-ground: #000000;
+  --color-panel: rgba(28, 28, 30, 0.55);
+  --color-panel-2: rgba(118, 118, 128, 0.16);
+  --color-panel-3: rgba(118, 118, 128, 0.26);
+  --color-elevated: rgba(99, 99, 102, 0.55);
+  --color-line: rgba(255, 255, 255, 0.07);
+  --color-line-strong: rgba(255, 255, 255, 0.13);
+  --color-glass-edge: rgba(255, 255, 255, 0.1);
+  --glass-strong-bg: rgba(30, 30, 32, 0.78);
+  --glass-highlight: rgba(255, 255, 255, 0.06);
+  --glass-shadow: rgba(0, 0, 0, 0.55);
+  --glow-a: rgba(21, 108, 221, 0.28);
+  --glow-b: rgba(110, 80, 230, 0.16);
+  --glow-c: rgba(0, 160, 210, 0.12);
+  --color-ink: #f2f2f2;
+  --color-ink-2: #a9a9a9;
+  --color-ink-3: #727272;
+  --color-brand-dim: #0b2447;
+  --color-ok-ink: #63d863;
+  --color-warn-ink: #fcc75a;
+  --color-serious: #ec835a;
+  --color-crit-ink: #f27a7a;
+  --color-info-ink: #7fb0f0;
+  --color-sim: #9085e9;
+  --color-sim-ink: #b9b1f5;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  /* Soft brand glows give the glass panels something to blur. */
+  background:
+    radial-gradient(56rem 36rem at 8% -8%, var(--glow-a), transparent 62%),
+    radial-gradient(48rem 36rem at 100% 4%, var(--glow-b), transparent 60%),
+    radial-gradient(52rem 40rem at 55% 112%, var(--glow-c), transparent 62%),
+    var(--color-ground);
+  background-attachment: fixed;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'cv11', 'ss01';
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Subtle engineering-grid texture behind the camera when it's offline */
+.grid-texture {
+  background-image:
+    linear-gradient(var(--color-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-line) 1px, transparent 1px);
+  background-size: 28px 28px;
+  background-position: -1px -1px;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-line-strong);
+  border-radius: 8px;
+  border: 2px solid var(--color-ground);
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-info);
+  outline-offset: 2px;
+}
