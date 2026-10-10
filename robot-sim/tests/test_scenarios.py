@@ -63,3 +63,40 @@ def test_unreachable_spot_is_reported_not_attempted():
     reset_scene(model, data, sc, p)
     task = Task(model, data)
     assert sc.run(task, p) is False
+
+
+def test_wrist_camera_never_rotates_underneath():
+    """The bar camera must stay on top of the gripper (never swing below it or dip under the table) in every stage."""
+    import mujoco
+    import numpy as np
+
+    from dsr_sim import run as RUN
+    from dsr_sim.build_scene import build_spec
+    from dsr_sim.config import load_inventory, load_layout
+    from dsr_sim.constants import DEFAULT_INVENTORY, DEFAULT_LAYOUT
+    from dsr_sim.pick import Task
+    from dsr_sim.scenarios import SCENARIOS
+    from dsr_sim.world import Params
+
+    layout = load_layout(DEFAULT_LAYOUT)
+    model = build_spec(layout, load_inventory(DEFAULT_INVENTORY, layout)).compile()
+    grip = model.body("so101/gripper").id
+    parts = [g for g in range(model.ngeom) if (model.geom(g).name or "").startswith("robot/wrist_cam_")]
+    assert parts
+    for name, params in (("shelf_to_tray", Params(rack=(1, 1))), ("restock_misplaced", Params(item_xy=(0.3, 0.25), dest_rack=(1, 0)))):
+        data = mujoco.MjData(model)
+        scenario = SCENARIOS[name]
+        RUN.reset_scene(model, data, scenario, params)
+        task = Task(model, data, None, 1.0, None)
+        task.run(0.5)
+        worst = {"up": 9.0, "z": 9.0}
+
+        def watch(_task, data=data, worst=worst):
+            rot = data.xmat[grip].reshape(3, 3)
+            worst["up"] = min(worst["up"], float((rot @ np.array([0.0, -1.0, 0.0]))[2]))  # camera side, world-up part
+            worst["z"] = min(worst["z"], float(min(data.geom_xpos[g][2] for g in parts)))
+
+        task.observers.append(watch)
+        assert scenario.run(task, params)
+        assert worst["up"] > -0.15, f"{name}: camera swung underneath the gripper ({worst['up']:.2f})"
+        assert worst["z"] > 0.0, f"{name}: camera went below the table surface ({worst['z']:.3f} m)"

@@ -47,7 +47,7 @@ function Rover({ twist, joints, focus }: { twist: Twist; joints: JointState; foc
   })
 
   const wristLabel =
-    focus === 'eyes' ? <Callout position={[0, 0, 0]} title="Wrist camera" line="close view for grasping" /> : undefined
+    focus === 'eyes' ? <Callout position={[0, 0.1, -0.05]} title="Wrist camera" line="close view for grasping" /> : undefined
 
   return (
     <group ref={root}>

@@ -75,6 +75,10 @@ class Tee(io.TextIOBase):
         self.real.flush()
 
 
+# Fixed on-robot cameras the page can switch to at any time (before or during a run).
+CAMERA_VIEWS = {"5": "wrist_cam", "6": "chassis_cam"}
+
+
 class Worker:
     """Owns the model, the data and the renderer; everything physical happens on this one thread."""
 
@@ -84,6 +88,8 @@ class Worker:
         self.control = RunControl(speed=1.0)
         self.cam = mujoco.MjvCamera()
         self.cam.type = mujoco.mjtCamera.mjCAMERA_FREE
+        self.native = None  # optional native MuJoCo window mirroring the same simulation
+        self.view = "1"
         self.set_view("1")
         self.lock = threading.Lock()
         self.frame_ready = threading.Condition()
@@ -105,15 +111,42 @@ class Worker:
 
     # ---- camera (called from HTTP threads; a stale read just means a one-frame lag)
     def set_view(self, key: str) -> None:
-        az, el, dist, look = VIEWS[key]
-        self.cam.azimuth, self.cam.elevation, self.cam.distance = az, el, dist
-        self.cam.lookat[:] = look
+        self.view = key
+        if key in VIEWS:
+            az, el, dist, look = VIEWS[key]
+            self.cam.type = mujoco.mjtCamera.mjCAMERA_FREE
+            self.cam.azimuth, self.cam.elevation, self.cam.distance = az, el, dist
+            self.cam.lookat[:] = look
+        self._apply_native_view()
+
+    def _apply_native_view(self) -> None:
+        """Make the MuJoCo window show the same camera as the page (wrist / chassis, or the free camera)."""
+        if self.native is None:
+            return
+        try:
+            if self.view in CAMERA_VIEWS:
+                self.native.cam.type = mujoco.mjtCamera.mjCAMERA_FIXED
+                self.native.cam.fixedcamid = self.model.camera(CAMERA_VIEWS[self.view]).id
+            else:
+                self.native.cam.type = mujoco.mjtCamera.mjCAMERA_FREE
+                self.native.cam.azimuth, self.native.cam.elevation, self.native.cam.distance = (
+                    self.cam.azimuth,
+                    self.cam.elevation,
+                    self.cam.distance,
+                )
+                self.native.cam.lookat[:] = self.cam.lookat
+        except Exception:  # noqa: BLE001 - the window may be closing
+            pass
 
     def orbit(self, dx: float, dy: float) -> None:
+        if self.view in CAMERA_VIEWS:
+            return
         self.cam.azimuth -= dx * 0.4
         self.cam.elevation = max(-89.0, min(-3.0, self.cam.elevation - dy * 0.4))
 
     def zoom(self, steps: float) -> None:
+        if self.view in CAMERA_VIEWS:
+            return
         self.cam.distance = max(0.2, min(6.0, self.cam.distance * (1.12 ** steps)))
 
     # ---- commands
@@ -168,6 +201,7 @@ class Worker:
             from mujoco import viewer as mj_viewer
 
             self.native = mj_viewer.launch_passive(self.model, self.data, key_callback=self.native_key)
+            self._apply_native_view()
         except Exception as exc:  # noqa: BLE001
             self.native_ok = False
             self.log.append(f"could not open the MuJoCo window: {exc}")
@@ -179,7 +213,7 @@ class Worker:
         self._last_render = now
         if self._renderer is None:
             self._renderer = mujoco.Renderer(self.model, HEIGHT, WIDTH)
-        self._renderer.update_scene(self.data, camera=self.cam)
+        self._renderer.update_scene(self.data, camera=CAMERA_VIEWS.get(self.view, self.cam))
         buf = io.BytesIO()
         Image.fromarray(self._renderer.render()).save(buf, "JPEG", quality=82)
         with self.frame_ready:
@@ -243,6 +277,7 @@ class Worker:
             "speed": round(self.control.speed, 2),
             "log": list(self.log),
             "params": self.params.as_dict(),
+            "view": self.view,
             "native_ok": self.native_ok,
             "native_open": self.native is not None,
             "result": self.result,
@@ -306,8 +341,9 @@ canvas{width:100%;border-radius:8px;background:var(--bg);cursor:crosshair;border
   <div class="card"><div class="row"><button id="pause">⏸ Pause</button><button id="reset">⟲ Reset</button></div>
     <div class="row" style="margin-top:8px"><button id="slow">− Slower</button><button id="speed" disabled>1×</button><button id="fast">+ Faster</button></div></div>
   <div class="card"><div class="row"><button data-v="1">Overview</button><button data-v="2">Robot</button><button data-v="3">Shelf</button><button data-v="4">Tray</button></div>
+    <div class="row" style="margin-top:8px"><button data-v="5">Wrist camera</button><button data-v="6">Chassis camera</button></div>
     <div class="row" style="margin-top:8px"><button id="native">Open MuJoCo window</button></div>
-    <div class="hint">Drag the picture to orbit, scroll to zoom. The MuJoCo window mirrors every run.</div></div>
+    <div class="hint">Wrist / Chassis camera = what the robot's own cameras see (pick it before or during a run). Drag the picture to orbit, scroll to zoom. The MuJoCo window mirrors every run.</div></div>
   <div class="card"><div class="status" id="state">Ready</div><div class="log" id="log"></div></div>
 </div></div>
 <script>
@@ -367,12 +403,13 @@ addEventListener('mouseup',()=>{drag=null;$('v').style.cursor='grab'});
 addEventListener('mousemove',e=>{if(!drag)return;acc.x+=e.clientX-drag[0];acc.y+=e.clientY-drag[1];drag=[e.clientX,e.clientY];
  if(!sending){sending=true;setTimeout(()=>{post('/api/orbit',{dx:acc.x,dy:acc.y});acc={x:0,y:0};sending=false},40)}});
 $('v').addEventListener('wheel',e=>{e.preventDefault();post('/api/zoom',{steps:e.deltaY>0?1:-1})},{passive:false});
-addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;if(e.code==='Space'){e.preventDefault();post('/api/pause')}else if('1234'.includes(e.key))post('/api/view',{key:e.key})});
+addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;if(e.code==='Space'){e.preventDefault();post('/api/pause')}else if('123456'.includes(e.key))post('/api/view',{key:e.key})});
 async function tick(){try{const s=await (await fetch('/api/status')).json();
  const names={ready:'Ready',running:'Running',done:'Done ✓',failed:'Did not work out'};
  $('state').className='status '+s.state; $('state').textContent=(s.paused&&s.state==='running'?'Paused — ':'')+(names[s.state]||s.state)+(s.title?': '+s.title:'');
  $('badge').textContent=(s.paused&&s.state==='running')?'paused':s.state==='running'?s.title:s.state==='done'?'done':s.state==='failed'?'did not work out':'ready';
  $('log').textContent=s.log.join('\n');$('pause').textContent=s.paused?'▶ Resume':'⏸ Pause';$('speed').textContent=s.speed+'×';
+ document.querySelectorAll('[data-v]').forEach(b=>{b.style.outline=b.dataset.v===s.view?'2px solid #5aa9ff':'none'});
  $('native').disabled=!s.native_ok||s.native_open; $('native').textContent=s.native_open?'MuJoCo window is open':s.native_ok?'Open MuJoCo window':'MuJoCo window unavailable here';
  s.tasks.forEach(x=>{const b=$(NAMES[x.name]); if(b) b.classList.toggle('active',s.state==='running'&&s.title===x.title)});}catch(e){}}
 (async()=>{L=await (await fetch('/api/layout')).json(); rack=L.defaults.rack; item=L.defaults.item_xy; refreshGrids(); drawMap(); setInterval(tick,400); tick();})();
@@ -439,7 +476,7 @@ def make_handler(worker: Worker):
                 worker.toggle_pause()
             elif self.path == "/api/speed":
                 worker.control.speed = max(0.1, min(8.0, worker.control.speed * float(body.get("f", 1.0))))
-            elif self.path == "/api/view" and body.get("key") in VIEWS:
+            elif self.path == "/api/view" and body.get("key") in VIEWS or body.get("key") in CAMERA_VIEWS:
                 worker.set_view(body["key"])
             elif self.path == "/api/orbit":
                 worker.orbit(float(body.get("dx", 0)), float(body.get("dy", 0)))

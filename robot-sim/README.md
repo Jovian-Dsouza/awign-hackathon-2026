@@ -54,7 +54,7 @@ Command line: `uv run dsr-run --list`, `uv run dsr-run --task 2 --item-xy 0.5 -0
 `uv run dsr-collect --task restock_misplaced --episodes 20` generates many recorded episodes (random item
 positions); `--task shelf_to_tray --sweep` visits every rack. Everything goes to `../data/` — see
 [`../data/README.md`](../data/README.md) for the layout and, importantly, what carries over to the real robot
-and what does not.
+and what does not. `../data/tools/export_lerobot.py` converts the episodes to a LeRobot dataset for ACT.
 
 ## Grasp assist (important)
 
@@ -73,7 +73,7 @@ With assist off the full contact physics is used and it works much less often: i
 | Holonomic base with mecanum wheel IK and spinning wheels | Mecanum roller slip / wheel-floor contact |
 | SO-101 kinematics, joint limits, servo-like position actuators | Servo backlash, real torque curves |
 | Two cameras rendered from their mounts | Real camera intrinsics, exposure, USB latency |
-| Scripted pick / carry / place with sideways correction and route planning | SLAM, a learned grasp policy, LeRobot dataset conversion |
+| Scripted pick / carry / place with sideways correction and route planning | SLAM, a learned grasp policy |
 | Friction-only grasp mode (assist off) | Packaging deformation (the item is a rigid can) |
 
 Dimensions are approximate (from photos). The robot geometry lives in the frontend (`robotModel.ts`); edit it
@@ -94,3 +94,12 @@ there and re-export, not in `robot.py`:
 | `datalog.py` / `collect.py` | recording, calibration export, bulk episode generation |
 | `robot.py`, `control.py` | robot model from the exported parts, command API |
 | `shelf.py`, `station.py`, `room.py`, `items.py`, `config.py` | scene builders (reused) |
+
+
+## Wrist camera
+
+The wrist camera is the bar webcam from the real build: a printed post glued to the gripper top, a bracket platform with two cheeks, the bar camera with lens ring, and a thin USB lead (`WRIST_CAM_*` in `robot.py`; same numbers in `frontend/src/components/Arm.tsx`). The sim mounts it on the gripper's -y side because the sim grasps at wrist_roll +90 (the real arm reads about -92); the /model page uses +y so it matches the photos at roll -90.
+
+Panel camera buttons: Overview / Robot / Shelf / Tray (free cameras; drag to orbit) plus **Wrist camera** and **Chassis camera** (the robot's own views). They work before a run starts and during it, and the MuJoCo window follows the same choice. Keys 1-6.
+
+Safety check: `tests/test_scenarios.py::test_wrist_camera_never_rotates_underneath` fails if the camera ever swings under the gripper or dips below the table surface during a run.

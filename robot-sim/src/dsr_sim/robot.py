@@ -202,40 +202,45 @@ def _add_chassis_camera_view(base: mujoco.MjsBody) -> None:
     base.add_camera(name="chassis_cam", pos=[x + 0.012, y - 0.022, z + 0.002], xyaxes=[0, -1, 0, 0, 0, 1], fovy=70)
 
 
+# Bar webcam clipped on a printed bracket above the gripper (see the photos of the real arm). Gripper frame:
+# x = jaw-opening direction, -y = top of the gripper at the sim's grasp roll (+90 deg), -z = forward. Boxes are (centre, size, colour); shared with
+# frontend/src/components/Arm.tsx so both models match.
+WRIST_CAM_PARTS = (
+    ("post", (0.0, -0.043, -0.020), (0.022, 0.034, 0.034), "#2b2b30"),    # printed column glued to the gripper top
+    ("bracket", (0.0, -0.0615, -0.030), (0.050, 0.006, 0.040), "#2b2b30"),  # platform the camera sits on
+    ("cheek_l", (-0.027, -0.070, -0.030), (0.005, 0.016, 0.040), "#2b2b30"),
+    ("cheek_r", (0.027, -0.070, -0.030), (0.005, 0.016, 0.040), "#2b2b30"),
+    ("cam_body", (0.0, -0.0755, -0.034), (0.092, 0.024, 0.026), "#0c0c0e"),  # bar camera
+    ("cam_face", (0.0, -0.0755, -0.0475), (0.040, 0.016, 0.003), "#17171a"),  # front bezel
+)
+WRIST_CAM_LENS = (0.0, -0.0755, -0.0495)  # lens centre
+# Thin flat USB lead: leaves the camera's side and runs back along the arm.
+WRIST_CAM_CABLE = ((-0.046, -0.0755, -0.034), (-0.056, -0.074, -0.018), (-0.050, -0.052, 0.020), (-0.034, -0.030, 0.062))
+WRIST_CAM_TILT_DEG = 12.0
+
+
 def _add_wrist_camera(spec: mujoco.MjSpec, mats: _Materials) -> None:
-    """Stock SO-101 wrist-camera mount + camera, with the website's silver lens ring, plus a MuJoCo camera."""
+    """Bar webcam on a printed bracket above the gripper, thin USB lead, plus a MuJoCo camera at the lens."""
     grip = spec.body(ARM_PREFIX + "gripper")
     if grip is None:
         raise AssetError("SO-101 gripper body not found; cannot mount wrist camera")
-    mesh_dir = SO101_XML.parent / "assets"
-    for name, stl, scale in (("wrist_cam_mount", "wrist_camera_mount_so101_v1.stl", 0.001), ("wrist_cam_body", "wrist_camera_so101_v1.stl", 1.0)):
-        spec.add_mesh(name=f"robot/{name}", file=str(mesh_dir / stl), scale=[scale] * 3)
-    # Transforms from so101_new_calib_camera.urdf (gripper -> mount -> camera).
-    r_mount = _rpy_to_mat(-1.5708, -0.0008, -1.5708)
-    p_mount = np.array([-0.0150, 0.0240, -0.0315])
-    r_cam = r_mount @ _rpy_to_mat(0, -1.5708, -2.0076)
-    p_cam = p_mount + r_mount @ np.array([-0.04941, -0.03813, 0.0175])
-    black = {"color": "#0c0c0e", "roughness": 0.5}
-    for name, pos, rot, color in (("wrist_cam_mount", p_mount, r_mount, "#2b2b30"), ("wrist_cam_body", p_cam, r_cam, "#0c0c0e")):
-        g = grip.add_geom(type=mujoco.mjtGeom.mjGEOM_MESH, meshname=f"robot/{name}", pos=list(pos), quat=list(_mat_to_quat(rot)), material=mats.get({**black, "color": color}))
-        g.name = f"robot/{name}"
+
+    def deco(name, geom_type, color, roughness=0.6, **kw):
+        g = grip.add_geom(type=geom_type, material=mats.get({"color": color, "roughness": roughness}), **kw)
+        g.name = f"robot/wrist_cam_{name}"
         g.contype = g.conaffinity = 0
         g.group = 2
 
-    # Silver lens ring on the camera face that points along the gripper's forward axis (-z of gripper).
-    lo, hi = _stl_bounds(mesh_dir / "wrist_camera_so101_v1.stl")
-    center, size = (lo + hi) / 2, hi - lo
-    fwd_local = r_cam.T @ np.array([0.0, 0.0, -1.0])
-    half = float(np.abs(fwd_local) @ size) / 2
-    face = p_cam + r_cam @ (center + fwd_local * half)  # in the gripper frame
-    for name, radius, height, color, shift in (("wrist_cam_ring", 0.0085, 0.004, "#b9bec6", 0.0015), ("wrist_cam_lens", 0.0052, 0.0045, "#05060a", 0.0016)):
-        pos = face + np.array([0.0, 0.0, -1.0]) * shift
-        g = grip.add_geom(type=mujoco.mjtGeom.mjGEOM_CYLINDER, size=[radius, height / 2, 0], pos=list(pos), material=mats.get({"color": color, "roughness": 0.3}))
-        g.name = f"robot/{name}"
-        g.contype = g.conaffinity = 0
-        g.group = 2
-    # The MuJoCo camera looks along the gripper's forward axis, from just behind the lens.
-    grip.add_camera(name="wrist_cam", pos=list(face + np.array([0.0, 0.0, 0.004])), xyaxes=[0, -1, 0, 1, 0, 0], fovy=75)
+    for name, pos, size, color in WRIST_CAM_PARTS:
+        deco(name, mujoco.mjtGeom.mjGEOM_BOX, color, pos=list(pos), size=[s / 2 for s in size])
+    lx, ly, lz = WRIST_CAM_LENS
+    deco("ring", mujoco.mjtGeom.mjGEOM_CYLINDER, "#b9bec6", 0.3, pos=[lx, ly, lz], size=[0.0085, 0.0012, 0], quat=[1, 0, 0, 0])
+    deco("lens", mujoco.mjtGeom.mjGEOM_CYLINDER, "#05060a", 0.2, pos=[lx, ly, lz - 0.0008], size=[0.0058, 0.0012, 0], quat=[1, 0, 0, 0])
+    for i, (a, b) in enumerate(zip(WRIST_CAM_CABLE[:-1], WRIST_CAM_CABLE[1:])):
+        deco(f"cable{i}", mujoco.mjtGeom.mjGEOM_CAPSULE, "#0a0a0c", 0.7, fromto=[*a, *b], size=[0.0014, 0, 0])
+    # Looks forward (-z) and tips down 12 deg toward the jaws; image up = tilted -y, image right = +x.
+    c, s = np.cos(np.deg2rad(WRIST_CAM_TILT_DEG)), np.sin(np.deg2rad(WRIST_CAM_TILT_DEG))
+    grip.add_camera(name="wrist_cam", pos=[lx, ly, lz + 0.001], xyaxes=[1, 0, 0, 0, -c, s], fovy=75)
 
 
 def _recolor_arm(spec: mujoco.MjSpec) -> None:
