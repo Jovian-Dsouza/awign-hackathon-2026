@@ -1,0 +1,8 @@
+# Backend
+backend/.venv/
+backend/data/
+backend/.env
+.env
+backend/tests/.test-default.db*
+__pycache__/
+.pytest_cache/
