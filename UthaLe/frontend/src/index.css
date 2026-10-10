@@ -1,0 +1,98 @@
+@import 'tailwindcss';
+
+/* UthaLe design tokens: dark-first industrial palette.
+   Status hues follow a validated status set (good / warning / serious / critical)
+   and always ship with an icon + label, never color alone. */
+@theme {
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+
+  --color-ground: #0a0b0d;
+  --color-panel: #111316;
+  --color-panel-2: #161a1e;
+  --color-panel-3: #1d2227;
+  --color-line: #23282e;
+  --color-line-strong: #2f363d;
+
+  --color-ink: #eceef0;
+  --color-ink-2: #a9afb6;
+  --color-ink-3: #6f767e;
+
+  --color-brand: #5fd35f;
+  --color-brand-dim: #1d3a1f;
+
+  --color-ok: #0ca30c;
+  --color-ok-ink: #63d863;
+  --color-warn: #fab219;
+  --color-warn-ink: #fcc75a;
+  --color-serious: #ec835a;
+  --color-crit: #d03b3b;
+  --color-crit-ink: #f27a7a;
+  --color-info: #3987e5;
+  --color-info-ink: #8bb9f0;
+  --color-sim: #9085e9;
+  --color-sim-ink: #b9b1f5;
+
+  --animate-pulse-dot: pulse-dot 1.6s ease-in-out infinite;
+  --animate-fade-in: fade-in 0.25s ease-out;
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: none; }
+  }
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-ground);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'cv11', 'ss01';
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Subtle engineering-grid texture behind the camera when it's offline */
+.grid-texture {
+  background-image:
+    linear-gradient(var(--color-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-line) 1px, transparent 1px);
+  background-size: 28px 28px;
+  background-position: -1px -1px;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-line-strong);
+  border-radius: 8px;
+  border: 2px solid var(--color-ground);
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-info);
+  outline-offset: 2px;
+}
