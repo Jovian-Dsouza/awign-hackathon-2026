@@ -16,7 +16,7 @@ export function Panel({ title, icon: Icon, actions, children, className, bodyCla
   bodyClass?: string
 }) {
   return (
-    <section className={clsx('flex min-w-0 flex-col rounded-xl border border-line bg-panel', className)}>
+    <section className={clsx('flex min-w-0 flex-col rounded-xl border border-line bg-panel shadow-[0_1px_2px_rgba(15,23,42,0.04)]', className)}>
       {title && (
         <header className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-line px-4 py-3">
           {Icon && <Icon className="size-4 text-ink-3" aria-hidden />}
@@ -155,7 +155,7 @@ export function Button({ variant = 'secondary', size = 'md', icon: Icon, childre
         'inline-flex items-center justify-center gap-1.5 rounded-lg border font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-45',
         size === 'sm' ? 'h-7 px-2.5 text-xs' : 'h-9 px-3.5 text-[13px]',
         {
-          primary: 'border-brand/50 bg-brand text-ground hover:bg-brand/90',
+          primary: 'border-brand bg-brand text-white hover:bg-brand/90',
           secondary: 'border-line-strong bg-panel-2 text-ink hover:bg-panel-3',
           ghost: 'border-transparent text-ink-2 hover:bg-panel-2 hover:text-ink',
           danger: 'border-crit/60 bg-crit/15 text-crit-ink hover:bg-crit/25',

@@ -8,27 +8,23 @@ import { PageHeader } from '../layouts/AppLayout'
 import { api } from '../lib/api'
 import { duration, titleCase } from '../lib/format'
 import { usePoll } from '../lib/hooks'
+import { useResolvedTheme } from '../lib/theme'
 import type { Analytics } from '../types'
 
-// Dark-mode steps of a validated categorical palette (fixed order) + status set.
-const C = {
-  s1: '#3987e5',
-  s2: '#d95926',
-  good: '#0ca30c',
-  warning: '#fab219',
-  critical: '#d03b3b',
-  neutral: '#6f767e',
-  grid: '#23282e',
-  axis: '#2f363d',
-  muted: '#898781',
-  surface: '#111316',
+// Chart colors per theme: brand blue leads the fixed categorical order, status
+// hues are reserved for outcomes. SVG attributes need concrete values, not CSS vars.
+const PALETTES = {
+  light: {
+    s1: '#156cdd', s2: '#eb6834', good: '#0ca30c', warning: '#fab219', critical: '#d03b3b',
+    neutral: '#9aa3ad', grid: '#e3e7ed', axis: '#cdd4dd', muted: '#737d89', surface: '#ffffff',
+    cursor: 'rgba(15,23,42,0.05)',
+  },
+  dark: {
+    s1: '#156cdd', s2: '#d95926', good: '#0ca30c', warning: '#fab219', critical: '#d03b3b',
+    neutral: '#5c5c5c', grid: '#1f1f1f', axis: '#2e2e2e', muted: '#898781', surface: '#0a0a0a',
+    cursor: 'rgba(255,255,255,0.05)',
+  },
 }
-
-const axisProps = {
-  stroke: C.axis,
-  tick: { fill: C.muted, fontSize: 11 },
-  tickLine: false,
-} as const
 
 function ChartTooltip(props: { active?: boolean; label?: string | number; payload?: { name?: string; value?: number | string; color?: string }[]; fmt?: (v: number) => string }) {
   const { active, label, payload, fmt } = props
@@ -48,7 +44,7 @@ function ChartTooltip(props: { active?: boolean; label?: string | number; payloa
 
 function Stat({ label, value, sub, icon: Icon }: { label: string; value: string; sub?: string; icon: LucideIcon }) {
   return (
-    <div className="rounded-xl border border-line bg-panel p-4">
+    <div className="rounded-xl border border-line bg-panel p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
       <div className="flex items-center justify-between">
         <span className="text-[11px] font-medium uppercase tracking-wider text-ink-3">{label}</span>
         <Icon className="size-4 text-ink-3" aria-hidden />
@@ -63,6 +59,8 @@ const legendFmt = (v: string) => <span className="text-xs text-ink-2">{v}</span>
 
 export function AnalyticsPage() {
   const { data, error } = usePoll(api.analytics, 5000)
+  const C = PALETTES[useResolvedTheme()]
+  const axisProps = { stroke: C.axis, tick: { fill: C.muted, fontSize: 11 }, tickLine: false } as const
   const [table, setTable] = useState(false)
 
   const tp = data?.throughput.points.map((p) => ({
@@ -114,7 +112,7 @@ export function AnalyticsPage() {
                   <CartesianGrid stroke={C.grid} vertical={false} />
                   <XAxis dataKey="label" {...axisProps} minTickGap={16} />
                   <YAxis {...axisProps} axisLine={false} allowDecimals={false} />
-                  <Tooltip cursor={{ fill: 'rgba(255,255,255,0.04)' }} content={<ChartTooltip />} />
+                  <Tooltip cursor={{ fill: C.cursor }} content={<ChartTooltip />} />
                   <Legend formatter={legendFmt} iconType="square" iconSize={8} itemSorter={null} />
                   <Bar dataKey="created" name="Created" fill={C.s1} radius={[4, 4, 0, 0]} maxBarSize={18} />
                   <Bar dataKey="fulfilled" name="Dispatched" fill={C.s2} radius={[4, 4, 0, 0]} maxBarSize={18} />
@@ -130,7 +128,7 @@ export function AnalyticsPage() {
                   <CartesianGrid stroke={C.grid} vertical={false} />
                   <XAxis dataKey="name" {...axisProps} />
                   <YAxis {...axisProps} axisLine={false} allowDecimals={false} />
-                  <Tooltip cursor={{ fill: 'rgba(255,255,255,0.04)' }} content={<ChartTooltip />} />
+                  <Tooltip cursor={{ fill: C.cursor }} content={<ChartTooltip />} />
                   <Legend formatter={legendFmt} iconType="square" iconSize={8} itemSorter={null} />
                   <Bar dataKey="completed" name="Completed" stackId="a" fill={C.good} stroke={C.surface} strokeWidth={2} maxBarSize={28} />
                   <Bar dataKey="awaiting_review" name="Awaiting review" stackId="a" fill={C.warning} stroke={C.surface} strokeWidth={2} maxBarSize={28} />
@@ -149,7 +147,7 @@ export function AnalyticsPage() {
                     <CartesianGrid stroke={C.grid} vertical={false} />
                     <XAxis dataKey="order_id" {...axisProps} minTickGap={8} />
                     <YAxis {...axisProps} axisLine={false} tickFormatter={(v: number) => duration(v)} />
-                    <Tooltip cursor={{ fill: 'rgba(255,255,255,0.04)' }} content={<ChartTooltip fmt={duration} />} />
+                    <Tooltip cursor={{ fill: C.cursor }} content={<ChartTooltip fmt={duration} />} />
                     <Bar dataKey="seconds" name="Duration" fill={C.s1} radius={[4, 4, 0, 0]} maxBarSize={22} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -171,7 +169,7 @@ export function AnalyticsPage() {
                       <CartesianGrid stroke={C.grid} horizontal={false} />
                       <XAxis type="number" {...axisProps} allowDecimals={false} />
                       <YAxis type="category" dataKey="category" {...axisProps} width={150} axisLine={false} />
-                      <Tooltip cursor={{ fill: 'rgba(255,255,255,0.04)' }} content={<ChartTooltip />} />
+                      <Tooltip cursor={{ fill: C.cursor }} content={<ChartTooltip />} />
                       <Bar dataKey="count" name="Occurrences" fill={C.s1} radius={[0, 4, 4, 0]} maxBarSize={16} />
                     </BarChart>
                   </ResponsiveContainer>

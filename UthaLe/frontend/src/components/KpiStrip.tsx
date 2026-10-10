@@ -11,7 +11,7 @@ function Kpi({ label, value, icon: Icon, hint, tone }: {
   tone?: 'warn' | 'crit' | 'ok'
 }) {
   return (
-    <div className="flex min-w-0 flex-col justify-between gap-3 rounded-xl border border-line bg-panel p-4">
+    <div className="flex min-w-0 flex-col justify-between gap-3 rounded-xl border border-line bg-panel p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
       <div className="flex items-center justify-between gap-2">
         <span className="truncate text-[11px] font-medium uppercase tracking-wider text-ink-3">{label}</span>
         <Icon className={clsx('size-4 shrink-0',

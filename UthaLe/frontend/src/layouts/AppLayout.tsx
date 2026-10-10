@@ -1,12 +1,13 @@
 import clsx from 'clsx'
 import {
-  BarChart3, Bot, ClipboardList, FlaskConical, LayoutDashboard, ListChecks, Menu, Settings,
-  ShieldCheck, X, type LucideIcon,
+  BarChart3, Bot, ClipboardList, FlaskConical, LayoutDashboard, ListChecks, Menu, Monitor, Moon,
+  Settings, ShieldCheck, Sun, X, type LucideIcon,
 } from 'lucide-react'
 import { useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { api } from '../lib/api'
 import { usePoll } from '../lib/hooks'
+import { setThemeChoice, useThemeChoice, type ThemeChoice } from '../lib/theme'
 
 const nav: { to: string; label: string; icon: LucideIcon }[] = [
   { to: '/', label: 'Overview', icon: LayoutDashboard },
@@ -22,9 +23,9 @@ export function Logo() {
   return (
     <div className="flex items-center gap-2.5">
       <svg viewBox="0 0 32 32" className="size-8" aria-hidden>
-        <rect width="32" height="32" rx="8" fill="#161a1e" stroke="#2f363d" />
-        <path d="M9 8v9a7 7 0 0 0 14 0V8" fill="none" stroke="#5fd35f" strokeWidth="3" strokeLinecap="round" />
-        <circle cx="16" cy="17" r="2.5" fill="#5fd35f" />
+        <rect width="32" height="32" rx="8" fill="#156cdd" />
+        <path d="M9 8v9a7 7 0 0 0 14 0V8" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" />
+        <circle cx="16" cy="17" r="2.5" fill="#ffffff" />
       </svg>
       <div className="leading-tight">
         <p className="text-[15px] font-semibold tracking-tight">UthaLe</p>
@@ -53,6 +54,28 @@ function SystemStatus() {
           <span>QC needs review</span><span className="tabular font-semibold">{flagged.length}</span>
         </NavLink>
       )}
+    </div>
+  )
+}
+
+const themeOptions: { value: ThemeChoice; label: string; icon: LucideIcon }[] = [
+  { value: 'light', label: 'Light', icon: Sun },
+  { value: 'dark', label: 'Dark', icon: Moon },
+  { value: 'system', label: 'System', icon: Monitor },
+]
+
+function ThemeToggle() {
+  const choice = useThemeChoice()
+  return (
+    <div className="grid grid-cols-3 gap-1 rounded-lg border border-line bg-panel-2 p-1" role="radiogroup" aria-label="Theme">
+      {themeOptions.map(({ value, label, icon: Icon }) => (
+        <button key={value} type="button" role="radio" aria-checked={choice === value} title={label}
+          onClick={() => setThemeChoice(value)}
+          className={clsx('inline-flex h-7 items-center justify-center gap-1 rounded-md text-[11px] font-medium transition-colors',
+            choice === value ? 'bg-panel text-ink shadow-sm' : 'text-ink-3 hover:text-ink-2')}>
+          <Icon className="size-3.5" aria-hidden />{label}
+        </button>
+      ))}
     </div>
   )
 }
@@ -89,7 +112,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           </NavLink>
         ))}
       </nav>
-      <div className="mt-auto"><SystemStatus /></div>
+      <div className="mt-auto space-y-3"><SystemStatus /><ThemeToggle /></div>
     </div>
   )
 }
