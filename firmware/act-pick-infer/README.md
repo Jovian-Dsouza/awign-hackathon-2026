@@ -218,3 +218,20 @@ All bind `0.0.0.0` so you can open them from another machine on the LAN.
 | Joystick does nothing | Open the page **from the MacBook**, press a pad button, select **Joystick teleop** |
 | Push fails | `hf auth login` with a write token; repo id `USER/NAME` |
 | Infer very slow every ~3 s | Expected on CPU when the ACT action queue refills (~100 steps) |
+
+
+
+lerobot-record \
+  --robot.type=so101_follower \
+  --robot.port=/dev/tty.wchusbserial5A7B2891531 \
+  --robot.id=so_follower \
+  --robot.cameras="{ wrist: {type: opencv, index_or_path: 0, width: 640, height: 480, fps: 30}}" \
+  --teleop.type=gamepad \
+  --display_data=true \
+  --dataset.repo_id=Jovian-Dsouza/so101_pick_wrist_finetune-1 \
+  --dataset.num_episodes=5 \
+  --dataset.single_task="Grab the black cube" \
+  --dataset.streaming_encoding=true \
+  --dataset.encoder_threads=2 \
+  --dataset.episode_time_s=60 \
+  --dataset.reset_time_s=10
