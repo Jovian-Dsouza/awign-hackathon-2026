@@ -3,15 +3,15 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { ContactShadows, Environment, Grid, Html, OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
 import Arm from './Arm'
-import Chassis, { DECK_TOP } from './Chassis'
+import Chassis from './Chassis'
 import { ChassisCamera, CHASSIS_CAM_POS, PI_POS, RaspberryPi } from './Parts'
 import Wheel from './Wheel'
 import { BASE, wheelSpeeds, type Twist } from '../lib/mecanum'
 import type { JointState } from '../lib/joints'
 import { CAMERA, type Focus } from '../lib/story'
+import { ARM_MOUNT, DECK_TOP } from '../lib/robotModel'
 
 const { halfWheelbase: L, halfTrack: W, wheelRadius: R } = BASE
-const ARM_MOUNT: [number, number, number] = [0.03, 0, DECK_TOP]
 
 function Callout({ position, title, line }: { position: [number, number, number]; title: string; line: string }) {
   return (

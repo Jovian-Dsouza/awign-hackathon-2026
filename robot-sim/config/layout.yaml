@@ -1,0 +1,40 @@
+# Demo table layout. Units: metres. World origin = table centre; the table top is z = 0.
+# Only a flat surface: no walls, so cameras and the viewer are never blocked.
+#
+#   far edge (+y)
+#   +----------------------------------------------+
+#   |        [ cardboard shelf, 3 x 3 racks ]      |
+#   |                                              |
+#   |  [dock]                          [drop tray] |
+#   +----------------------------------------------+
+#   near edge (-y)
+
+table:
+  size: [2.2, 0.9]
+  thickness: 0.04
+
+# One cardboard cubby unit: 3 columns x 3 levels = 9 racks. board_heights are the top
+# surfaces of each level's floor; height is the top of the lid.
+shelf:
+  width: 0.52
+  depth: 0.18
+  height: 0.40
+  board_heights: [0.01, 0.14, 0.27]
+  board_thickness: 0.01
+  post_size: 0.008          # side-panel thickness (slot width = (width - 2 * post) / slots)
+  lip_height: 0.0
+  slots_per_level: 3
+  pickable_levels: [0, 1, 2]
+
+shelves:
+  - {name: A, pos: [-0.50, 0.28], yaw_deg: 0}   # open front faces -y (toward the robot)
+
+tray:
+  pos: [0.8, 0.0]
+  yaw_deg: 0
+  size: [0.30, 0.22, 0.07]     # outer x, y, wall height
+
+robot_dock:
+  pos: [-0.95, -0.28]
+  pad_size: [0.3, 0.3]
+  yaw_deg: 0

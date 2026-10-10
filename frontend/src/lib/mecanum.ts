@@ -1,10 +1,7 @@
-// Mecanum base geometry (metres). Matches the blue 4-wheel chassis in the build photo.
-export const BASE = {
-  wheelRadius: 0.0325,
-  wheelWidth: 0.03,
-  halfWheelbase: 0.085, // L: wheel centre distance from chassis centre along x
-  halfTrack: 0.105, // W: wheel centre distance from chassis centre along y
-}
+// Mecanum base geometry (metres) lives in robotModel.ts so the website and the simulation share it.
+import { BASE } from './robotModel'
+
+export { BASE }
 
 export type Twist = { vx: number; vy: number; wz: number } // m/s, m/s, rad/s (robot frame, x fwd, y left)
 export type WheelSpeeds = { fl: number; fr: number; rl: number; rr: number } // rad/s, + = rolls forward

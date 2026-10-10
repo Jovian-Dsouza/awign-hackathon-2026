@@ -1,0 +1,8 @@
+.venv
+__pycache__/
+*.py[oc]
+# Downloaded/copied third-party item models (large). Re-create with scripts/fetch_assets.py
+assets/third_party/
+renders/
+assets/scene.xml
+MUJOCO_LOG.TXT

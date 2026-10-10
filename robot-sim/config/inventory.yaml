@@ -1,0 +1,10 @@
+# Items on the cardboard shelf (3 x 3 racks, slot 0 = left when facing the shelf, level 0 = bottom).
+#   source: hope -> assets/third_party/hope/<asset>/<asset>.xml   (LIBERO, MIT)
+#           ycb  -> assets/third_party/ycb/YCB_sim/qc_<asset>.xml (YCB_sim, Apache-2.0)
+# Only a few racks are stocked; the rest stay empty for the demo.
+items:
+  - {name: ketchup,        source: hope, asset: ketchup,        shelf: A, level: 1, slot: 0, euler_deg: [90, 0, 0], scale: 0.7}
+  - {name: cookies,        source: hope, asset: cookies,        shelf: A, level: 1, slot: 1, scale: 0.7}
+  - {name: popcorn,        source: hope, asset: popcorn,        shelf: A, level: 2, slot: 2, scale: 0.7}
+  - {name: milk,           source: hope, asset: milk,           shelf: A, level: 0, slot: 0, euler_deg: [90, 0, 0], scale: 0.7}
+  - {name: alphabet_soup,  source: hope, asset: alphabet_soup,  shelf: A, level: 0, slot: 2, euler_deg: [90, 0, 0], scale: 0.7}

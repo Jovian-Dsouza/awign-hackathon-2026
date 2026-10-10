@@ -1,0 +1,27 @@
+[project]
+name = "dsr-sim"
+version = "0.1.0"
+description = "MuJoCo simulation of a mecanum rover with an SO-101 arm in a miniature quick-commerce dark store"
+requires-python = ">=3.12"
+dependencies = [
+    "mujoco>=3.15.0",
+    "numpy>=2.0",
+    "pyyaml>=6.0",
+]
+
+[project.scripts]
+dsr-build = "dsr_sim.build_scene:main"
+dsr-view = "dsr_sim.view:main"
+dsr-render = "dsr_sim.render:main"
+dsr-demo = "dsr_sim.demo:main"
+dsr-pick = "dsr_sim.pick:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[build-system]
+requires = ["uv_build>=0.12.17,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
