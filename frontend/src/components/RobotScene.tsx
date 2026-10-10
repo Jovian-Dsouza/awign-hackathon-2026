@@ -3,31 +3,13 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import { ContactShadows, Environment, Grid, OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
 import Arm from './Arm'
+import Chassis, { DECK_TOP } from './Chassis'
 import Wheel from './Wheel'
 import { BASE, wheelSpeeds, type Twist } from '../lib/mecanum'
 import type { JointState } from '../lib/joints'
 
 const { halfWheelbase: L, halfTrack: W, wheelRadius: R } = BASE
-const ARM_MOUNT: [number, number, number] = [-0.02, 0, 0.09]
-
-function Chassis() {
-  const plate = (z: number) => (
-    <mesh position={[0, 0, z]} castShadow>
-      <boxGeometry args={[0.27, 0.17, 0.004]} />
-      <meshStandardMaterial color="#1f9bd7" metalness={0.5} roughness={0.35} />
-    </mesh>
-  )
-  return (
-    <group>
-      {plate(0.052)}
-      {plate(0.088)}
-      <mesh position={[0, 0, 0.07]} castShadow>
-        <boxGeometry args={[0.2, 0.1, 0.034]} />
-        <meshStandardMaterial color="#17779f" metalness={0.4} roughness={0.5} />
-      </mesh>
-    </group>
-  )
-}
+const ARM_MOUNT: [number, number, number] = [0.03, 0, DECK_TOP]
 
 // Drivable rover: integrates the commanded twist into a pose and spins each wheel.
 function Rover({ twist, joints }: { twist: Twist; joints: JointState }) {
