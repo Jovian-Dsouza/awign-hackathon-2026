@@ -47,16 +47,12 @@ Joint order and zero point match LeRobot's SO-101 with `use_degrees=True`: zero 
 (SO-101 "new calibration"). The gripper is in degrees of jaw angle here; LeRobot's SO-101 reports it on a 0–100 scale,
 so a mapping has to be fitted on the real arm (see below).
 
-## Recorded set (re-collected 2026-10-10 after the camera / rest-pose / roll changes, 54 attempts)
+## Recorded set
 
-| Simulation | Grasp assist | Ran | Succeeded | Refused (unreachable spot) | Mean sim time |
-|---|---|---|---|---|---|
-| shelf_to_tray (every rack once) | on | 9 | 9 | 0 | 26 s |
-| restock_misplaced (random table spots, random dest rack) | on | 37 | 37 | 8 | 23 s |
-
-"Refused" = the planner rejected the spot before moving (behind the tray, too close to the shelf, no stand-off pose
-fits). They are in `runs.jsonl` with `success: false` and 0 s of sim time, and they are not exported. The assist-off
-(friction only) runs from the earlier set are not repeated here; they succeeded far less often (3/9 and 6/10).
+None right now. The synthetic episodes and the LeRobot dataset made from them were deleted on request: rendered
+frames are not real photos of the real wrist camera, so they are not useful for training the real policy. Generate
+a fresh set with `dsr-collect` whenever you need trajectories (for checking motion limits, timings or the
+Pi-panel playback files), not for fine-tuning.
 
 ## What carries over to the real robot — and what does not
 
@@ -86,9 +82,15 @@ fits). They are in `runs.jsonl` with `success: false` and 0 s of sim time, and t
   testing and as a prior, not as a substitute for real demonstrations.
 - **Servo behaviour** — the sim uses ideal position actuators with the stock gains.
 
-## LeRobot dataset (for ACT training)
+## LeRobot dataset (optional, from simulation)
 
-`tools/export_lerobot.py` converts the recorded episodes into a **LeRobotDataset (v3)** with LeRobot's own writer, so
+The team's real ACT pipeline is `firmware/act-pick-infer/` (record real demos on the Pi with `record.py`, fine-tune the
+Hugging Face ACT `TakuyaHiraoka/act_so101_pick_diverse_objects` with `finetune_colab.py` on a GPU, run it with
+`infer.py`). The simulation does not use ACT. This exporter only exists to produce a same-format dataset (480x640
+`observation.images.wrist`, 6-joint `observation.state` / `action`) if you ever want to test the pipeline with it.
+
+
+`tools/export_lerobot.py` (optional) converts the recorded episodes into a **LeRobotDataset (v3)** with LeRobot's own writer, so
 `lerobot-train`, `lerobot-dataset-viz` etc. read it directly. It follows the real robot's conventions, taken from the
 Pi firmware (`../firmware/combined-web/web_combined.py`, which drives the arm through LeRobot's `SO101Follower`):
 
