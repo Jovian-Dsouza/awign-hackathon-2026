@@ -42,6 +42,7 @@ def build_spec(
     spec.option.cone = mujoco.mjtCone.mjCONE_ELLIPTIC
     spec.option.integrator = mujoco.mjtIntegrator.mjINT_IMPLICITFAST
     spec.option.noslip_iterations = NOSLIP_ITERATIONS  # keeps grasped items from slipping
+    spec.memory = 256 * 1024 * 1024  # the arm's convex collision pieces make a folded arm generate hundreds of contacts
 
     add_materials(spec)
     add_room(spec, layout)

@@ -111,6 +111,7 @@ class Worker:
         self.log: deque[str] = deque(maxlen=14)
         self.stop = False
         self._last_render = 0.0
+        self._last_render_sim = -1.0
         self._renderer: mujoco.Renderer | None = None
         self.native = None  # optional native MuJoCo window mirroring the same simulation
         self.last_task: str | None = None
@@ -216,9 +217,14 @@ class Worker:
         if self.viewers <= 0 and self.frame_id > 0:
             return
         now = time.time()
-        if not force and now - self._last_render < 1.0 / FPS:
+        # Frames are spaced evenly in *simulated* time (one per speed/FPS sim-seconds), not wall-clock time: when a slow
+        # render makes the sim catch up in a burst, wall-clock sampling shows uneven steps, which looks like shivering.
+        sim_gap = self.data.time - self._last_render_sim
+        due = sim_gap >= self.control.speed / FPS or sim_gap < 0 or now - self._last_render > 0.25
+        if not force and not due:
             return
         self._last_render = now
+        self._last_render_sim = self.data.time
         if self._renderer is None:
             self._renderer = mujoco.Renderer(self.model, HEIGHT, WIDTH)
         self._renderer.update_scene(self.data, camera=CAMERA_VIEWS.get(self.view, self.cam))
@@ -363,7 +369,7 @@ canvas{width:100%;border-radius:8px;background:var(--bg);cursor:crosshair;border
   <h1>Dark-store robot</h1>
 
   <div class="card"><h2>1 · Shelf to tray</h2>
-    <div class="hint">Pick the item from this rack and carry it to the tray.</div>
+    <div class="hint">Pick whatever is in this rack and carry it to the tray.</div>
     <div class="racks" id="pickRacks"></div>
     <button class="run" id="run-shelf_to_tray">▶ Run: shelf to tray</button>
   </div>
@@ -378,7 +384,6 @@ canvas{width:100%;border-radius:8px;background:var(--bg);cursor:crosshair;border
   </div>
 
   <div class="card opts"><h2>Options</h2>
-    <label><input type="checkbox" id="assist" checked> Grasp assist (carry the item with a weld; off = friction only, less reliable)</label>
     <label><input type="checkbox" id="record"> Record data (trajectory + camera frames → data/ folder)</label>
     <div class="err" id="runerr"></div>
   </div>
@@ -399,10 +404,11 @@ const NAMES={shelf_to_tray:'run-shelf_to_tray',restock_misplaced:'run-restock_mi
 function rackGrid(el, selected, onPick, opts){
   el.innerHTML='';
   for(let lv=L.levels-1; lv>=0; lv--) for(let sl=0; sl<L.slots; sl++){
-    const b=document.createElement('button'), occ=L.occupied.find(o=>o[0]===lv&&o[1]===sl), home=(L.home_rack[0]===lv&&L.home_rack[1]===sl);
-    b.innerHTML=`L${lv}·S${sl}<small>${home?'its home':occ?occ[2]:'empty'}</small>`;
+    const stock=opts&&opts.stock, b=document.createElement('button'), occ=(stock?L.stock:L.occupied).find(o=>o[0]===lv&&o[1]===sl), home=(L.home_rack[0]===lv&&L.home_rack[1]===sl);
+    b.innerHTML=`L${lv}·S${sl}<small>${stock?(occ?occ[2]:'empty'):home?'its home':occ?occ[2]:'empty'}</small>`;
     if(selected&&selected[0]===lv&&selected[1]===sl) b.classList.add('sel');
-    if(occ){b.classList.add('occ'); if(opts&&opts.blockOccupied) b.disabled=true;}
+    if(occ&&!stock){b.classList.add('occ'); if(opts&&opts.blockOccupied) b.disabled=true;}
+    if(!occ&&opts&&opts.blockEmpty) b.disabled=true;
     b.onclick=()=>onPick([lv,sl]); el.appendChild(b);
   }
 }
@@ -429,13 +435,13 @@ $('map').addEventListener('click',e=>{
   $('maperr').textContent=why; if(!why){item=[+x.toFixed(2),+y.toFixed(2)];drawMap()}
 });
 function refreshGrids(){
-  rackGrid($('pickRacks'),rack,r=>{rack=r;refreshGrids()});
+  rackGrid($('pickRacks'),rack,r=>{rack=r;refreshGrids()},{stock:true,blockEmpty:true});
   rackGrid($('destRacks'),dest||L.home_rack,r=>{dest=(r[0]===L.home_rack[0]&&r[1]===L.home_rack[1])?null:r;refreshGrids()},{blockOccupied:true});
 }
 async function run(name){
   $('runerr').textContent='';
   const params=name==='shelf_to_tray'?{rack}:{item_xy:item,dest_rack:dest};
-  const r=await post('/api/run',{name,params,assist:$('assist').checked,record:$('record').checked});
+  const r=await post('/api/run',{name,params,record:$('record').checked});
   if(!r.ok){const j=await r.json();$('runerr').textContent=j.error||'could not start'}
 }
 $('run-shelf_to_tray').onclick=()=>run('shelf_to_tray'); $('run-restock_misplaced').onclick=()=>run('restock_misplaced');
@@ -520,7 +526,7 @@ def make_handler(worker: Worker):
             body = json.loads(self.rfile.read(length) or b"{}") if length else {}
             if self.path == "/api/run" and body.get("name") in SCENARIOS:
                 try:
-                    params = Params.from_dict({**(body.get("params") or {}), "assist": body.get("assist", True)})
+                    params = Params.from_dict(body.get("params"))
                     validate(body["name"], params)
                 except (ParamError, ValueError, TypeError) as exc:
                     self._send(400, json.dumps({"error": str(exc)}).encode(), "application/json")

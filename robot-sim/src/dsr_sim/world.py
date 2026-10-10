@@ -73,6 +73,21 @@ def home_rack(name: str = ITEM) -> tuple[int, int]:
     raise KeyError(name)
 
 
+def item_at(rack: tuple[int, int]) -> str | None:
+    """Name of the item that sits in the rack, or None if it is empty."""
+    for item in INVENTORY:
+        if (item.level, item.slot) == tuple(rack):
+            return item.name
+    return None
+
+
+def target_item(scenario: str, p: "Params") -> str:
+    """The item a run handles: whatever sits in the chosen rack, or the soup can for the restock run."""
+    if scenario == "shelf_to_tray":
+        return item_at(p.rack) or ITEM
+    return ITEM
+
+
 def occupied_racks(excluding: str = ITEM) -> dict[tuple[int, int], str]:
     return {(i.level, i.slot): i.name for i in INVENTORY if i.name != excluding}
 
@@ -152,7 +167,6 @@ class Params:
     rack: tuple[int, int] = (0, 2)  # shelf_to_tray: (level, slot) the item is picked from; level 0 = bottom
     item_xy: tuple[float, float] = (0.30, -0.02)  # restock_misplaced: where the item was left on the table
     dest_rack: tuple[int, int] | None = None  # restock_misplaced: rack to put it in (None = its home rack)
-    assist: bool = True  # grasp assist: weld the item to the gripper once the jaws are around it (pure friction if False)
 
     @classmethod
     def from_dict(cls, raw: dict | None) -> "Params":
@@ -164,12 +178,10 @@ class Params:
             kw["item_xy"] = tuple(float(v) for v in raw["item_xy"])
         if raw.get("dest_rack") is not None:
             kw["dest_rack"] = tuple(int(v) for v in raw["dest_rack"])
-        if raw.get("assist") is not None:
-            kw["assist"] = bool(raw["assist"])
         return cls(**kw)
 
     def as_dict(self) -> dict:
-        return {"rack": list(self.rack), "item_xy": list(self.item_xy), "dest_rack": list(self.dest_rack) if self.dest_rack else None, "assist": self.assist}
+        return {"rack": list(self.rack), "item_xy": list(self.item_xy), "dest_rack": list(self.dest_rack) if self.dest_rack else None}
 
 
 def _check_rack(rack, what: str) -> None:
@@ -194,6 +206,8 @@ def item_position_problem(x: float, y: float) -> str | None:
 def validate(scenario: str, p: Params) -> None:
     if scenario == "shelf_to_tray":
         _check_rack(p.rack, "pick-from rack")
+        if item_at(p.rack) is None:
+            raise ParamError(f"pick-from rack: level {p.rack[0]}, slot {p.rack[1]} is empty, there is nothing to pick")
     elif scenario == "restock_misplaced":
         problem = item_position_problem(*p.item_xy)
         if problem:
@@ -218,6 +232,7 @@ def layout_info() -> dict:
         "levels": LEVELS,
         "slots": SLOTS,
         "occupied": [[lv, sl, nm] for (lv, sl), nm in occupied_racks().items()],
+        "stock": [[i.level, i.slot, i.name] for i in INVENTORY],
         "home_rack": list(home_rack()),
         "defaults": Params().as_dict(),
     }

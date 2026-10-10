@@ -258,6 +258,66 @@ def _recolor_arm(spec: mujoco.MjSpec) -> None:
             mat.rgba = list(ARM_MOTOR_RGBA if "sts3215" in mat.name else ARM_PRINTED_RGBA)
 
 
+COLLISION_PIECES_DIR = ASSETS_DIR / "so101" / "collision"
+
+
+def _convex_collision(spec: mujoco.MjSpec) -> None:
+    """Collide the arm links as the convex pieces of scripts/decompose_collision.py, not as one hull per mesh.
+
+    MuJoCo collides a mesh as a single convex hull. The arm's links are not convex: the hull of the gripper fills
+    the gap between its jaws and the folded arm lies inside its own hulls, so nothing could be gripped and the
+    arm wedged itself at rest. The pieces follow the real shapes instead."""
+    for body in list(spec.bodies):
+        if not body.name.startswith(ARM_PREFIX):
+            continue
+        for geom in list(body.geoms):
+            if geom.type != mujoco.mjtGeom.mjGEOM_MESH or not (geom.contype or geom.conaffinity):
+                continue
+            base = geom.meshname.removeprefix(ARM_PREFIX)
+            pieces = sorted(COLLISION_PIECES_DIR.glob(f"{base}_*.stl"), key=lambda f: int(f.stem.rsplit("_", 1)[1]))
+            if not pieces:
+                continue
+            for i, piece in enumerate(pieces):
+                mesh_name = f"{ARM_PREFIX}col/{base}_{i}"
+                if all(m.name != mesh_name for m in spec.meshes):
+                    spec.add_mesh(name=mesh_name, file=str(piece))
+                new = body.add_geom(
+                    type=mujoco.mjtGeom.mjGEOM_MESH,
+                    meshname=mesh_name,
+                    pos=list(geom.pos),
+                    quat=list(geom.quat),
+                    group=geom.group,
+                    contype=geom.contype,
+                    conaffinity=geom.conaffinity,
+                    condim=geom.condim,
+                    friction=list(geom.friction),
+                )
+                new.name = f"{ARM_PREFIX}col/{body.name.removeprefix(ARM_PREFIX)}_{base}_{i}"
+            spec.delete(geom)
+
+
+# Link pairs whose CAD meshes interpenetrate by 1-2 cm in the firmware REST_POSE (the elbow sits at its limit there).
+# They can only touch each other in that folded pose, so their contact is switched off; a collision-free stow is
+# 22 deg away from the firmware pose. Everything else (jaws vs items, arm vs shelf/tray/deck) is real contact.
+STOWED_OVERLAPS = (
+    ("shoulder", "wrist"),
+    ("shoulder", "gripper"),
+    ("shoulder", "moving_jaw_so101_v1"),
+    ("shoulder", "lower_arm"),
+    ("upper_arm", "wrist"),
+    (None, "gripper"),  # the rover deck
+    (None, "moving_jaw_so101_v1"),
+)
+
+
+def _exclude_stowed_overlaps(spec: mujoco.MjSpec) -> None:
+    for a, b in STOWED_OVERLAPS:
+        ex = spec.add_exclude()
+        ex.name = f"stowed_{(a or 'deck')}_{b}"
+        ex.bodyname1 = BASE if a is None else ARM_PREFIX + a
+        ex.bodyname2 = ARM_PREFIX + b
+
+
 def _grippy_jaws(spec: mujoco.MjSpec) -> None:
     """Rubber-like friction on the gripper's collision geoms so held items do not slip out."""
     for body_name in (ARM_PREFIX + "gripper", ARM_PREFIX + "moving_jaw_so101_v1"):
@@ -266,21 +326,6 @@ def _grippy_jaws(spec: mujoco.MjSpec) -> None:
             if geom.contype:
                 geom.friction = [JAW_FRICTION, 0.02, 0.002]
                 geom.condim = 4
-
-
-def _add_grasp_welds(spec: mujoco.MjSpec) -> None:
-    """Inactive weld between the gripper and each item. Switched on by the "grasp assist" once the jaws are
-    verifiably closed around the item, off again when the gripper opens (see Task.attach / Task.detach)."""
-    for body in list(spec.bodies):
-        name = body.name
-        if name.startswith("item_") and "/" not in name:
-            eq = spec.add_equality()
-            eq.name = f"grip_weld_{name[len('item_'):]}"
-            eq.type = mujoco.mjtEq.mjEQ_WELD
-            eq.objtype = mujoco.mjtObj.mjOBJ_BODY
-            eq.name1 = ARM_PREFIX + "gripper"
-            eq.name2 = name
-            eq.active = False
 
 
 def add_robot(spec: mujoco.MjSpec, dock: DockConfig, so101_xml: Path = SO101_XML) -> mujoco.MjsBody:
@@ -314,8 +359,9 @@ def add_robot(spec: mujoco.MjSpec, dock: DockConfig, so101_xml: Path = SO101_XML
     base.add_frame(pos=list(ARM_MOUNT)).attach_body(root, ARM_PREFIX, "")
     _add_wrist_camera(spec, mats)
     _recolor_arm(spec)
+    _convex_collision(spec)
+    _exclude_stowed_overlaps(spec)
     _grippy_jaws(spec)
-    _add_grasp_welds(spec)
     return base
 
 

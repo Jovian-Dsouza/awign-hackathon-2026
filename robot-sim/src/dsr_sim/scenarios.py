@@ -29,7 +29,8 @@ from dsr_sim.pick import (
 from dsr_sim.world import ITEM, Params
 
 TABLE_CLEARANCE = 0.002
-GRASP_Z_OFF = 0.015  # jaw middle above the item's centre
+TABLE_TOP = 0.0  # z of the table surface
+GRASP_Z_OFF = 0.005  # jaw middle above the item's centre (the fingers are +-7 mm thick: grip near mid-height)
 GRASP_Y_OFF = 0.03  # jaw middle past the item's centre (item sits mid-finger)
 MOUTH_GAP = 0.095  # tool stops this far short of the item before driving in
 ADVANCE = MOUTH_GAP + GRASP_Y_OFF
@@ -39,16 +40,27 @@ REST_POSE = POSES_DEG["rest"]  # the Pi firmware's REST_POSE
 RECENTER_GAIN = 1.0  # +1 moves the jaws toward the item's centre line, -1 away, 0 off (calibration knob)
 GRIP_CLOSE_S = 0.7  # seconds to close the jaws (slower = the item centres itself instead of being shoved)
 CARRY_TUCK_S = 1.5  # slow, so the held item is not flung out of the jaws while the arm moves
+TRAY_DROP_HEIGHT = 0.05  # m above the tray floor where the item is released
 TRAY_ROLL = 0.0  # wrist roll over the tray: jaws open up/down, so the item simply drops out
 CARRY_REACH = 0.24  # shoulder-to-jaws distance while carrying (jaws level, in front of the rover)
 CARRY_HEIGHT = 0.2  # m above the table while carrying
 UP = np.array([0.0, 0.0, 1.0])
-ITEM_HALF_HEIGHT = 0.0245  # soup can half height (scaled), m
+ITEM_HALF_HEIGHT = 0.0245  # soup can half height (scaled), m; logged with the recordings
 LATERAL_BIAS = 0.0  # m, shifts the grasp sideways (left of the approach direction); calibration knob
+HELD_MAX_DISTANCE = 0.06  # m, an item further than this from the jaw centre after the pull-back is not being held
+CAMERA_ABOVE_JAW = 0.09  # m, top of the wrist camera above the jaw axis (measured from where it hit the board above)
+LIFT_OUT = 0.03  # m, the item is lifted this far off the board before the rover backs out
+CEILING_MARGIN = 0.01  # m, kept between the wrist camera and the board above while lifting out
+MIN_JAW_ABOVE_BOARD = 0.032  # m, lowest the jaw axis goes above the board it is picking from (lower and the gripper body clips it)
+TRAY_MIN_JAW_Z = 0.10  # m, lowest the jaw axis goes above the tray floor: lower and the gripper body sits in the near wall
 
 
 class Unreachable(Exception):
     """The arm / rover cannot do what was asked from anywhere; the message is for the user."""
+
+
+class GraspFailed(Exception):
+    """The jaws closed but the item did not come with them; the message is for the user."""
 
 
 def _fwd(yaw: float) -> np.ndarray:
@@ -77,20 +89,6 @@ def _joint_slice(model: mujoco.MjModel, name: str) -> slice:
 
 def _shift(model: mujoco.MjModel, data: mujoco.MjData, name: str, delta: np.ndarray) -> None:
     data.qpos[_joint_slice(model, name)][:3] += delta
-
-
-def setup_shelf_to_tray(model: mujoco.MjModel, data: mujoco.MjData, p: Params) -> None:
-    """Put the item in the chosen rack (the rack's usual occupant swaps into the item's home rack)."""
-    level, slot = p.rack
-    home = W.home_rack()
-    if (level, slot) == home:
-        return
-    occupant = W.occupied_racks().get((level, slot))
-    if occupant:
-        _shift(model, data, occupant, W.rack_pos(*home) - W.rack_pos(level, slot))
-    _shift(model, data, ITEM, W.rack_pos(level, slot) - W.rack_pos(*home))
-    data.qvel[:] = 0.0
-    mujoco.mj_forward(model, data)
 
 
 def setup_misplaced(model: mujoco.MjModel, data: mujoco.MjData, p: Params) -> None:
@@ -142,18 +140,29 @@ def _recenter(task: Task, name: str, heading: float) -> None:
         task.drive_to(px + side[0] * lateral, py + side[1] * lateral, heading, speed=0.08)
 
 
-def _grasp(task: Task, name: str, heading: float, stage_xy=None, reach: float | None = None) -> np.ndarray:
-    """Approach `name` along `heading`, grip it and back out. Returns the jaw-centre offset in the heading frame."""
+def _grasp(task: Task, name: str, heading: float, stage_xy=None, reach: float | None = None, ceiling: float | None = None, floor: float | None = None) -> np.ndarray:
+    """Approach `name` along `heading`, grip it and back out. Returns the jaw-centre offset in the heading frame.
+
+    `ceiling`: height of the underside of whatever is above the item (the next shelf board). A tall item is gripped
+    lower so the wrist camera still clears it when the item is lifted out. `floor`: top of the board it sits on; a
+    flat item is gripped no lower than MIN_JAW_ABOVE_BOARD above it so the gripper body does not clip the board."""
     fwd = _fwd(heading)
     item0 = task.item_pos(name)
+    grasp_dz = GRASP_Z_OFF
+    if ceiling is not None:
+        grasp_dz = min(grasp_dz, ceiling - CAMERA_ABOVE_JAW - LIFT_OUT - CEILING_MARGIN - item0[2])
+    if floor is not None:
+        grasp_dz = max(grasp_dz, floor + MIN_JAW_ABOVE_BOARD - item0[2])
+    if ceiling is not None or floor is not None:
+        task.notes["grasp_dz_m"] = round(float(grasp_dz), 4)
     mouth_xy = item0[:2] - fwd[:2] * MOUTH_GAP
     left = np.array([-np.sin(heading), np.cos(heading), 0.0])
-    pre = np.array([mouth_xy[0], mouth_xy[1], item0[2] + GRASP_Z_OFF])
+    pre = np.array([mouth_xy[0], mouth_xy[1], item0[2] + grasp_dz])
     if reach is None:
         reach = _reach_or_fail(task, pre, heading, "item")
     stage = mouth_xy - fwd[:2] * (reach + SHOULDER_FORWARD)
     task.notes.update(pick_heading_deg=round(float(np.degrees(heading)), 1), pick_reach=reach, pick_stage=[round(float(v), 3) for v in stage])
-    grasp_pt = item0 + fwd * GRASP_Y_OFF + UP * GRASP_Z_OFF
+    grasp_pt = item0 + fwd * GRASP_Y_OFF + UP * grasp_dz
 
     task.stage = "drive_to_item"
     _drive_route(task, (stage[0], stage[1]), heading, precise=True)
@@ -186,13 +195,8 @@ def _grasp(task: Task, name: str, heading: float, stage_xy=None, reach: float | 
     task.stage = "grasp"
     task.move_arm({"gripper": GRIPPER_CLOSED_DEG}, GRIP_CLOSE_S)
     task.run(0.6)  # let the squeeze build before anything moves
-    if task.assist:
-        held = task.attach(name)
-        task.notes["assist_attached"] = held
-        if not held:
-            task.say("  (grasp assist: the jaws are not around the item, nothing attached)")
     task.stage = "lift_back_out"
-    task.reach(grasp_pt + UP * 0.02, fwd, 0.5, GRIPPER_CLOSED_DEG, GRASP_ROLL, PINCH_Z)
+    task.reach(grasp_pt + UP * LIFT_OUT, fwd, 0.5, GRIPPER_CLOSED_DEG, GRASP_ROLL, PINCH_Z)
     # Where the jaw centre sits relative to the item, in the approach frame (used to place it precisely).
     d = task.data
     zaxis = d.site_xmat[task.site].reshape(3, 3)[:, 2]
@@ -201,6 +205,9 @@ def _grasp(task: Task, name: str, heading: float, stage_xy=None, reach: float | 
     task.notes["hold_offset_m"] = [round(float(v), 4) for v in hold]
     task.drive_to(px, py, heading, speed=0.15)
     task.notes["item_lifted_z"] = round(float(task.item_pos(name)[2]), 4)
+    # Nothing carries the item except the friction of the two fingers, so check it really left the board with them.
+    if np.linalg.norm(task.item_pos(name) - task.jaw_centre()) > HELD_MAX_DISTANCE:
+        raise GraspFailed(f"the jaws could not hold the {name}: it stayed behind when the gripper pulled back")
     return hold
 
 
@@ -223,7 +230,6 @@ def _place(task: Task, name: str, target: np.ndarray, heading: float, hold: np.n
     task.drive_to(px + axis[0] * ADVANCE, py + axis[1] * ADVANCE, heading, speed=0.15, precise=True)
     task.run(0.2)
     task.stage = "release"
-    task.detach()  # grasp assist off: from here on the item is just resting in the rack
     task.move_arm({"gripper": RACK_RELEASE_DEG}, 0.5)
     task.run(0.4)
     task.stage = "back_out"
@@ -258,16 +264,27 @@ def _go_home(task: Task) -> None:
 
 
 # ------------------------------------------------------------------ shelf_to_tray
+def _ceiling_above(level: int) -> float:
+    """Height of the underside of whatever sits over rack `level`: the next board, or the lid of the top level."""
+    shelf = W.LAYOUT.shelf
+    if level + 1 < len(shelf.board_heights):
+        return shelf.board_heights[level + 1] - shelf.board_thickness
+    return shelf.height - 0.008
+
+
 def run_shelf_to_tray(task: Task, p: Params) -> bool:
     m, d = task.model, task.data
-    task.set_assist(p.assist)
     level, slot = p.rack
+    name = W.item_at(p.rack)
+    if name is None:
+        task.say(f"  rack level {level}, slot {slot} is empty: nothing to pick", "failed")
+        return False
     tray_c = d.site_xpos[m.site("drop_zone").id].copy()
-    item0 = task.item_pos(ITEM)
-    task.say(f"shelf -> tray: taking the {ITEM} from rack level {level}, slot {slot} at {np.round(item0, 3)}", "start")
+    item0 = task.item_pos(name)
+    task.say(f"shelf -> tray: taking the {name} from rack level {level}, slot {slot} at {np.round(item0, 3)}", "start")
     try:
         task.say("  1/4 drive to the rack and grip the item", "grasp")
-        hold = _grasp(task, ITEM, np.pi / 2)
+        hold = _grasp(task, name, np.pi / 2, ceiling=_ceiling_above(level), floor=W.LAYOUT.shelf.board_heights[level])
         _carry_pose(task, np.pi / 2)
 
         task.say("  2/4 carry it to the tray", "carry")
@@ -276,26 +293,28 @@ def run_shelf_to_tray(task: Task, p: Params) -> bool:
 
         task.say("  3/4 set it down in the tray and let go", "release")
         floor_z = float(m.body("drop_tray").pos[2]) + 0.006  # inside floor of the tray
-        centre = np.array([tray_c[0], tray_c[1], floor_z + ITEM_HALF_HEIGHT + 0.004])
+        centre = np.array([tray_c[0], tray_c[1], floor_z + task.item_half_height(name) + 0.004])
         fwd = np.array([1.0, 0.0, 0.0])
-        jaw_target = centre + _rot(0.0, hold)
-        task.reach(jaw_target + UP * 0.07, fwd, 1.2, GRIPPER_CLOSED_DEG, GRASP_ROLL, PINCH_Z)
+        # Let go a few cm above the floor: with the item on the floor the gripper body would sit inside the near
+        # wall of the tray (which the jaws clear but the wrist does not).
+        jaw_target = centre + _rot(0.0, hold) + UP * TRAY_DROP_HEIGHT
+        jaw_target[2] = max(jaw_target[2], floor_z + TRAY_MIN_JAW_Z)  # a flat item is dropped from the same jaw height
+        task.reach(jaw_target + UP * 0.05, fwd, 1.2, GRIPPER_CLOSED_DEG, GRASP_ROLL, PINCH_Z)
         task.reach(jaw_target, fwd, 0.7, GRIPPER_CLOSED_DEG, GRASP_ROLL, PINCH_Z)
-        task.detach()
         task.move_arm({"gripper": GRIPPER_RELEASE_DEG}, 0.6)
         task.run(0.4)
         # Withdraw straight back along the jaw axis (like backing out of a rack) before lifting: lifting while
         # the item is still between the open fingers drags it along.
-        _recenter(task, ITEM, 0.0)
+        _recenter(task, name, 0.0)
         ax = _approach_axis(task)
         cx, cy, _ = task.robot.pose
         task.drive_to(cx - ax[0] * 0.15, cy - ax[1] * 0.15, 0.0, speed=0.15)  # arm stays put; the rover backs away
         task.move_arm(dict(zip(ARM_JOINTS, REST_POSE)), 1.0)
-    except Unreachable as exc:
+    except (Unreachable, GraspFailed) as exc:
         task.say(f"  cannot do this one: {exc}", "failed")
         return False
 
-    final = task.item_pos(ITEM)
+    final = task.item_pos(name)
     # resting in the tray (not still hanging in the gripper above it)
     inside = abs(final[0] - tray_c[0]) < 0.13 and abs(final[1] - tray_c[1]) < 0.09 and final[2] < tray_c[2] + 0.05
     task.notes.update(final_item=[round(float(v), 3) for v in final], target=[round(float(v), 3) for v in tray_c])
@@ -313,7 +332,7 @@ def _plan_table_pick(task: Task, item: np.ndarray) -> tuple[float, float]:
         heading = k * np.pi / 4
         fwd = _fwd(heading)
         mouth_xy = item[:2] - fwd[:2] * MOUTH_GAP
-        pre = np.array([mouth_xy[0], mouth_xy[1], item[2] + GRASP_Z_OFF])
+        pre = np.array([mouth_xy[0], mouth_xy[1], max(item[2] + GRASP_Z_OFF, TABLE_TOP + MIN_JAW_ABOVE_BOARD)])
         reach = task.plan_reach(pre, heading)
         if reach is None:
             continue
@@ -335,7 +354,6 @@ def _plan_table_pick(task: Task, item: np.ndarray) -> tuple[float, float]:
 
 def run_restock(task: Task, p: Params) -> bool:
     m = task.model
-    task.set_assist(p.assist)
     dest = p.dest_rack or W.home_rack()
     ref = mujoco.MjData(m)
     ref.qpos[:] = m.qpos0
@@ -348,12 +366,12 @@ def run_restock(task: Task, p: Params) -> bool:
     try:
         heading, reach = _plan_table_pick(task, start)
         task.say(f"  1/3 drive to the item (approach heading {np.degrees(heading):.0f} deg) and grip it", "grasp")
-        hold = _grasp(task, ITEM, heading, reach=reach)
+        hold = _grasp(task, ITEM, heading, reach=reach, floor=TABLE_TOP)
         _carry_pose(task, heading)
 
         task.say("  2/3 carry it to the shelf and slide it into its rack", "place")
         _place(task, ITEM, target + np.array([0.0, 0.0, drop_z]), np.pi / 2, hold)
-    except Unreachable as exc:
+    except (Unreachable, GraspFailed) as exc:
         task.say(f"  cannot do this one: {exc}", "failed")
         return False
 
@@ -373,7 +391,6 @@ SCENARIOS: dict[str, Scenario] = {
         "Shelf to tray",
         "Pick the item out of the rack you choose and carry it across the table to the drop tray.",
         run=run_shelf_to_tray,
-        setup=setup_shelf_to_tray,
     ),
     "restock_misplaced": Scenario(
         "restock_misplaced",

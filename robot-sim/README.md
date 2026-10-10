@@ -103,3 +103,11 @@ The wrist camera is the bar webcam from the real build: a printed post glued to 
 The page shows two live panels: the **environment** (drag to orbit, scroll to zoom, preset views Overview / Robot / Shelf / Tray) and the **wrist camera** (the robot's only camera, 640x480, what the policy sees). **Full screen** (button or key F) hides the controls: the environment fills the whole screen with the wrist camera as a picture-in-picture in the top-right corner. Esc or the faded bar at the bottom leaves it (Pause / Reset stay on that bar).
 
 Safety check: `tests/test_scenarios.py::test_wrist_camera_never_rotates_underneath` fails if the camera ever swings under the gripper or dips below the table surface during a run.
+
+## Objects on the shelf
+
+Five objects only (`config/inventory.yaml`): **water_bottle** (300 ml PET, green cap), **black_tape** (electrical tape roll), **box_cutter** (blue snap-off cutter), plus the milk carton and the soup can (`alphabet_soup`). The three new ones are built from primitives in `assets/custom/` at real size and scaled to fit the racks and the gripper. The scripted pick/place is tuned for the soup can; the other four are shelf stock the robot works around, not yet pick targets.
+
+## Collisions
+
+`test_robot_does_not_pass_through_shelf_or_tray` measures every arm, gripper and camera part against the shelf boards and the tray during a shelf-to-tray run and a restock run and fails if anything sinks in by more than 5 mm. Two things were changed to make it pass: the shelf levels are 18 cm apart (the bar camera sits about 9 cm above the jaw axis), and the item is let go 5 cm above the tray floor so the gripper body stays over the near wall. The camera and bracket are still visual-only geoms (they do not push on anything), which is why this is measured rather than simulated.

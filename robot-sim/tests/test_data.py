@@ -17,14 +17,14 @@ def test_recorded_run_writes_episode(tmp_path, monkeypatch):
     monkeypatch.setattr(datalog, "RUNS_FILE", tmp_path / "runs.jsonl")
     model = mujoco.MjModel.from_xml_path(str(DEFAULT_SCENE))
     data = mujoco.MjData(model)
-    sc, p = SCENARIOS["shelf_to_tray"], Params(rack=(0, 1))
+    sc, p = SCENARIOS["shelf_to_tray"], Params(rack=(1, 0))
     reset_scene(model, data, sc, p)
     task = Task(model, data)
     task.run(0.5)
     assert datalog.run_recorded(task, sc, p, record_images=False)
 
     line = json.loads((tmp_path / "runs.jsonl").read_text().splitlines()[-1])
-    assert line["success"] and line["params"]["rack"] == [0, 1]
+    assert line["success"] and line["params"]["rack"] == [1, 0] and line["item"] == "water_bottle"
     ep = next((tmp_path / "episodes").iterdir())
     meta = json.loads((ep / "meta.json").read_text())
     assert meta["stages"] and meta["constants"]["pinch_z_m"] > 0

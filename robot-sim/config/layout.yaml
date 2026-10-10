@@ -15,11 +15,13 @@ table:
 
 # One cardboard cubby unit: 3 columns x 3 levels = 9 racks. board_heights are the top
 # surfaces of each level's floor; height is the top of the lid.
+# The racks are 18 cm apart (not 13) so the wrist camera, which sits about 9 cm above the jaw axis, fits under the board
+# above when the arm reaches in; at 13 cm the camera went through the board.
 shelf:
   width: 0.52
   depth: 0.18
-  height: 0.40
-  board_heights: [0.01, 0.14, 0.27]
+  height: 0.55
+  board_heights: [0.01, 0.19, 0.37]
   board_thickness: 0.01
   post_size: 0.008          # side-panel thickness (slot width = (width - 2 * post) / slots)
   lip_height: 0.0

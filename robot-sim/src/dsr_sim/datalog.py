@@ -67,14 +67,14 @@ class Recorder:
         self.task, self.scenario, self.params, self.images, self.hz = task, scenario, params, images, hz
         self.id = datetime.now().strftime("%Y%m%d-%H%M%S") + f"-{scenario.name}"
         self.dir = EPISODES_DIR / self.id
-        self.rows: dict[str, list] = {k: [] for k in ("t", "stage", "base_pose", "base_cmd", "joints_deg", "joints_cmd_deg", "item_pos", "jaw_centre", "weld")}
+        self.rows: dict[str, list] = {k: [] for k in ("t", "stage", "base_pose", "base_cmd", "joints_deg", "joints_cmd_deg", "item_pos", "jaw_centre")}
         self.stages: list[str] = []
         self.stage_t0: dict[str, float] = {}
         self._last = -1e9
         self._renderer = None
         self.n_frames = 0
         m = task.model
-        self._eq = m.equality(f"grip_weld_{W.ITEM}").id
+        self.item = W.target_item(scenario.name, params)
         self._joint_adr = [m.jnt_qposadr[m.joint(R.ARM_PREFIX + j).id] for j in ARM_JOINTS]
 
     def attach(self) -> None:
@@ -103,9 +103,8 @@ class Recorder:
         r["base_cmd"].append(task.robot.last_twist)
         r["joints_deg"].append(np.rad2deg(d.qpos[self._joint_adr]))
         r["joints_cmd_deg"].append([task.arm_cmd[j] for j in ARM_JOINTS])
-        r["item_pos"].append(task.item_pos(W.ITEM))
+        r["item_pos"].append(task.item_pos(self.item))
         r["jaw_centre"].append(task.jaw_centre())
-        r["weld"].append(int(d.eq_active[self._eq]))
         if self.images:
             self._save_frames(task)
 
@@ -122,7 +121,7 @@ class Recorder:
 
     def finish(self, ok: bool, sim_seconds: float, wall_seconds: float, log: list[str]) -> dict:
         self.dir.mkdir(parents=True, exist_ok=True)
-        arrays = {k: np.asarray(v, dtype=np.float32 if k != "stage" and k != "weld" else np.int16) for k, v in self.rows.items()}
+        arrays = {k: np.asarray(v, dtype=np.float32 if k != "stage" else np.int16) for k, v in self.rows.items()}
         np.savez_compressed(self.dir / "trajectory.npz", **arrays, stage_names=np.array(self.stages), joint_names=np.array(ARM_JOINTS))
         times = list(self.stage_t0.items()) + [("end", self.rows["t"][-1] if self.rows["t"] else 0.0)]
         stage_durations = {a: round(b[1] - a_t, 2) for (a, a_t), b in zip(times, times[1:])}
@@ -132,6 +131,7 @@ class Recorder:
             "scenario": self.scenario.name,
             "title": self.scenario.title,
             "params": self.params.as_dict(),
+            "item": self.item,
             "success": bool(ok),
             "sim_seconds": round(sim_seconds, 2),
             "wall_seconds": round(wall_seconds, 2),
@@ -140,7 +140,6 @@ class Recorder:
             "sample_hz": self.hz,
             "frames": self.n_frames,
             "notes": self.task.notes,
-            "grasp_assist": bool(self.params.assist),
             "constants": {
                 "gripper_open_deg": P.GRIPPER_OPEN_DEG,
                 "gripper_release_deg": P.GRIPPER_RELEASE_DEG,
@@ -158,7 +157,7 @@ class Recorder:
             "log": log,
         }
         (self.dir / "meta.json").write_text(json.dumps(meta, indent=1))
-        line = {k: meta[k] for k in ("id", "created", "scenario", "params", "success", "sim_seconds", "wall_seconds", "grasp_assist")}
+        line = {k: meta[k] for k in ("id", "created", "scenario", "item", "params", "success", "sim_seconds", "wall_seconds")}
         line["notes"] = meta["notes"]
         RUNS_FILE.parent.mkdir(parents=True, exist_ok=True)
         with RUNS_FILE.open("a") as fh:
@@ -274,10 +273,10 @@ def export_calibration(model: mujoco.MjModel | None = None, path: Path = CALIBRA
         },
         "item": {"name": W.ITEM, "radius_m": W.ITEM_RADIUS, "half_height_m": S.ITEM_HALF_HEIGHT, "mass_kg": item_mass, "friction": "default 1.0 sliding"},
         "sim_only_assumptions": [
-            "grasp assist (weld) carries the item when enabled; friction grip quality is NOT validated",
+            "items are held by contact and friction only (no weld, no ghost jaws); grip quality still depends on rigid-body contact, not real material compliance",
             "mecanum wheels slip and roller dynamics are not modelled",
             "camera images are rendered, not real sensor images",
-            "jaw collision geometry is the stock SO-101 convex hulls",
+            "arm collision geometry is a convex decomposition of the SO-101 CAD meshes; 7 link pairs that overlap in the folded rest pose have contact disabled",
         ],
     }
     path.parent.mkdir(parents=True, exist_ok=True)

@@ -47,7 +47,7 @@ VIEWS = {
 }
 
 
-_JAW_GEOMS: dict[int, list[tuple[int, int, int]]] = {}  # model id -> jaw collision geoms and their original filters
+_ITEM_BOX: dict[tuple[int, str], tuple[np.ndarray, np.ndarray]] = {}  # (model id, item) -> local box centre, half extents
 
 
 class Restart(Exception):
@@ -107,8 +107,6 @@ class Task:
         self.stage = ""  # current stage label, for recordings
         self.notes: dict = {}  # measured/chosen values worth logging (headings, reaches, offsets...)
         self.last_ik = {"err": 0.0, "tilt": 0.0}
-        self.attached: str | None = None
-        self.assist = True  # grasp assist (weld) on/off; set from the run parameters
 
     def say(self, message: str, stage: str | None = None) -> None:
         """Print a progress line and (optionally) mark the current stage for recordings."""
@@ -310,66 +308,45 @@ class Task:
                 return reach
         return None
 
-    def set_assist(self, on: bool) -> None:
-        """Grasp assist on/off.
-
-        On: items are carried by a weld constraint (see attach) and the jaws are 'ghosts' to items - they no
-        longer collide with them - so a released item is never dragged out by a finger. This models a good,
-        clean grasp; it says nothing about friction grip quality.
-        Off: full contact physics between jaws and items (fragile with this gripper and a 5 cm can).
-        """
-        self.assist = on
-        m = self.model
-        geoms = _JAW_GEOMS.get(id(m))
-        if geoms is None:  # remember the original collision filters the first time
-            geoms = []
-            for body in (ARM_PREFIX + "gripper", ARM_PREFIX + "moving_jaw_so101_v1"):
-                bid = m.body(body).id
-                geoms += [(g, int(m.geom_contype[g]), int(m.geom_conaffinity[g])) for g in range(m.ngeom) if m.geom_bodyid[g] == bid and m.geom_contype[g]]
-            _JAW_GEOMS[id(m)] = geoms
-        for g, ct, ca in geoms:
-            m.geom_contype[g], m.geom_conaffinity[g] = (2, 2) if on else (ct, ca)
-
     def jaw_centre(self, pinch: float = PINCH_Z) -> np.ndarray:
         d = self.data
         return d.site_xpos[self.site] + d.site_xmat[self.site].reshape(3, 3)[:, 2] * pinch
-
-    def attach(self, name: str, max_distance: float = 0.06) -> bool:
-        """Grasp assist: weld the item to the gripper, but only if the jaws are really around it.
-
-        Returns False (and attaches nothing) if the item is not within `max_distance` of the jaw centre.
-        """
-        m, d = self.model, self.data
-        if np.linalg.norm(self.item_pos(name) - self.jaw_centre()) > max_distance:
-            return False
-        eq = m.equality(f"grip_weld_{name}").id
-        g, it = m.body(ARM_PREFIX + "gripper").id, m.body(f"item_{name}").id
-        r1 = d.xmat[g].reshape(3, 3)
-        rel_pos = r1.T @ (d.xpos[it] - d.xpos[g])
-        q_inv = np.zeros(4)
-        mujoco.mju_negQuat(q_inv, d.xquat[g])
-        rel_quat = np.zeros(4)
-        mujoco.mju_mulQuat(rel_quat, q_inv, d.xquat[it])
-        m.eq_data[eq, :3] = 0.0  # anchor: origin of body2
-        m.eq_data[eq, 3:6] = rel_pos
-        m.eq_data[eq, 6:10] = rel_quat
-        d.eq_active[eq] = 1
-        self.attached = name
-        return True
-
-    def detach(self) -> None:
-        name = getattr(self, "attached", None)
-        if name:
-            self.data.eq_active[self.model.equality(f"grip_weld_{name}").id] = 0
-            self.attached = None
 
     def return_to_start(self) -> None:
         """Fold the arm and drive back to the starting pose."""
         self.move_arm(dict(zip(ARM_JOINTS, (0, -100, 95, 65, 0, 0))), 1.0)
         self.drive_to(*self.start_pose, speed=0.35)
 
+    def _item_box(self, name: str) -> tuple[np.ndarray, np.ndarray]:
+        """(centre, half extents) of the item's collision geoms in the item body's own frame (cached).
+
+        Item models put their origin wherever the asset author liked (the soup can's is its middle, the water
+        bottle's is its base), so grasp heights are measured from this box centre, not from the origin."""
+        key = (id(self.model), name)
+        box = _ITEM_BOX.get(key)
+        if box is None:
+            m, d = self.model, self.data
+            body = m.body(f"item_{name}").id
+            rot, origin = d.xmat[body].reshape(3, 3), d.xpos[body]
+            lo, hi = np.full(3, np.inf), np.full(3, -np.inf)
+            for g in range(m.ngeom):
+                if m.body_rootid[m.geom_bodyid[g]] != body or not (m.geom_contype[g] or m.geom_conaffinity[g]):
+                    continue
+                centre, half = m.geom_aabb[g, :3], m.geom_aabb[g, 3:]
+                corners = np.array([[sx, sy, sz] for sx in (-1, 1) for sy in (-1, 1) for sz in (-1, 1)]) * half + centre
+                world = corners @ d.geom_xmat[g].reshape(3, 3).T + d.geom_xpos[g]
+                local = (world - origin) @ rot  # rot.T @ (p - origin) for each row
+                lo, hi = np.minimum(lo, local.min(0)), np.maximum(hi, local.max(0))
+            box = _ITEM_BOX[key] = ((lo + hi) / 2, (hi - lo) / 2)
+        return box
+
     def item_pos(self, name: str) -> np.ndarray:
-        return self.data.xpos[self.model.body(f"item_{name}").id].copy()
+        """World position of the item's centre (middle of its collision box)."""
+        body = self.model.body(f"item_{name}").id
+        return self.data.xpos[body] + self.data.xmat[body].reshape(3, 3) @ self._item_box(name)[0]
+
+    def item_half_height(self, name: str) -> float:
+        return float(self._item_box(name)[1][2])
 
 
 def _viewer_keys(holder: dict, control: RunControl):

@@ -14,9 +14,10 @@ DEFAULT_SCENE = ASSETS_DIR / "scene.xml"
 ITEM_SOURCES = {
     "hope": "hope/{asset}/{asset}.xml",
     "ycb": "ycb/YCB_sim/qc_{asset}.xml",
+    "custom": "../custom/{asset}/{asset}.xml",  # our own real-size objects, assets/custom/
 }
 # HOPE objects are toy-sized groceries; scale them up to retail size by default.
-SOURCE_DEFAULT_SCALE = {"hope": 1.5, "ycb": 1.0}
+SOURCE_DEFAULT_SCALE = {"hope": 1.5, "ycb": 1.0, "custom": 1.0}
 ITEM_SCALE_RANGE = (0.2, 5.0)
 
 # Physics
