@@ -45,10 +45,10 @@ def test_qc_robot_failure_and_wrong_bay_fail():
 
 
 # ---------------- end-to-end workflow ----------------
-def make_client(db_path, anomaly_rate=0.0) -> tuple[TestClient, Services]:
+def make_client(db_path, anomaly_rate=0.0, camera=None) -> tuple[TestClient, Services]:
     repo = Repository(Database(db_path))
     catalog = load_catalog(settings.inventory_path)
-    camera = CameraService(index=99)  # never started: tests must not grab the real camera
+    camera = camera or CameraService(index=99)  # never started: tests must not grab the real camera
     scenario = SimulationScenario(anomaly_rate, seed=1)
     robot = SimulatedRobotAdapter(scenario, speed=200)
     engine = WorkflowEngine(repo, catalog, robot, SimulatedSensorHub(scenario), camera, db_path.parent / "ev")
@@ -140,3 +140,41 @@ def test_stop_pause_and_validation(tmp_path):
         assert client.post("/api/orders", json={"items": [{"sku": "nope"}]}).status_code == 422
         assert client.get("/api/orders/ORD-1").status_code == 404
         assert client.get("/api/camera/stream").status_code == 503
+
+
+def test_remote_camera_ingest(tmp_path):
+    import cv2
+    import numpy as np
+    from starlette.websockets import WebSocketDisconnect
+
+    camera = CameraService(index=0, source="remote", ingest_token="s3cret")
+    client, _ = make_client(tmp_path / "t.db", camera=camera)
+    jpeg = cv2.imencode(".jpg", np.full((48, 64, 3), 128, np.uint8))[1].tobytes()
+    auth = {"Authorization": "Bearer s3cret"}
+    with client:
+        with pytest.raises(WebSocketDisconnect):  # wrong token: refused at handshake
+            with client.websocket_connect("/api/camera/ingest", headers={"Authorization": "Bearer nope"}):
+                pass
+        with client.websocket_connect("/api/camera/ingest", headers=auth) as ws:  # capture stopped
+            assert ws.receive()["code"] == 1013
+
+        camera.start()
+        assert camera.status()["state"] == "connecting"
+        with client.websocket_connect("/api/camera/ingest", headers=auth) as ws:
+            ws.send_bytes(b"not a jpeg")
+            ws.send_bytes(jpeg)
+            for _ in range(50):
+                if camera.is_streaming:
+                    break
+                time.sleep(0.02)
+            st = client.get("/api/camera/status").json()
+            assert st["state"] == "streaming" and (st["width"], st["height"]) == (64, 48)
+            assert st["frames"] == 1 and st["backend"] == "remote"
+            assert camera.latest_jpeg() == jpeg
+            with client.websocket_connect("/api/camera/ingest", headers=auth) as ws2:  # one sender only
+                assert ws2.receive()["code"] == 1013
+        for _ in range(50):
+            if camera.status()["state"] == "error":
+                break
+            time.sleep(0.02)
+        assert "disconnected" in camera.status()["error"]

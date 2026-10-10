@@ -30,6 +30,7 @@ def build_services(db_path=None) -> Services:
     camera = CameraService(
         settings.camera_index, settings.resolved_camera_backend, settings.camera_width,
         settings.camera_height, settings.camera_fps, settings.camera_jpeg_quality, settings.camera_overlay,
+        source=settings.camera_source, ingest_token=settings.camera_ingest_token,
     )
     if settings.robot_adapter != "simulated":
         raise RuntimeError(f"ROBOT_ADAPTER={settings.robot_adapter!r} is not implemented; only 'simulated' exists")

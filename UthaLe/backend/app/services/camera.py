@@ -7,6 +7,10 @@ device is opened exactly once no matter how many browsers are watching.
 If the device can't be opened or stops delivering frames, the thread releases it
 and retries with backoff; status reports the error. Nothing here ever fabricates
 frames: no camera means no stream.
+
+With source="remote" there is no local device: a sender (the Raspberry Pi script in
+pi-streamer/) pushes JPEG frames over a WebSocket (/api/camera/ingest) and they land
+in the same shared buffer, so the stream, status and QC evidence work unchanged.
 """
 
 from __future__ import annotations
@@ -19,6 +23,7 @@ from datetime import UTC, datetime
 
 import asyncio
 import cv2
+import numpy as np
 
 log = logging.getLogger(__name__)
 
@@ -33,6 +38,7 @@ _BACKENDS = {
 MAX_CONSECUTIVE_READ_FAILURES = 15
 RETRY_BACKOFF_S = (1.0, 2.0, 4.0, 8.0)
 STALE_FRAME_S = 3.0
+MAX_REMOTE_FRAME_BYTES = 4 * 1024 * 1024
 
 
 def _iso(ts: float) -> str:
@@ -41,9 +47,12 @@ def _iso(ts: float) -> str:
 
 class CameraService:
     def __init__(self, index: int, backend: str = "any", width: int = 1280, height: int = 720,
-                 fps: int = 15, jpeg_quality: int = 80, overlay: bool = True):
+                 fps: int = 15, jpeg_quality: int = 80, overlay: bool = True,
+                 source: str = "usb", ingest_token: str = ""):
         self.index = index
-        self.backend_name = backend if backend in _BACKENDS else "any"
+        self.source = "remote" if source == "remote" else "usb"
+        self.ingest_token = ingest_token
+        self.backend_name = "remote" if self.source == "remote" else (backend if backend in _BACKENDS else "any")
         self.req_width, self.req_height, self.req_fps = width, height, fps
         self.jpeg_quality = jpeg_quality
         self.overlay = overlay
@@ -61,9 +70,18 @@ class CameraService:
         self._size: tuple[int, int] | None = None
         self._fps_measured: float | None = None
         self._clients = 0
+        self._fps_window: list[float] = []
+        self._remote_enabled = False   # capture "started" in remote mode
+        self._remote_attached = False  # a sender is connected (only one at a time)
 
     # ---------------- lifecycle ----------------
     def start(self) -> None:
+        if self.is_remote:
+            with self._lock:
+                self._remote_enabled = True
+                if not self._remote_attached:
+                    self._state, self._error = "connecting", None
+            return
         with self._lock:
             if self._thread and self._thread.is_alive():
                 return
@@ -74,6 +92,7 @@ class CameraService:
 
     def stop(self, timeout: float = 3.0) -> None:
         """Stop capturing and release the device (so other apps can use it)."""
+        self._remote_enabled = False  # a connected remote sender is dropped on its next frame
         self._stop.set()
         thread = self._thread
         if thread and thread.is_alive():
@@ -89,6 +108,9 @@ class CameraService:
         self.stop()
 
     def set_index(self, index: int) -> None:
+        if self.is_remote:
+            self.index = index  # no local device to reopen
+            return
         was_running = self._thread is not None and self._thread.is_alive()
         self.stop()
         self.index = index
@@ -138,7 +160,6 @@ class CameraService:
         failures = 0
         min_interval = 1.0 / max(self.req_fps, 1)
         last_emit = 0.0
-        fps_window: list[float] = []
         encode = [int(cv2.IMWRITE_JPEG_QUALITY), self.jpeg_quality]
         while not self._stop.is_set():
             ok, frame = cap.read()
@@ -159,15 +180,18 @@ class CameraService:
             ok, buf = cv2.imencode(".jpg", frame, encode)
             if not ok:
                 continue
-            fps_window = [t for t in fps_window if now - t < 2.0] + [now]
-            with self._lock:
-                self._jpeg = buf.tobytes()
-                self._frame_id += 1
-                self._last_frame_ts = now
-                self._size = (frame.shape[1], frame.shape[0])
-                self._fps_measured = round((len(fps_window) - 1) / max(now - fps_window[0], 1e-6), 1) \
-                    if len(fps_window) > 1 else None
-                self._state, self._error = "streaming", None
+            self._publish(buf.tobytes(), (frame.shape[1], frame.shape[0]), now)
+
+    def _publish(self, jpeg: bytes, size: tuple[int, int], now: float) -> None:
+        with self._lock:
+            self._fps_window = [t for t in self._fps_window if now - t < 2.0] + [now]
+            w = self._fps_window
+            self._jpeg = jpeg
+            self._frame_id += 1
+            self._last_frame_ts = now
+            self._size = size
+            self._fps_measured = round((len(w) - 1) / max(now - w[0], 1e-6), 1) if len(w) > 1 else None
+            self._state, self._error = "streaming", None
 
     def _draw_overlay(self, frame, now: float) -> None:
         text = f"UthaLe CAM{self.index}  {datetime.fromtimestamp(now).strftime('%Y-%m-%d %H:%M:%S')}"
@@ -181,6 +205,46 @@ class CameraService:
             if state != "streaming":
                 self._jpeg = None
                 self._fps_measured = None
+
+    # ---------------- remote source ----------------
+    @property
+    def is_remote(self) -> bool:
+        return self.source == "remote"
+
+    def attach_remote(self) -> str | None:
+        """Claim the single sender slot. Returns a refusal reason, or None if attached."""
+        with self._lock:
+            if not self._remote_enabled:
+                return "Camera capture is stopped on the dashboard"
+            if self._remote_attached:
+                return "Another camera sender is already connected"
+            self._remote_attached = True
+            self._state, self._error = "connecting", None
+            return None
+
+    def detach_remote(self, reason: str) -> None:
+        with self._lock:
+            self._remote_attached = False
+            self._jpeg, self._fps_measured = None, None
+            if self._remote_enabled:
+                self._state, self._error = "error", f"Remote camera disconnected ({reason}). Waiting for it to reconnect…"
+            else:
+                self._state, self._error = "stopped", None
+
+    def push_frame(self, jpeg: bytes) -> bool:
+        """Accept one JPEG from the remote sender. False means the sender should disconnect.
+
+        Every frame is decoded once, so only real JPEG images ever reach viewers or QC evidence.
+        """
+        if not self._remote_enabled:
+            return False
+        if len(jpeg) > MAX_REMOTE_FRAME_BYTES:
+            return True  # drop oversized frame, keep the connection
+        img = cv2.imdecode(np.frombuffer(jpeg, np.uint8), cv2.IMREAD_COLOR)
+        if img is None:
+            return True  # not a decodable JPEG; drop it
+        self._publish(jpeg, (img.shape[1], img.shape[0]), time.time())
+        return True
 
     # ---------------- consumers ----------------
     def status(self) -> dict:

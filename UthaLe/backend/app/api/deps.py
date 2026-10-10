@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from fastapi import Request
+from starlette.requests import HTTPConnection
 
 from app.models.schemas import CatalogItem
 from app.repository import Repository
@@ -18,5 +18,5 @@ class Services:
     catalog: dict[str, CatalogItem]
 
 
-def services(request: Request) -> Services:
-    return request.app.state.services
+def services(conn: HTTPConnection) -> Services:  # works for HTTP and WebSocket routes
+    return conn.app.state.services
