@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import RobotScene from '../components/RobotScene'
+import RobotSketch from '../components/RobotSketch'
+import Solution, { Problem } from '../components/Solution'
 import ThemeToggle from '../components/ThemeToggle'
 import { useResolvedTheme } from '../lib/theme'
 import { ARM_POSE, type Focus } from '../lib/story'
@@ -62,21 +64,26 @@ const SECTIONS: { id: Focus; fig: string; label: string; title: [string, string]
   },
 ]
 
+// The 3D intro section is #robot in the page but drives the scene's 'hero' camera preset.
+const focusOf = (id: string): Focus => (id === 'robot' ? 'hero' : (id as Focus))
+
 export default function Home() {
   const [focus, setFocus] = useState<Focus>('hero')
   const theme = useResolvedTheme()
 
   useEffect(() => {
-    const els = ['hero', ...SECTIONS.map((s) => s.id)].map((id) => document.getElementById(id)!)
+    const els = ['robot', ...SECTIONS.map((s) => s.id)].map((id) => document.getElementById(id)!)
     const io = new IntersectionObserver(
       (entries) => {
-        for (const e of entries) if (e.isIntersecting) setFocus(e.target.id as Focus)
+        for (const e of entries) if (e.isIntersecting) setFocus(focusOf(e.target.id))
       },
       { rootMargin: '-45% 0px -45% 0px' },
     )
     els.forEach((el) => el && io.observe(el))
     return () => io.disconnect()
   }, [])
+
+  const current = SECTIONS.find((s) => s.id === focus)
 
   return (
     <div className="landing">
@@ -88,103 +95,113 @@ export default function Home() {
           UthaLe
         </span>
         <nav>
-          <a href="#base">Base</a>
-          <a href="#arm">Arm</a>
-          <a href="#eyes">Camera</a>
-          <a href="#brain">Brain</a>
+          <a href="#problem">Problem</a>
+          <a href="#robot">Robot</a>
+          <a href="#solution">How it works</a>
+          <a href="#features">Features</a>
+          <a href="#pricing">Pricing</a>
           <ThemeToggle />
           <Link className="cta primary sm" to="/model">
-            Drive it
+            Play
           </Link>
         </nav>
       </header>
 
-      <div className="stage" aria-hidden>
-        <RobotScene twist={STILL} joints={ARM_POSE[focus]} story={{ focus }} theme={theme} />
-        <div className="stage-foot">
-          <span>FIG. {focus === 'hero' ? '00' : SECTIONS.find((s) => s.id === focus)!.fig} / {focus === 'hero' ? 'Overview' : SECTIONS.find((s) => s.id === focus)!.label}</span>
-          <span>PROTOTYPE · PLACEMENT ILLUSTRATIVE</span>
-        </div>
+      <div className="details">
+        <section className="intro">
+          <div className="intro-copy">
+            <p className="eyebrow">For quick-commerce dark stores</p>
+            <h1>
+              Ten-minute delivery.
+              <br />
+              <span className="muted">Still picked by hand.</span>
+            </h1>
+            <p className="sub">
+              In a dark store, every item of every order is walked to, picked and packed by a person. UthaLe is a mobile picking robot built to take the picks off their hands.
+            </p>
+            <div className="buttons">
+              <a className="cta primary" href="#problem">
+                See the problem
+              </a>
+              <a className="cta ghost" href="#robot">
+                Meet the robot
+              </a>
+            </div>
+            <dl className="proof">
+              <div className="glass">
+                <dt>4</dt>
+                <dd>mecanum wheels</dd>
+              </div>
+              <div className="glass">
+                <dt>6</dt>
+                <dd>arm joints</dd>
+              </div>
+              <div className="glass">
+                <dt>1</dt>
+                <dd>camera at the gripper</dd>
+              </div>
+            </dl>
+          </div>
+          <div className="intro-art glass">
+            <RobotSketch />
+          </div>
+        </section>
+
+        <Problem />
       </div>
 
-      <main className="story">
-        <section id="hero" className="panel-hero">
-          <p className="eyebrow">A mobile picker for quick-commerce dark stores</p>
-          <h1>
-            Stop walking the aisles.
-            <br />
-            <span className="muted">Let the robot find it.</span>
-          </h1>
-          <p className="sub">
-            A compact mecanum-base robot with an SO-101 arm and a wrist camera. It reads the shelf, spots what is out of place, and learns to pick it up.
-          </p>
-          <div className="buttons">
-            <Link className="cta primary" to="/model">
-              Drive the robot
-            </Link>
-            <a className="cta ghost" href="#base">
-              How it is built
-            </a>
+      <div className="story-wrap">
+        <div className="stage" aria-hidden>
+          <RobotScene twist={STILL} joints={ARM_POSE[focus]} story={{ focus }} theme={theme} />
+          <div className="stage-foot">
+            <span>FIG. {current ? current.fig : '00'} / {current ? current.label : 'Overview'}</span>
+            <span>PILOT HARDWARE · PLACEMENT ILLUSTRATIVE</span>
           </div>
-          <dl className="proof">
-            <div className="glass">
-              <dt>4</dt>
-              <dd>mecanum wheels</dd>
-            </div>
-            <div className="glass">
-              <dt>6</dt>
-              <dd>arm joints</dd>
-            </div>
-            <div className="glass">
-              <dt>2</dt>
-              <dd>cameras</dd>
-            </div>
-          </dl>
-          <p className="built">Built with LeRobot · ROS 2 · Raspberry Pi</p>
-        </section>
+        </div>
 
-        {SECTIONS.map((s) => (
-          <section key={s.id} id={s.id} className="step">
-            <p className="eyebrow mono">
-              {s.fig} / {s.label.toUpperCase()}
-            </p>
+        <main className="story">
+          <section id="robot" className="panel-hero">
+            <p className="eyebrow">Meet UthaLe</p>
             <h2>
-              {s.title[0]}
+              One robot. Four parts.
               <br />
-              <span className="muted">{s.title[1]}</span>
+              <span className="muted">Scroll to take it apart.</span>
             </h2>
-            <p className="sub">{s.body}</p>
-            <div className="specs-card glass">
-              <table className="specs">
-                <tbody>
-                  {s.specs.map(([k, v]) => (
-                    <tr key={k}>
-                      <th>{k}</th>
-                      <td>{v}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <p className="sub">
+              A compact mecanum base, an SO-101 arm, a camera at the gripper and a Raspberry Pi. Every part is off-the-shelf or 3D-printed.
+            </p>
+            <p className="built">Built with LeRobot · ROS 2 · Raspberry Pi</p>
           </section>
-        ))}
 
-        <section className="step end">
-          <h2>
-            Drive it yourself.
-            <br />
-            <span className="muted">Move the base. Pose the arm.</span>
-          </h2>
-          <div className="buttons">
-            <Link className="cta primary" to="/model">
-              Open the 3D model
-            </Link>
-          </div>
-          <p className="fineprint">
-            Camera and computer placement are illustrative while the build is in progress. Built at the Awign Physical AI Hackathon, Bengaluru, 10–11 Oct 2026.
-          </p>
-        </section>
-      </main>
+          {SECTIONS.map((s) => (
+            <section key={s.id} id={s.id} className="step">
+              <p className="eyebrow mono">
+                {s.fig} / {s.label.toUpperCase()}
+              </p>
+              <h2>
+                {s.title[0]}
+                <br />
+                <span className="muted">{s.title[1]}</span>
+              </h2>
+              <p className="sub">{s.body}</p>
+              <div className="specs-card glass">
+                <table className="specs">
+                  <tbody>
+                    {s.specs.map(([k, v]) => (
+                      <tr key={k}>
+                        <th>{k}</th>
+                        <td>{v}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          ))}
+        </main>
+      </div>
+
+      <Solution />
     </div>
   )
 }
