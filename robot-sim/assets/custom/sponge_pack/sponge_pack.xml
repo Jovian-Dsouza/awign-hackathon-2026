@@ -1,0 +1,17 @@
+<mujoco model="sponge_pack">
+  <!-- Savemore Sponge Scrub, pack of 2 pads in film, standing on its long edge so the jaws pinch the 4.6 cm thickness. Real size in metres, z up: 4.6 cm (x) x 11 cm (y) x 7 cm (z), plus crimped end seals. Label faces +x/-x. -->
+  <asset>
+    <texture name="tex" type="2d" file="sponge_pack.png"/>
+    <material name="mat" texture="tex" specular="0.25" shininess="0.35"/>
+    <mesh name="shape" file="sponge_pack.obj"/>
+  </asset>
+  <worldbody>
+    <body>
+      <body name="object">
+        <geom name="body" type="mesh" mesh="shape" material="mat" density="250" friction="0.9 0.3 0.1"/>
+        <geom name="seal_a" type="box" pos="0 0.0625 0.035" size="0.0015 0.0075 0.030" contype="0" conaffinity="0" group="2" mass="0.0001" rgba="0.80 0.78 0.16 1"/>
+        <geom name="seal_b" type="box" pos="0 -0.0625 0.035" size="0.0015 0.0075 0.030" contype="0" conaffinity="0" group="2" mass="0.0001" rgba="0.12 0.55 0.22 1"/>
+      </body>
+    </body>
+  </worldbody>
+</mujoco>

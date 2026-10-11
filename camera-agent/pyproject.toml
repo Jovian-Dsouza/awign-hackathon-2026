@@ -1,0 +1,20 @@
+[project]
+name = "camera-agent"
+version = "0.1.0"
+description = "Tiny camera streamer: pushes a USB/RTSP/file camera to Overwatch (directly, or through UthaLe) over a WebSocket"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "opencv-python-headless>=4.9",
+    "websockets>=13",
+]
+
+[project.scripts]
+camera-agent = "camera_agent.agent:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/camera_agent"]

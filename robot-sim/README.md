@@ -44,7 +44,7 @@ Native-window keys: `1` / `2` run a simulation, `Space` start/pause, `R` reset.
 | # | Name | What happens |
 |---|---|---|
 | 1 | `shelf_to_tray` | Pick the item out of the rack you choose and carry it across the table to the drop tray. |
-| 2 | `restock_misplaced` | The item was left somewhere on the table instead of its rack: pick it up and put it back in a rack. |
+| 2 | `restock_misplaced` | The Happydent pot was left somewhere on the table instead of its rack: pick it up and put it back in a rack. |
 
 Command line: `uv run dsr-run --list`, `uv run dsr-run --task 2 --item-xy 0.5 -0.2 --dest-rack 1 2 --headless`,
 `uv run dsr-run --task 1 --rack 2 0 --headless`. Add `--record` to save the run.
@@ -77,8 +77,8 @@ Honest limits you will see in the sim:
 
 | Item | Result |
 |---|---|
-| soup can, water bottle, milk carton | picked from their racks and carried to the tray by friction |
-| black tape (14 mm), box cutter (9 mm) | **fail**: lying flat, they are thinner than the fingers plus the body clearance, and the run says so |
+| soup can, Happydent Wave pot, Savemore sponge pack, milk carton | picked from their racks and carried to the tray by friction |
+| box cutter (9 mm) | **fails**: lying flat, it is thinner than the fingers plus the body clearance, and the run says so |
 
 Contacts are still soft (about 1 mm penetration on the item) and items are rigid, so this is a better upper bound
 than a weld, not a measurement of real pad grip.
@@ -121,9 +121,18 @@ The page shows two live panels: the **environment** (drag to orbit, scroll to zo
 
 Safety check: `tests/test_scenarios.py::test_wrist_camera_never_rotates_underneath` fails if the camera ever swings under the gripper or dips below the table surface during a run.
 
+## Grasp height and the wrist-camera view (restock run)
+
+The pot is gripped near its cap, as in the real recordings (`GRIP_BELOW_TOP`): the cap then sits about 10 cm from the wrist
+camera and fills roughly 40-50% of the frame, like `data/real`. Gripped at mid-height it is 3 cm from the lens and fills the
+whole view. The grip is capped so that the wrist camera (9 cm above the jaw axis) still fits under the board above the
+destination rack (`max_jaw_above_base`) and so that the arm holds it (`ARM_MAX_JAW_Z`, the top rack). In a rack pick
+(shelf to tray) the board above forces a mid-height grip, so those views stay close-up. The rover plans around a tall item
+standing on the table (`AVOID_TALL_RADIUS`); it still drives over short ones.
+
 ## Objects on the shelf
 
-Five objects only (`config/inventory.yaml`): **water_bottle** (300 ml PET, green cap), **black_tape** (electrical tape roll), **box_cutter** (blue snap-off cutter), plus the milk carton and the soup can (`alphabet_soup`). The three new ones are built from primitives in `assets/custom/` at real size and scaled to fit the racks and the gripper. The scripted pick/place is tuned for the soup can; the other four are shelf stock the robot works around, not yet pick targets.
+Five objects only (`config/inventory.yaml`): the two real products the team bought, **happydent_wave** (Happydent Wave sugar-free gum pot, 4.3 x 3.2 x 8.8 cm, the item the real ACT demos were recorded with) and **sponge_pack** (Savemore Sponge Scrub, 2 pads, standing on its long edge: 4.6 x 11 x 7 cm), plus **box_cutter**, the milk carton and the soup can (`alphabet_soup`). The two products are real size, textured from photos by `scripts/build_item_assets.py` (`--photos <dir>` with the four product photos); the jaws pinch the item's x axis (4.3/3.2 cm for the pot, the 4.6 cm thickness for the sponge pack). The scripted pick/place was tuned on the soup can; the restock run now handles the Happydent pot (it is the item the real demos picked).
 
 ## Collisions
 

@@ -1,0 +1,15 @@
+<mujoco model="happydent_wave">
+  <!-- Happydent Wave sugar-free gum pot (pink, hinged cap), real size in metres, z up: 4.3 cm (y, label face) x 3.2 cm (x) x 8.8 cm. Label faces +x. -->
+  <asset>
+    <texture name="tex" type="2d" file="happydent_wave.png"/>
+    <material name="mat" texture="tex" specular="0.25" shininess="0.35"/>
+    <mesh name="shape" file="happydent_wave.obj"/>
+  </asset>
+  <worldbody>
+    <body>
+      <body name="object">
+        <geom name="body" type="mesh" mesh="shape" material="mat" density="500" friction="0.9 0.3 0.1"/>
+      </body>
+    </body>
+  </worldbody>
+</mujoco>

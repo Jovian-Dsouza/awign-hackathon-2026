@@ -24,7 +24,7 @@ def test_recorded_run_writes_episode(tmp_path, monkeypatch):
     assert datalog.run_recorded(task, sc, p, record_images=False)
 
     line = json.loads((tmp_path / "runs.jsonl").read_text().splitlines()[-1])
-    assert line["success"] and line["params"]["rack"] == [1, 0] and line["item"] == "water_bottle"
+    assert line["success"] and line["params"]["rack"] == [1, 0] and line["item"] == "happydent_wave"
     ep = next((tmp_path / "episodes").iterdir())
     meta = json.loads((ep / "meta.json").read_text())
     assert meta["stages"] and meta["constants"]["pinch_z_m"] > 0

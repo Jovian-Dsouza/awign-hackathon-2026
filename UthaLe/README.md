@@ -110,6 +110,22 @@ puts the order in `exception`.
 - **Sensors**: implement `SensorHub.read_placement()` for the real NFC reader and
   load cell. Return `source: "hardware"` so the UI drops the SIM labels.
 
+## External monitor camera (Overwatch)
+
+A second, fixed camera watches the arena for mistakes (dropped items, spills, camera faults) and a
+decision model triages them; the admin approves what the robot may do. It runs as its own service
+(`../overwatch`) and appears on the **Live robot** page as the *External monitor* panel. Incidents also land in
+the activity feed. The backend exposes it under `/api/monitor/*` (status, stream, incidents, verdicts),
+relays a remote `camera-agent` at `/api/monitor/ingest`, and receives alerts at `/api/monitor/webhook`.
+
+```
+MONITOR_URL=http://127.0.0.1:8010        # where Overwatch runs
+MONITOR_INGEST_TOKEN=<long random>       # shared with Overwatch; empty = relay + webhook refused
+```
+
+Restart the backend after pulling this. If Overwatch is not running the panel says so and shows no footage.
+Full details: [`../overwatch/README.md`](../overwatch/README.md).
+
 ## Camera troubleshooting
 
 - **Find the index.** Run this with the backend stopped, or after clicking *Stop & release*:

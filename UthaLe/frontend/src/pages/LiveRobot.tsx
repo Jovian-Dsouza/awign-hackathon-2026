@@ -1,6 +1,7 @@
 import { Activity, Route } from 'lucide-react'
 import { ActivityFeed } from '../components/ActivityFeed'
 import { CameraFeed } from '../components/CameraFeed'
+import { MonitorFeed } from '../components/MonitorFeed'
 import { RobotControls } from '../components/RobotControls'
 import { RobotStatusCard } from '../components/RobotStatusCard'
 import { TaskList } from '../components/TaskList'
@@ -26,6 +27,7 @@ export function LiveRobotPage() {
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
         <div className="min-w-0 space-y-4 xl:col-span-8">
           <CameraFeed tall />
+          <MonitorFeed />
           <Panel icon={Route} title={orderId ? `Current mission · ${orderId}` : 'Current mission'}
             subtitle={mission.data ? `${mission.data.items.length} line(s) → ${mission.data.destination}` : undefined}
             bodyClass="p-0">

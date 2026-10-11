@@ -9,6 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import camera as camera_api
+from app.api import monitor as monitor_api
 from app.api import operations
 from app.api.deps import Services
 from app.config import settings
@@ -72,6 +73,7 @@ def create_app(svc: Services | None = None) -> FastAPI:
                 "robot_adapter": s.engine.robot.adapter_name, "simulated": s.engine.robot.simulated}
 
     app.include_router(camera_api.router)
+    app.include_router(monitor_api.router)
     app.include_router(operations.router)
     return app
 
